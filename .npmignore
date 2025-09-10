@@ -1,0 +1,8 @@
+# Test files
+__tests__/
+
+# Local config
+.spacecleanerrc
+
+# Project setup files
+req.md

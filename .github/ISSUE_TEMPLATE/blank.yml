@@ -1,0 +1,9 @@
+name: Blank Issue
+description: For issues that don't fit any other template.
+body:
+  - type: textarea
+    attributes:
+      label: Issue
+      description: Please describe the issue.
+    validations:
+      required: true

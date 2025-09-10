@@ -1,0 +1,12 @@
+# Lines starting with # are comments
+# Add glob patterns or directory names to ignore
+
+# Example: ignore a specific project
+my-important-project/
+
+# Example: ignore all files in a directory named 'vendor'
+**/vendor/**
+
+ignore=node_modules,test,__tests__,.gitignore,.npmignore
+warnThreshold=80%
+deleteWithoutPrompt=false
