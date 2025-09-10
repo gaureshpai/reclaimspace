@@ -1,0 +1,5 @@
+RRRRR  EEEEE  CCCCC L     AAAAA III  M   M SSSSS PPPPP  AAAAA  CCCCC EEEEE
+R    R E     C      L     A   A  I   MM MM S     P    P A   A C      E
+RRRRR  EEEE  C      L     AAAAA  I   M M M  SSS  PPPPP  AAAAA C      EEEE
+R  R   E     C      L     A   A  I   M   M     S P      A   A C      E
+R   R  EEEEE  CCCCC LLLLL A   A III  M   M SSSSS P      A   A  CCCCC EEEEE
