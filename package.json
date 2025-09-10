@@ -21,6 +21,23 @@
   ],
   "author": "gaureshpai",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gaureshpai/reclaimspace.git"
+  },
+  "homepage": "https://github.com/gaureshpai/reclaimspace#readme",
+  "bugs": {
+    "url": "https://github.com/gaureshpai/reclaimspace/issues"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "package.json",
+    "package-lock.json",
+    ".reclaimspacerc",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "chalk": "^4.1.2",
     "cli-progress": "^3.12.0",

@@ -69,4 +69,50 @@ describe('scanner', () => {
     const ignored = targets.find(t => t.name === 'ignored-folder');
     expect(ignored).toBeUndefined();
   });
+
+  describe('scanner with real test projects', () => {
+    const TEST_PROJECTS_DIR = path.join(__dirname, '..', 'test');
+
+    it('should detect and categorize various framework build artifacts', async () => {
+      const mockOnProgress = {
+        start: () => {},
+        increment: () => {},
+        stop: () => {},
+      };
+      const mockSpinner = {
+        stop: () => {},
+        text: ''
+      };
+
+      const { targets } = await scanner.find([TEST_PROJECTS_DIR], [], mockOnProgress, mockSpinner);
+
+      // Check for node_modules
+      const nodeModules = targets.find(t => t.name === 'node_modules' && t.category === 'node_modules');
+      expect(nodeModules).toBeDefined();
+
+      // Check for build/cache folders
+      const nextFolder = targets.find(t => t.name === '.next' && t.category === 'build');
+      expect(nextFolder).toBeDefined();
+
+      const storybookFolder = targets.find(t => t.name === 'storybook-static' && t.category === 'build');
+      expect(storybookFolder).toBeDefined();
+
+      const expoFolder = targets.find(t => t.name === '.expo' && t.category === 'build');
+      expect(expoFolder).toBeDefined();
+
+      const nuxtFolder = targets.find(t => t.name === '.nuxt' && t.category === 'build');
+      expect(nuxtFolder).toBeDefined();
+
+      const nestDistFolder = targets.find(t => t.path.includes('nest-project') && t.name === 'dist' && t.category === 'build');
+      expect(nestDistFolder).toBeDefined();
+
+      const angularFolder = targets.find(t => t.name === '.angular' && t.category === 'build');
+      expect(angularFolder).toBeDefined();
+
+      const svelteFolder = targets.find(t => t.name === '.svelte-kit' && t.category === 'build');
+      expect(svelteFolder).toBeDefined();
+
+      // Add more assertions as needed for other categories or specific scenarios
+    }, 30000); // Increase timeout to 30 seconds
+  });
 });
