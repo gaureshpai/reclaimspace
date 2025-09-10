@@ -34,6 +34,13 @@ const BUILD_ARTIFACT_PATTERNS = [
   '*.css',
   '*.js',
   '*.html',
+  'package.json',
+  'webpack.config.js',
+  'vite.config.js',
+  'angular.json',
+  'vue.config.js',
+  'next.config.js',
+  'tsconfig.json',
 ];
 
 const FILE_CATEGORIES = {

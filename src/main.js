@@ -1,11 +1,12 @@
 import { program } from 'commander';
 import * as ui from './ui.js';
 import { readIgnoreFile, formatSize } from './utils.js';
+import { analyzeBuildPatterns } from './analyzer.js';
 import chalk from 'chalk';
 import fs from 'fs/promises';
 
 function displayLogoAndCredits() {
-  const smallLogo = `
+  const Logo = `
 ██████╗ ███████╗ ██████╗██╗      █████╗ ██╗███╗   ███╗
 ██╔══██╗██╔════╝██╔════╝██║     ██╔══██╗██║████╗ ████║
 ██████╔╝█████╗  ██║     ██║     ███████║██║██╔████╔██║
@@ -13,20 +14,17 @@ function displayLogoAndCredits() {
 ██║  ██║███████╗╚██████╗███████╗██║  ██║██║██║ ╚═╝ ██║
 ╚═╝  ╚═╝╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝
 `;
-  console.log(chalk.cyan.bold(smallLogo));
-  const githubUsername = 'gaureshpai';
-  const credit = chalk.gray(`Still under dev by ${chalk.bold.underline.blue(`https://github.com/${githubUsername}`)}`);
-  console.log(`${credit}\n`);
+  console.log(chalk.cyan.bold(Logo));
 }
 
 async function run(baseDir) {
   const state = { totalReclaimed: 0 };
 
   process.on('SIGINT', () => {
-    console.log(chalk.green(`
-Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
-    console.log(chalk.bold.white('Thanks for using ReclaimSpace!'));
-    process.exit(0);
+    process.stdout.write(chalk.green(`
+Total space reclaimed: ${formatSize(state.totalReclaimed)}
+`));
+    process.stdout.write(chalk.bold.white('Thanks for using ReclaimSpace!'));
   });
 
   displayLogoAndCredits();
@@ -73,13 +71,16 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
     return;
   }
 
+  const buildAnalysis = analyzeBuildPatterns(targets);
+
   await ui.start({
     targets,
     totalSize,
     duration,
     options,
     baseDir,
-    state
+    state,
+    buildAnalysis
   });
 }
 

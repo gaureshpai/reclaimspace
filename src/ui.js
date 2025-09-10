@@ -5,17 +5,8 @@ import cliProgress from 'cli-progress';
 import ora from 'ora';
 import { formatSize, formatDate } from './utils.js';
 import { deleteTarget } from './deleter.js';
-import { CATEGORIES } from './constants.js';
 import * as scanner from './scanner.js';
 
-function truncatePath(p, maxLength = 50) {
-  if (p.length <= maxLength) {
-    return p;
-  }
-  const ellipsis = '...';
-  const start = p.length - maxLength + ellipsis.length;
-  return ellipsis + p.substring(start);
-}
 
 async function runScannerWithProgress(searchPaths, ignorePatterns) {
   const spinner = ora(chalk.bold.blue('Collecting directories...')).start();
@@ -33,7 +24,7 @@ async function runScannerWithProgress(searchPaths, ignorePatterns) {
   return results;
 }
 
-async function start({ targets, totalSize, duration, options, baseDir, state }) {
+async function start({ targets, totalSize, duration, options, baseDir, state, buildAnalysis }) {
   if (!targets || targets.length === 0) {
     console.log(chalk.green('No reclaimable space found. Your workspace is clean! ✨'));
     console.log(chalk.gray(`Search completed in ${duration.toFixed(2)}s`));
@@ -43,7 +34,26 @@ async function start({ targets, totalSize, duration, options, baseDir, state }) 
   console.log(chalk.cyan(`Releasable space: ${formatSize(totalSize)}`));
   console.log(chalk.green(`Space saved: ${formatSize(state.totalReclaimed)}`));
   console.log(chalk.gray(`Search completed ${duration.toFixed(2)}s`));
-  console.log('\n');
+  console.log('');
+
+  if (!buildAnalysis) {
+    console.log(chalk.bold.blue('Build Analysis:'));
+    if (Object.keys(buildAnalysis.inferredProjectTypes).length > 0) {
+      console.log(chalk.blue('  Inferred Project Types:'));
+      for (const type in buildAnalysis.inferredProjectTypes) {
+        console.log(chalk.blue(`    - ${type}: ${buildAnalysis.inferredProjectTypes[type]} instances`));
+      }
+    }
+    if (buildAnalysis.commonPatterns.size > 0) {
+      console.log(chalk.blue('  Common Build Patterns:'));
+      buildAnalysis.commonPatterns.forEach(pattern => console.log(chalk.blue(`    - ${pattern}`)));
+    }
+    if (buildAnalysis.uniquePatterns.size > 0) {
+      console.log(chalk.blue('  Unique Build Patterns:'));
+      buildAnalysis.uniquePatterns.forEach(pattern => console.log(chalk.blue(`    - ${pattern}`)));
+    }
+    console.log('');
+  }
 
   if (options.dry) {
     console.log(chalk.yellow('--dry run: No files will be deleted.'));
@@ -76,10 +86,10 @@ function displayTargets(targets, baseDir) {
 }
 
 async function interactiveUI(targets, totalSize, baseDir, state) {
-  console.clear();
   console.log(chalk.cyan(`Releasable space: ${formatSize(totalSize)}`) + ` | ` + chalk.green(`Space saved: ${formatSize(state.totalReclaimed)}`));
   console.log('');
 
+  console.log(chalk.dim('Use space to select, a to toggle all, i to invert selection, and enter to proceed.'));
   console.log(chalk.bold.gray('  Size      Last Modified  Path'));
   console.log(chalk.bold.gray('  --------- --------------  ----'));
 
@@ -93,7 +103,7 @@ async function interactiveUI(targets, totalSize, baseDir, state) {
       {
         type: 'checkbox',
         name: 'selectedTargets',
-        message: 'Use space to select, a to toggle all, i to invert selection, and enter to proceed.',
+        message: '',
         choices: [
           ...choices,
           new inquirer.Separator(),
@@ -103,6 +113,10 @@ async function interactiveUI(targets, totalSize, baseDir, state) {
     ]);
 
     if (selectedTargets.length > 0) {
+      console.log(chalk.bold.white('\nSelected items for deletion:'));
+      displayTargets(selectedTargets, baseDir);
+      console.log('\n');
+
       for (const target of selectedTargets) {
         await handleDelete(target, state);
       }

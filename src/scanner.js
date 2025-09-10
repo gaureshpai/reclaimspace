@@ -4,31 +4,32 @@ import { promisify } from 'util';
 import fastFolderSize from 'fast-folder-size';
 import chalk from 'chalk';
 import { CATEGORIES, FOLDER_CATEGORIES, BUILD_ARTIFACT_PATTERNS } from './constants.js';
+import * as minimatch from 'minimatch';
 
 const fastFolderSizeAsync = promisify(fastFolderSize);
 
 const CONCURRENCY_LIMIT = 5;
 
-async function checkBuildArtifacts(folderPath) {
+async function getBuildPatterns(folderPath) {
+  const detectedPatterns = [];
   try {
     const entries = await fs.readdir(folderPath, { withFileTypes: true });
     for (const pattern of BUILD_ARTIFACT_PATTERNS) {
       if (pattern.includes('*')) {
         const regex = new RegExp(pattern.replace(/\./g, '\\.\\').replace(/\*/g, '.*'));
         if (entries.some(entry => regex.test(entry.name))) {
-          return true;
+          detectedPatterns.push(pattern);
         }
       } else {
         if (entries.some(entry => entry.name === pattern)) {
-          return true;
+          detectedPatterns.push(pattern);
         }
       }
     }
-    return false;
   } catch (err) {
     console.error(chalk.red(`Error checking build artifacts in ${folderPath}: ${err.message}`));
-    return false;
   }
+  return detectedPatterns;
 }
 
 async function find(searchPaths, ignorePatterns, onProgress, spinner) {
@@ -44,7 +45,8 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
     if (visited.has(currentPath)) return;
     visited.add(currentPath);
 
-    if (ignorePatterns.some(p => currentPath.split(path.sep).includes(p))) {
+    if (ignorePatterns.some(pattern => minimatch.minimatch(currentPath, pattern, { matchBase: true })))
+ {
       return;
     }
 
@@ -103,7 +105,8 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
     }
     visited.add(fullPath);
 
-    if (ignorePatterns.some(p => fullPath.split(path.sep).includes(p))) {
+    if (ignorePatterns.some(pattern => minimatch.minimatch(fullPath, pattern, { matchBase: true })))
+ {
       return;
     }
 
@@ -117,11 +120,9 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
       }
 
       if (category) {
+        let detectedBuildPatterns = [];
         if (category === 'build') {
-          const hasBuildArtifacts = await checkBuildArtifacts(fullPath);
-          if (!hasBuildArtifacts) {
-            return;
-          }
+          detectedBuildPatterns = await getBuildPatterns(fullPath);
         }
 
         try {
@@ -134,6 +135,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
               category,
               name: entry.name,
               lastModified: stats.mtime,
+              buildPatterns: detectedBuildPatterns,
             });
             totalSize += size;
           }
