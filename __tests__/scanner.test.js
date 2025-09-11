@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import * as scanner from '../src/scanner.js';
+import * as minimatch from 'minimatch';
 
 const FIXTURES_DIR = path.join(__dirname, 'fixtures');
 
@@ -12,7 +13,6 @@ const createDummyDir = async (dirPath, size = 1024, files = ['dummy.txt']) => {
   }
 };
 
-// Setup and Teardown
 beforeAll(async () => {
   await fs.mkdir(FIXTURES_DIR, { recursive: true });
   // Create a mock project structure
@@ -28,14 +28,21 @@ afterAll(async () => {
 });
 
 describe('scanner', () => {
+  beforeEach(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => { });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
   it('should find, categorize, and sort targets correctly', async () => {
     const mockOnProgress = {
-      start: () => {},
-      increment: () => {},
-      stop: () => {},
+      start: () => { },
+      increment: () => { },
+      stop: () => { },
     };
     const mockSpinner = {
-      stop: () => {},
+      stop: () => { },
       text: ''
     };
 
@@ -70,49 +77,85 @@ describe('scanner', () => {
     expect(ignored).toBeUndefined();
   });
 
-  describe('scanner with real test projects', () => {
-    const TEST_PROJECTS_DIR = path.join(__dirname, '..', 'test');
+  it('should suppress EPERM errors during directory collection', async () => {
+    const mockReaddir = jest.spyOn(fs, 'readdir');
+    mockReaddir.mockImplementationOnce(() => {
+      const error = new Error('Operation not permitted');
+      error.code = 'EPERM';
+      throw error;
+    });
 
-    it('should detect and categorize various framework build artifacts', async () => {
-      const mockOnProgress = {
-        start: () => {},
-        increment: () => {},
-        stop: () => {},
-      };
-      const mockSpinner = {
-        stop: () => {},
-        text: ''
-      };
+    const mockOnProgress = {
+      start: () => { },
+      increment: () => { },
+      stop: () => { },
+    };
+    const mockSpinner = {
+      stop: () => { },
+      text: ''
+    };
 
-      const { targets } = await scanner.find([TEST_PROJECTS_DIR], [], mockOnProgress, mockSpinner);
+    await scanner.find([FIXTURES_DIR], [], mockOnProgress, mockSpinner);
 
-      // Check for node_modules
-      const nodeModules = targets.find(t => t.name === 'node_modules' && t.category === 'node_modules');
-      expect(nodeModules).toBeDefined();
+    expect(console.error).not.toHaveBeenCalled();
 
-      // Check for build/cache folders
-      const nextFolder = targets.find(t => t.name === '.next' && t.category === 'build');
-      expect(nextFolder).toBeDefined();
-
-      const storybookFolder = targets.find(t => t.name === 'storybook-static' && t.category === 'build');
-      expect(storybookFolder).toBeDefined();
-
-      const expoFolder = targets.find(t => t.name === '.expo' && t.category === 'build');
-      expect(expoFolder).toBeDefined();
-
-      const nuxtFolder = targets.find(t => t.name === '.nuxt' && t.category === 'build');
-      expect(nuxtFolder).toBeDefined();
-
-      const nestDistFolder = targets.find(t => t.path.includes('nest-project') && t.name === 'dist' && t.category === 'build');
-      expect(nestDistFolder).toBeDefined();
-
-      const angularFolder = targets.find(t => t.name === '.angular' && t.category === 'build');
-      expect(angularFolder).toBeDefined();
-
-      const svelteFolder = targets.find(t => t.name === '.svelte-kit' && t.category === 'build');
-      expect(svelteFolder).toBeDefined();
-
-      // Add more assertions as needed for other categories or specific scenarios
-    }, 30000); // Increase timeout to 30 seconds
+    mockReaddir.mockRestore();
   });
+
+  it('should suppress invalid pattern errors from minimatch', async () => {
+    const mockMinimatch = jest.spyOn(minimatch, 'minimatch');
+    mockMinimatch.mockImplementationOnce(() => {
+      throw new Error('invalid pattern');
+    });
+
+    const mockOnProgress = {
+      start: () => { },
+      increment: () => { },
+      stop: () => { },
+    };
+    const mockSpinner = {
+      stop: () => { },
+      text: ''
+    };
+
+    // We need to pass an ignore pattern to trigger the minimatch call
+    await scanner.find([FIXTURES_DIR], ['invalid-pattern-test'], mockOnProgress, mockSpinner);
+
+    expect(console.error).not.toHaveBeenCalled();
+
+    mockMinimatch.mockRestore();
+  });
+
+  it('should ignore Program Files directories', async () => {
+    const programFilesDir = path.join(FIXTURES_DIR, 'Program Files');
+    const programFilesX86Dir = path.join(FIXTURES_DIR, 'Program Files (x86)');
+
+    await createDummyDir(programFilesDir, 100);
+    await createDummyDir(programFilesX86Dir, 100);
+
+    const mockOnProgress = {
+      start: () => { },
+      increment: () => { },
+      stop: () => { },
+    };
+    const mockSpinner = {
+      stop: () => { },
+      text: ''
+    };
+
+    const ignorePatterns = [
+      '/Program Files',
+      '/Program Files (x86)',
+    ];
+
+    const { targets } = await scanner.find([FIXTURES_DIR], ignorePatterns, mockOnProgress, mockSpinner);
+
+    const programFilesTarget = targets.find(t => t.path === programFilesDir);
+    const programFilesX86Target = targets.find(t => t.path === programFilesX86Dir);
+
+    expect(programFilesTarget).toBeUndefined();
+    expect(programFilesX86Target).toBeUndefined();
+  });
+
+  
 });

@@ -45,8 +45,14 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
     if (visited.has(currentPath)) return;
     visited.add(currentPath);
 
-    if (ignorePatterns.some(pattern => minimatch.minimatch(currentPath, pattern, { matchBase: true })))
- {
+    if (ignorePatterns.some(pattern => {
+      try {
+        const normalizedPath = currentPath.replace(/\\/g, '/');
+        return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
+      } catch (e) {
+        return false;
+      }
+    })) {
       return;
     }
 
@@ -64,7 +70,9 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
         }
       }
     } catch (err) {
-      console.error(chalk.red(`Error collecting directories in ${currentPath}: ${err.message}`));
+      if (err.code !== 'EPERM') {
+        console.error(chalk.red(`Error collecting directories in ${currentPath}: ${err.message}`));
+      }
     }
   }
 
@@ -105,8 +113,14 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
     }
     visited.add(fullPath);
 
-    if (ignorePatterns.some(pattern => minimatch.minimatch(fullPath, pattern, { matchBase: true })))
- {
+    if (ignorePatterns.some(pattern => {
+      try {
+        const normalizedPath = fullPath.replace(/\\/g, '/');
+        return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
+      } catch (e) {
+        return false;
+      }
+    })) {
       return;
     }
 
@@ -140,7 +154,9 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
             totalSize += size;
           }
         } catch (err) {
-          console.error(chalk.red(`Error calculating size for ${fullPath}: ${err.message}`));
+          if (err.code !== 'EPERM') {
+            console.error(chalk.red(`Error calculating size for ${fullPath}: ${err.message}`));
+          }
         }
       }
     }

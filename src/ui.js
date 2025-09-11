@@ -7,7 +7,6 @@ import { formatSize, formatDate } from './utils.js';
 import { deleteTarget } from './deleter.js';
 import * as scanner from './scanner.js';
 
-
 async function runScannerWithProgress(searchPaths, ignorePatterns) {
   const spinner = ora(chalk.bold.blue('Collecting directories...')).start();
 
@@ -26,14 +25,13 @@ async function runScannerWithProgress(searchPaths, ignorePatterns) {
 
 async function start({ targets, totalSize, duration, options, baseDir, state, buildAnalysis }) {
   if (!targets || targets.length === 0) {
-    console.log(chalk.green('No reclaimable space found. Your workspace is clean! ✨'));
+    console.log(chalk.green('No reclaimable space found. Your workspace is clean! \n\n'));
     console.log(chalk.gray(`Search completed in ${duration.toFixed(2)}s`));
     return;
   }
 
   console.log(chalk.cyan(`Releasable space: ${formatSize(totalSize)}`));
-  console.log(chalk.green(`Space saved: ${formatSize(state.totalReclaimed)}`));
-  console.log(chalk.gray(`Search completed ${duration.toFixed(2)}s`));
+  console.log(chalk.gray(`Search completed in ${duration.toFixed(2)}s`));
   console.log('');
 
   if (!buildAnalysis) {
@@ -59,6 +57,7 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
     console.log(chalk.yellow('--dry run: No files will be deleted.'));
     displayTargets(targets, baseDir);
     console.log(chalk.cyan(`Total reclaimable space: ${formatSize(totalSize)}`));
+    process.stdout.write(chalk.bold.white('Thanks for using ReclaimSpace!\n\n'));
     return;
   }
 
@@ -68,6 +67,7 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
       await handleDelete(target, state);
     }
     console.log(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
+    process.stdout.write(chalk.bold.white('Thanks for using ReclaimSpace!\n\n'));
     return;
   }
 
@@ -86,7 +86,6 @@ function displayTargets(targets, baseDir) {
 }
 
 async function interactiveUI(targets, totalSize, baseDir, state) {
-  console.log(chalk.cyan(`Releasable space: ${formatSize(totalSize)}`) + ` | ` + chalk.green(`Space saved: ${formatSize(state.totalReclaimed)}`));
   console.log('');
 
   console.log(chalk.dim('Use space to select, a to toggle all, i to invert selection, and enter to proceed.'));
@@ -126,11 +125,11 @@ async function interactiveUI(targets, totalSize, baseDir, state) {
   }
 
   console.log(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
-  console.log(chalk.bold.white('Thanks for using ReclaimSpace!'));
+  console.log(chalk.bold.white('Thanks for using ReclaimSpace!\n\n'));
 }
 
 async function handleDelete(target, state) {
-  process.stdout.write(`Deleting ${path.basename(target.path)}... `);
+  process.stdout.write(`Deleting ${target.path}... `);
   const { success, error } = await deleteTarget(target.path);
   if (success) {
     state.totalReclaimed += target.size;

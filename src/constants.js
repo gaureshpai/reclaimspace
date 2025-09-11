@@ -43,14 +43,8 @@ const BUILD_ARTIFACT_PATTERNS = [
   'tsconfig.json',
 ];
 
-const FILE_CATEGORIES = {
-    id: 'misc',
-    patterns: ['*.log', '.DS_Store', 'Thumbs.db']
-};
-
-export { 
+export {
   CATEGORIES,
   FOLDER_CATEGORIES,
-  FILE_CATEGORIES,
   BUILD_ARTIFACT_PATTERNS
 };

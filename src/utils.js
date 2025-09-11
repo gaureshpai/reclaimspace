@@ -11,15 +11,19 @@ function formatSize(bytes) {
 
 async function readIgnoreFile(baseDir) {
   const ignoreFilePath = path.join(baseDir, '.reclaimspacerc');
+  let patterns = [];
   try {
     const content = await fs.readFile(ignoreFilePath, 'utf-8');
-    return content.split(/\r?\n/).filter(line => line && !line.startsWith('#'));
+    patterns = content.split(/\r?\n/).filter(line => line && !line.startsWith('#'));
   } catch (err) {
-    if (err.code === 'ENOENT') {
-      return [];
+    if (err.code !== 'ENOENT') {
+      throw err;
     }
-    throw err;
   }
+
+  patterns.push('/Program Files');
+  patterns.push('/Program Files (x86)');
+  return patterns;
 }
 
 function formatDate(date) {

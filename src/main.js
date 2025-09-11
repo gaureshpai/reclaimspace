@@ -21,10 +21,8 @@ async function run(baseDir) {
   const state = { totalReclaimed: 0 };
 
   process.on('SIGINT', () => {
-    process.stdout.write(chalk.green(`
-Total space reclaimed: ${formatSize(state.totalReclaimed)}
-`));
-    process.stdout.write(chalk.bold.white('Thanks for using ReclaimSpace!'));
+    process.stdout.write(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
+    process.stdout.write(chalk.bold.white('Thanks for using ReclaimSpace!\n\n'));
   });
 
   displayLogoAndCredits();
@@ -67,7 +65,8 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   const { targets, totalSize, duration } = await ui.runScannerWithProgress(searchPaths, ignorePatterns);
 
   if (!targets || targets.length === 0) {
-    console.log(chalk.green('No reclaimable space found. Your workspace is clean! ✨'));
+    console.log(chalk.green('No reclaimable space found. Your workspace is clean!'));
+    console.log(chalk.bold.white('Thanks for using ReclaimSpace!\n\n'));
     return;
   }
 
