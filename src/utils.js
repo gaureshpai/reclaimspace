@@ -23,6 +23,37 @@ async function readIgnoreFile(baseDir) {
 
   patterns.push('/Program Files');
   patterns.push('/Program Files (x86)');
+
+  patterns.push('/Applications');
+  patterns.push('/System');
+  patterns.push('/Library');
+
+  patterns.push('/usr');
+  patterns.push('/var');
+  patterns.push('/etc');
+  patterns.push('/opt');
+
+  patterns.push('/.vscode');
+  patterns.push('/.cursor');
+  patterns.push('/.idea');
+  patterns.push('/.sublime-project');
+  patterns.push('/.sublime-workspace');
+  patterns.push('/.atom');
+  patterns.push('/.project');
+  patterns.push('/.classpath');
+  patterns.push('/.settings');
+  patterns.push('/nbproject');
+  patterns.push('/.editorconfig');
+
+  patterns.push('src');
+  patterns.push('source');
+  patterns.push('app');
+  patterns.push('lib');
+  patterns.push('components');
+  patterns.push('pages');
+  patterns.push('styles');
+  patterns.push('assets');
+
   return patterns;
 }
 

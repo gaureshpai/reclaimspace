@@ -20,9 +20,11 @@ function displayLogoAndCredits() {
 async function run(baseDir) {
   const state = { totalReclaimed: 0 };
 
-  process.on('SIGINT', () => {
-    process.stdout.write(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
-    process.stdout.write(chalk.bold.white('Thanks for using ReclaimSpace!\n\n'));
+    process.on('SIGINT', () => {
+    process.stdout.write(chalk.green(`
+Total space reclaimed: ${formatSize(state.totalReclaimed)}
+`));
+    process.stdout.write(chalk.bold.white('Thank you for using ReclaimSpace!\n\n'));
   });
 
   displayLogoAndCredits();
@@ -33,6 +35,7 @@ async function run(baseDir) {
     .option('--dry', 'Preview only, do not delete anything')
     .option('--ui', 'Enable interactive UI to select what to delete')
     .option('--ignore <patterns>', 'Comma-separated list of patterns to ignore')
+    .option('--build-analysis', 'Enable build analysis logs')
     .parse(process.argv);
 
   const options = program.opts();

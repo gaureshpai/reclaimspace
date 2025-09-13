@@ -34,7 +34,7 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
   console.log(chalk.gray(`Search completed in ${duration.toFixed(2)}s`));
   console.log('');
 
-  if (!buildAnalysis) {
+  if (options.buildAnalysis && buildAnalysis) {
     console.log(chalk.bold.blue('Build Analysis:'));
     if (Object.keys(buildAnalysis.inferredProjectTypes).length > 0) {
       console.log(chalk.blue('  Inferred Project Types:'));
