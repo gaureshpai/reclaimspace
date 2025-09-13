@@ -8,7 +8,7 @@ It behaves like `npx npkill`, but goes further by detecting multiple categories 
 
 Here are some common ways to use `reclaimspace`:
 
-**To interactively select and delete items:**
+**To interactively select and delete items (default):**
 
 This is the default behavior. It lists all the folders, and you can select which ones to delete.
 
@@ -18,7 +18,7 @@ npx reclaimspace
 
 **To directly delete everything (auto-delete):**
 
-This will find all reclaimable items and delete them automatically without confirmation. The flag for this is `--yes`.
+This will find all reclaimable items and delete them automatically without confirmation.
 
 ```bash
 npx reclaimspace --yes
@@ -48,6 +48,14 @@ You can combine any of the flags with a specific folder. For example, to auto-de
 npx reclaimspace --yes my-project
 ```
 
+**To enable build analysis:**
+
+This will enable build analysis logs.
+
+```bash
+npx reclaimspace --build-analysis
+```
+
 **To ignore certain folders:**
 
 You can exclude folders from the scan by providing a comma-separated list of patterns.
@@ -56,9 +64,19 @@ You can exclude folders from the scan by providing a comma-separated list of pat
 npx reclaimspace --ignore "node_modules,dist"
 ```
 
-## Why ReclaimSpace?
+## Configuration
 
-As developers, we often have multiple projects on our machines, each with its own set of dependencies and build artifacts. Over time, these files can accumulate and consume a significant amount of disk space. ReclaimSpace helps you identify and remove these unnecessary files, freeing up valuable disk space and keeping your development environment clean.
+You can create a `.reclaimspacerc` file in the root of your project to specify folders and patterns to ignore. This is useful for excluding project-specific build folders or other directories that you don't want to be scanned.
+
+Example `.reclaimspacerc` file:
+
+```
+# Ignore all node_modules folders
+node_modules
+
+# Ignore a specific build folder
+my-project/dist
+```
 
 ## Features
 
@@ -69,7 +87,8 @@ As developers, we often have multiple projects on our machines, each with its ow
 - **Build Artifact Detection:** It intelligently detects build folders by looking for common build artifacts.
 - **Auto-Delete Mode:** Use the `--yes` flag to delete all found items without confirmation.
 - **Dry Run Mode:** Use the `--dry` flag to see what would be deleted without actually deleting anything.
-- **Ignore Patterns:** Exclude specific folders or patterns using a configuration file.
+- **Ignore Patterns:** Exclude specific folders or patterns using a `.reclaimspacerc` file or the `--ignore` flag.
+- **Cool Logo:** Displays a cool logo when you run the tool.
 
 ## Detected Items
 
