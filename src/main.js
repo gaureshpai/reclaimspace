@@ -35,6 +35,7 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
     .option('--dry', 'Preview only, do not delete anything')
     .option('--ui', 'Enable interactive UI to select what to delete')
     .option('--ignore <patterns>', 'Comma-separated list of patterns to ignore')
+    .option('--include <patterns>', 'Comma-separated list of patterns to include')
     .option('--build-analysis', 'Enable build analysis logs')
     .parse(process.argv);
 
@@ -64,8 +65,9 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   const configIgnores = await readIgnoreFile(baseDir);
   const cliIgnores = options.ignore ? options.ignore.split(',') : [];
   const ignorePatterns = [...configIgnores, ...cliIgnores];
+  const includePatterns = options.include ? options.include.split(',') : [];
 
-  const { targets, totalSize, duration } = await ui.runScannerWithProgress(searchPaths, ignorePatterns);
+  const { targets, totalSize, duration } = await ui.runScannerWithProgress(searchPaths, ignorePatterns, includePatterns);
 
   if (!targets || targets.length === 0) {
     console.log(chalk.green('No reclaimable space found. Your workspace is clean!'));

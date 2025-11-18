@@ -32,7 +32,7 @@ async function getBuildPatterns(folderPath) {
   return detectedPatterns;
 }
 
-async function find(searchPaths, ignorePatterns, onProgress, spinner) {
+async function find(searchPaths, ignorePatterns, onProgress, spinner, includePatterns) {
   const startTime = process.hrtime.bigint();
 
   let targets = [];
@@ -40,6 +40,10 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
   const visited = new Set();
 
   const allPotentialDirs = [];
+
+  const currentFolderCategories = includePatterns && includePatterns.length > 0
+    ? [{ id: 'custom', names: includePatterns }]
+    : FOLDER_CATEGORIES;
 
   async function collectDirs(currentPath) {
     if (visited.has(currentPath)) return;
@@ -61,12 +65,21 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
       for (const entry of entries) {
         const fullPath = path.join(currentPath, entry.name);
         if (entry.isDirectory()) {
-          if (entry.name === 'node_modules') {
-            allPotentialDirs.push({ path: fullPath, entry });
-            continue;
+          let isMatch = false;
+          for (const cat of currentFolderCategories) {
+            if (cat.names.some(name => minimatch.minimatch(entry.name, name))) {
+              isMatch = true;
+              break;
+            }
           }
-          allPotentialDirs.push({ path: fullPath, entry });
-          await collectDirs(fullPath);
+
+          if (isMatch) {
+            allPotentialDirs.push({ path: fullPath, entry });
+          }
+          
+          if (entry.name !== 'node_modules') {
+            await collectDirs(fullPath);
+          }
         }
       }
     } catch (err) {
@@ -126,8 +139,8 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
 
     if (entry.isDirectory()) {
       let category = null;
-      for (const cat of FOLDER_CATEGORIES) {
-        if (cat.names.includes(entry.name)) {
+      for (const cat of currentFolderCategories) {
+        if (cat.names.some(name => minimatch.minimatch(entry.name, name))) {
           category = cat.id;
           break;
         }
@@ -165,8 +178,12 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner) {
   onProgress.stop();
 
   targets.sort((a, b) => {
-    const orderA = CATEGORIES.find(c => c.id === a.category).order;
-    const orderB = CATEGORIES.find(c => c.id === b.category).order;
+    const categoryA = CATEGORIES.find(c => c.id === a.category);
+    const categoryB = CATEGORIES.find(c => c.id === b.category);
+
+    const orderA = categoryA ? categoryA.order : 99;
+    const orderB = categoryB ? categoryB.order : 99;
+
     if (orderA !== orderB) return orderA - orderB;
     return b.size - a.size;
   });
