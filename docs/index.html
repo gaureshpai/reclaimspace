@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReclaimSpace - Documentation</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#e53935">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="msapplication-TileColor" content="#e53935">
+    <meta name="theme-color" content="#e53935">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container-xl">
+            <a class="navbar-brand" href="#">ReclaimSpace</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="#usage">Usage</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#configuration">Configuration</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#detected-items">Detected Items</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contributing">Contributing</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-danger text-white text-center p-5">
+        <div class="container">
+            <h1 class="display-4">ReclaimSpace Docs</h1>
+            <p class="lead">A CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.</p>
+        </div>
+    </header>
+
+    <main class="container mt-5">
+        <section id="usage" class="mb-5">
+            <h2>Usage</h2>
+            <p>Here are some common ways to use <code>reclaimspace</code>:</p>
+
+            <h3>Interactive Mode (Default)</h3>
+            <p>This is the default behavior. It lists all the folders, and you can select which ones to delete.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace</code></pre>
+
+            <h3>Auto-Delete Everything</h3>
+            <p>This will find all reclaimable items and delete them automatically without confirmation.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace --yes</code></pre>
+
+            <h3>Dry Run (Preview)</h3>
+            <p>This will list all the items that can be deleted but won't actually delete anything.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace --dry</code></pre>
+
+            <h3>Scan a Specific Folder</h3>
+            <p>You can specify one or more directories to scan.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace &lt;foldername&gt;</code></pre>
+
+            <h3>Combine Flags and Folders</h3>
+            <p>You can combine any of the flags with a specific folder.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace --yes my-project</code></pre>
+
+            <h3>Enable Build Analysis</h3>
+            <p>This will enable build analysis logs.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace --build-analysis</code></pre>
+
+            <h3>Ignore Certain Folders</h3>
+            <p>You can exclude folders from the scan by providing a comma-separated list of patterns.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace --ignore "node_modules,dist"</code></pre>
+
+            <h3>Include Only Specific Folders</h3>
+            <p>You can specify a comma-separated list of patterns to include in the scan. When this flag is used, only folders matching these patterns will be considered.</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code>npx reclaimspace --include "my-custom-build,temp-files"</code></pre>
+        </section>
+
+        <section id="features" class="mb-5">
+            <h2>Features</h2>
+            <ul>
+                <li><strong>Interactive Deletion:</strong> Navigate through a list of found items and select which ones to delete.</li>
+                <li><strong>Categorized & Grouped:</strong> Results are grouped by type for clarity.</li>
+                <li><strong>Size Information:</strong> See the size of each item and the total reclaimable space.</li>
+                <li><strong>Concurrent Scanning:</strong> Quickly finds and processes files.</li>
+                <li><strong>Build Artifact Detection:</strong> Intelligently detects build folders.</li>
+                <li><strong>Auto-Delete Mode:</strong> Use the <code>--yes</code> flag to delete all found items without confirmation.</li>
+                <li><strong>Dry Run Mode:</strong> Use the <code>--dry</code> flag to see what would be deleted without actually deleting anything.</li>
+                <li><strong>Ignore Patterns:</strong> Exclude specific folders or patterns using a <code>.reclaimspacerc</code> file or the <code>--ignore</code> flag.</li>
+                <li><strong>Clickable Paths:</strong> Paths displayed in the terminal are clickable links (requires terminal emulator support).</li>
+                <li><strong>Cool Logo:</strong> Displays a cool logo when you run the tool.</li>
+            </ul>
+        </section>
+
+        <section id="configuration" class="mb-5">
+            <h2>Configuration</h2>
+            <p>You can create a <code>.reclaimspacerc</code> file in the root of your project to specify folders and patterns to ignore.</p>
+            <p>Example <code>.reclaimspacerc</code> file:</p>
+            <pre class="position-relative"><button class="copy-btn">Copy</button><code># Ignore all node_modules folders
+node_modules
+
+# Ignore a specific build folder
+my-project/dist</code></pre>
+        </section>
+
+        <section id="detected-items" class="mb-5">
+            <h2>Detected Items</h2>
+            <p><code>reclaimspace</code> detects the following categories:</p>
+            <ol>
+                <li><strong>Node Modules</strong>
+                    <ul><li><code>node_modules</code></li></ul>
+                </li>
+                <li><strong>Build/Cache Folders</strong>
+                    <ul><li><code>.next</code>, <code>dist</code>, <code>build</code>, <code>storybook-static</code>, <code>.nuxt</code>, <code>.svelte-kit</code>, <code>.angular</code>, <code>out</code>, <code>.expo</code>, <code>.turbo</code>, <code>.cache</code></li></ul>
+                </li>
+                <li><strong>Testing/Reporting Folders</strong>
+                    <ul><li><code>coverage</code>, <code>.nyc_output</code></li></ul>
+                </li>
+            </ol>
+        </section>
+
+        <section id="contributing" class="mb-5">
+            <h2>Contributing</h2>
+            <p>Contributions are welcome! Please read the contributing guidelines to get started.</p>
+        </section>
+    </main>
+
+    <footer class="text-center p-4 bg-light">
+        <p>ReclaimSpace - Licensed under the ISC License.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

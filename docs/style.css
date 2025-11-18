@@ -1,0 +1,51 @@
+:root {
+    --bs-danger-rgb: 229, 57, 53;
+}
+
+body {
+    padding-top: 56px; /* Height of the fixed navbar */
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: #e53935 !important; /* Primary red for brand */
+}
+
+.navbar-nav .nav-link {
+    color: #212121 !important; /* Dark gray for nav links */
+}
+
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:hover {
+    color: #e53935 !important; /* Primary red for active/hover links */
+}
+
+h2 {
+    color: #e53935;
+    border-bottom: 2px solid #f5f5f5;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+pre {
+    background-color: #f5f5f5;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #757575;
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.copy-btn:hover {
+    background-color: #212121;
+}
