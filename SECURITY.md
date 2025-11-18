@@ -6,8 +6,8 @@ We are committed to ensuring the security of our users. We will release security
 
 | Version | Supported        |
 | ------- | -----------------|
-| 1.0.0   |  ✔               |
-| 0.x.x   | ❌  (Development)|
+| latest  |  ✔              |
+| older   | ❌              |
 
 ## Reporting a Vulnerability
 

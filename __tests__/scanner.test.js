@@ -157,5 +157,32 @@ describe('scanner', () => {
     expect(programFilesX86Target).toBeUndefined();
   });
 
-  
+  it('should only find targets that match the include patterns', async () => {
+    const includeTestDir = path.join(FIXTURES_DIR, 'include-test');
+    await createDummyDir(path.join(includeTestDir, 'custom-build'), 1500);
+    await createDummyDir(path.join(includeTestDir, 'custom-dist'), 2500);
+    await createDummyDir(path.join(includeTestDir, 'not-included'), 1000);
+
+    const mockOnProgress = {
+      start: () => { },
+      increment: () => { },
+      stop: () => { },
+    };
+    const mockSpinner = {
+      stop: () => { },
+      text: ''
+    };
+
+    const includePatterns = ['custom-build', 'custom-dist'];
+    const { targets, totalSize } = await scanner.find([includeTestDir], [], mockOnProgress, mockSpinner, includePatterns);
+
+    expect(targets).toHaveLength(2);
+    expect(totalSize).toBeGreaterThanOrEqual(4000);
+
+    const names = targets.map(t => t.name).sort();
+    expect(names).toEqual(['custom-build', 'custom-dist']);
+
+    expect(targets[0].category).toBe('custom');
+    expect(targets[1].category).toBe('custom');
+  });
 });

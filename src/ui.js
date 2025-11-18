@@ -7,7 +7,7 @@ import { formatSize, formatDate } from './utils.js';
 import { deleteTarget } from './deleter.js';
 import * as scanner from './scanner.js';
 
-async function runScannerWithProgress(searchPaths, ignorePatterns) {
+async function runScannerWithProgress(searchPaths, ignorePatterns, includePatterns) {
   const spinner = ora(chalk.bold.blue('Collecting directories...')).start();
 
   const progressBar = new cliProgress.SingleBar({
@@ -17,7 +17,7 @@ async function runScannerWithProgress(searchPaths, ignorePatterns) {
     hideCursor: true
   }, cliProgress.Presets.shades_classic);
 
-  const results = await scanner.find(searchPaths, ignorePatterns, progressBar, spinner);
+  const results = await scanner.find(searchPaths, ignorePatterns, progressBar, spinner, includePatterns);
 
   console.log('\n');
   return results;

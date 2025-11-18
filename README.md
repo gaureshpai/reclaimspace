@@ -64,6 +64,14 @@ You can exclude folders from the scan by providing a comma-separated list of pat
 npx reclaimspace --ignore "node_modules,dist"
 ```
 
+**To include only specific folders:**
+
+You can specify a comma-separated list of patterns to include in the scan. When this flag is used, only folders matching these patterns will be considered, overriding the default detected items.
+
+```bash
+npx reclaimspace --include "my-custom-build,temp-files"
+```
+
 ## Configuration
 
 You can create a `.reclaimspacerc` file in the root of your project to specify folders and patterns to ignore. This is useful for excluding project-specific build folders or other directories that you don't want to be scanned.
