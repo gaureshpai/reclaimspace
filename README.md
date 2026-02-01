@@ -1,5 +1,16 @@
 # ReclaimSpace CLI
 
+<div  align="center">
+  <p>
+    <a href="https://www.npmjs.com/package/reclaimspace"><img src="https://img.shields.io/npm/v/reclaimspace.svg" alt="npm version"></a>
+    <a href="https://github.com/gaureshpai/reclaimspace/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/reclaimspace.svg" alt="license"></a>
+    <a href="https://www.npmjs.com/package/reclaimspace"><img src="https://img.shields.io/npm/dt/reclaimspace.svg" alt="npm downloads"></a>
+    <a href="https://gaureshpai.github.io/reclaimspace/"><img src="https://img.shields.io/badge/documentation-site-green.svg" alt="documentation site"></a>
+    <a href="https://www.npmjs.com/package/reclaimspace"><img src="https://img.shields.io/badge/npm-reclaimspace-cb3837.svg" alt="npm package"></a>
+    <a href="https://github.com/gaureshpai/reclaimspace"><img src="https://img.shields.io/github/stars/gaureshpai/reclaimspace?style=social" alt="github stars"></a>
+  </p>
+</div>
+
 **A lightning-fast, zero-dependency CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.**
 
 It behaves like `npx npkill`, but goes further by detecting multiple categories of heavy folders/files, providing a navigable grouped CLI, and focusing on modern tech stacks like Shopify and React Router—all without a single runtime dependency.
@@ -116,6 +127,14 @@ my-project/dist
 ## Contributing
 
 Contributions are welcome! Please read our [contributing guidelines](./CONTRIBUTING.md) to get started.
+
+## Contributors
+
+<div align="center">
+  <a href="https://github.com/gaureshpai/reclaimspace/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=gaureshpai/reclaimspace" />
+  </a>
+</div>
 
 ## License
 

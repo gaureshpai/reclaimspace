@@ -13,6 +13,11 @@
     "format": "biome format . --write",
     "prepare": "husky"
   },
+  "lint-staged": {
+    "*.js": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  },
   "keywords": [
     "cli",
     "cleaner",
@@ -53,11 +58,6 @@
     "minimatch": "^10.1.1",
     "ora": "^5.4.1",
     "rimraf": "^6.1.2"
-  },
-  "lint-staged": {
-    "*.js": [
-      "biome check --write --no-errors-on-unmatched"
-    ]
   },
   "jest": {
     "transform": {
