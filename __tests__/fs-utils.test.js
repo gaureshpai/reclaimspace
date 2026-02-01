@@ -1,5 +1,4 @@
 import fs from "node:fs/promises";
-import path from "node:path";
 import { getFolderSize, removePath } from "../src/lib/fs-utils.js";
 
 jest.mock("node:fs/promises");

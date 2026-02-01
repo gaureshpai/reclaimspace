@@ -40,7 +40,7 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   displayLogoAndCredits();
 
   program
-    .argument("[dirs...]", "Directories to scan", [process.cwd()])
+    .argument("[dirs...]", "Directories to scan")
     .option("-y, --yes", "Auto-delete all found items without confirmation")
     .option("-d, --dry", "Preview only, do not delete anything")
     .option("-u, --ui", "Enable interactive UI to select what to delete")
