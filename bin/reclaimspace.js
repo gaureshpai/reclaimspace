@@ -2,6 +2,6 @@
 
 const baseDir = process.cwd();
 
-import { run } from '../src/main.js';
+import { run } from "../src/main.js";
 
 run(baseDir);

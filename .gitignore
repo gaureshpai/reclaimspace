@@ -3,3 +3,7 @@ test*
 req.md
 *.tgz
 .env
+.shopify
+.react-router
+.tanstack
+.venv

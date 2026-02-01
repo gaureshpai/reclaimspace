@@ -1,10 +1,10 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { promisify } from 'util';
-import fastFolderSize from 'fast-folder-size';
-import chalk from 'chalk';
-import { CATEGORIES, FOLDER_CATEGORIES, BUILD_ARTIFACT_PATTERNS } from './constants.js';
-import * as minimatch from 'minimatch';
+import fs from "node:fs/promises";
+import path from "node:path";
+import { promisify } from "node:util";
+import { fastFolderSize } from "./lib/fs-utils.js";
+import chalk from "./lib/ansi.js";
+import { CATEGORIES, FOLDER_CATEGORIES, BUILD_ARTIFACT_PATTERNS } from "./constants.js";
+import minimatch from "./lib/match.js";
 
 const fastFolderSizeAsync = promisify(fastFolderSize);
 
@@ -15,13 +15,13 @@ async function getBuildPatterns(folderPath) {
   try {
     const entries = await fs.readdir(folderPath, { withFileTypes: true });
     for (const pattern of BUILD_ARTIFACT_PATTERNS) {
-      if (pattern.includes('*')) {
-        const regex = new RegExp(pattern.replace(/\./g, '\\.\\').replace(/\*/g, '.*'));
-        if (entries.some(entry => regex.test(entry.name))) {
+      if (pattern.includes("*")) {
+        const regex = new RegExp(pattern.replace(/\./g, "\\.\\").replace(/\*/g, ".*"));
+        if (entries.some((entry) => regex.test(entry.name))) {
           detectedPatterns.push(pattern);
         }
       } else {
-        if (entries.some(entry => entry.name === pattern)) {
+        if (entries.some((entry) => entry.name === pattern)) {
           detectedPatterns.push(pattern);
         }
       }
@@ -35,28 +35,31 @@ async function getBuildPatterns(folderPath) {
 async function find(searchPaths, ignorePatterns, onProgress, spinner, includePatterns) {
   const startTime = process.hrtime.bigint();
 
-  let targets = [];
+  const targets = [];
   let totalSize = 0;
   const visited = new Set();
 
   const allPotentialDirs = [];
 
-  const currentFolderCategories = includePatterns && includePatterns.length > 0
-    ? [{ id: 'custom', names: includePatterns }]
-    : FOLDER_CATEGORIES;
+  const currentFolderCategories =
+    includePatterns && includePatterns.length > 0
+      ? [{ id: "custom", names: includePatterns }]
+      : FOLDER_CATEGORIES;
 
   async function collectDirs(currentPath) {
     if (visited.has(currentPath)) return;
     visited.add(currentPath);
 
-    if (ignorePatterns.some(pattern => {
-      try {
-        const normalizedPath = currentPath.replace(/\\/g, '/');
-        return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
-      } catch (e) {
-        return false;
-      }
-    })) {
+    if (
+      ignorePatterns.some((pattern) => {
+        try {
+          const normalizedPath = currentPath.replace(/\\/g, "/");
+          return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
+        } catch (_e) {
+          return false;
+        }
+      })
+    ) {
       return;
     }
 
@@ -67,7 +70,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
         if (entry.isDirectory()) {
           let isMatch = false;
           for (const cat of currentFolderCategories) {
-            if (cat.names.some(name => minimatch.minimatch(entry.name, name))) {
+            if (cat.names.some((name) => minimatch.minimatch(entry.name, name))) {
               isMatch = true;
               break;
             }
@@ -76,14 +79,14 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
           if (isMatch) {
             allPotentialDirs.push({ path: fullPath, entry });
           }
-          
-          if (entry.name !== 'node_modules') {
+
+          if (entry.name !== "node_modules") {
             await collectDirs(fullPath);
           }
         }
       }
     } catch (err) {
-      if (err.code !== 'EPERM') {
+      if (err.code !== "EPERM") {
         console.error(chalk.red(`Error collecting directories in ${currentPath}: ${err.message}`));
       }
     }
@@ -114,7 +117,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
     if (activePromises.size > 0) {
       await Promise.race(activePromises);
     } else if (queue.length > 0) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
@@ -126,21 +129,23 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
     }
     visited.add(fullPath);
 
-    if (ignorePatterns.some(pattern => {
-      try {
-        const normalizedPath = fullPath.replace(/\\/g, '/');
-        return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
-      } catch (e) {
-        return false;
-      }
-    })) {
+    if (
+      ignorePatterns.some((pattern) => {
+        try {
+          const normalizedPath = fullPath.replace(/\\/g, "/");
+          return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
+        } catch (_e) {
+          return false;
+        }
+      })
+    ) {
       return;
     }
 
     if (entry.isDirectory()) {
       let category = null;
       for (const cat of currentFolderCategories) {
-        if (cat.names.some(name => minimatch.minimatch(entry.name, name))) {
+        if (cat.names.some((name) => minimatch.minimatch(entry.name, name))) {
           category = cat.id;
           break;
         }
@@ -148,7 +153,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
 
       if (category) {
         let detectedBuildPatterns = [];
-        if (category === 'build') {
+        if (category === "build") {
           detectedBuildPatterns = await getBuildPatterns(fullPath);
         }
 
@@ -167,7 +172,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
             totalSize += size;
           }
         } catch (err) {
-          if (err.code !== 'EPERM') {
+          if (err.code !== "EPERM") {
             console.error(chalk.red(`Error calculating size for ${fullPath}: ${err.message}`));
           }
         }
@@ -178,8 +183,8 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
   onProgress.stop();
 
   targets.sort((a, b) => {
-    const categoryA = CATEGORIES.find(c => c.id === a.category);
-    const categoryB = CATEGORIES.find(c => c.id === b.category);
+    const categoryA = CATEGORIES.find((c) => c.id === a.category);
+    const categoryB = CATEGORIES.find((c) => c.id === b.category);
 
     const orderA = categoryA ? categoryA.order : 99;
     const orderB = categoryB ? categoryB.order : 99;

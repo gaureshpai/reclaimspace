@@ -1,8 +1,8 @@
-import { rimraf } from 'rimraf';
+import { removePath } from "./lib/fs-utils.js";
 
 async function deleteTarget(targetPath) {
   try {
-    await rimraf(targetPath, { glob: false });
+    await removePath(targetPath);
     return { success: true };
   } catch (error) {
     return { success: false, error };

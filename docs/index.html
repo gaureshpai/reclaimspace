@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ReclaimSpace - Documentation</title>
     <meta name="description"
-        content="ReclaimSpace is a tool that helps you identify and delete empty folders from your file system.">
+        content="ReclaimSpace is a lightning-fast, zero-dependency CLI tool to find and delete development junk like node_modules, build caches, and modern framework artifacts.">
     <meta name="keywords"
         content="ReclaimSpace, disk space, cleanup, CLI tool, development folders, node_modules, build artifacts">
     <meta name="author" content="ReclaimSpace Contributors">
     <meta name="robots" content="index, follow">
     <meta property="og:title" content="ReclaimSpace - Documentation">
     <meta property="og:description"
-        content="ReclaimSpace is a tool that helps you identify and delete empty folders from your file system.">
+        content="ReclaimSpace is a lightning-fast, zero-dependency CLI tool to find and delete development junk.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gaureshpai.github.io/reclaimspace/">
     <meta property="og:image" content="https://gaureshpai.github.io/reclaimspace/favicon.ico">
@@ -106,8 +106,10 @@
         <section id="features" class="mb-5">
             <h2>Features</h2>
             <ul>
-                <li><strong>Interactive Deletion:</strong> Navigate through a list of found items and select which ones
-                    to delete.</li>
+                <li><strong>Interactive Deletion:</strong> Navigate through a list of found items using arrow keys,
+                    space to select, and Enter to proceed.</li>
+                <li><strong>Zero Runtime Dependencies:</strong> Built from the ground up with native Node.js APIs for
+                    maximum speed and security. No <code>node_modules</code> at runtime!</li>
                 <li><strong>Categorized & Grouped:</strong> Results are grouped by type for clarity.</li>
                 <li><strong>Size Information:</strong> See the size of each item and the total reclaimable space.</li>
                 <li><strong>Concurrent Scanning:</strong> Quickly finds and processes files.</li>
@@ -117,9 +119,13 @@
                 <li><strong>Dry Run Mode:</strong> Use the <code>--dry</code> flag to see what would be deleted without
                     actually deleting anything.</li>
                 <li><strong>Ignore Patterns:</strong> Exclude specific folders or patterns using a
-                    <code>.reclaimspacerc</code> file or the <code>--ignore</code> flag.</li>
-                <li><strong>Clickable Paths:</strong> Paths displayed in the terminal are clickable links (requires
-                    terminal emulator support).</li>
+                    <code>.reclaimspacerc</code> file or the <code>--ignore</code> flag.
+                </li>
+                <li><strong>Interactive UI:</strong> Supports 'a' to select all and 'i' to invert selection.</li>
+                <li><strong>Windows Stability:</strong> Includes built-in retry logic for locked files (EBUSY/EPERM),
+                    ensuring smooth cleanup on Windows systems.</li>
+                <li><strong>Smart Error Handling:</strong> Clear, actionable messages for resource-busy errors, helping
+                    you identify which applications to close.</li>
                 <li><strong>Cool Logo:</strong> Displays a cool logo when you run the tool.</li>
             </ul>
         </section>
@@ -149,12 +155,19 @@ my-project/dist</code></pre>
                     <ul>
                         <li><code>.next</code>, <code>dist</code>, <code>build</code>, <code>storybook-static</code>,
                             <code>.nuxt</code>, <code>.svelte-kit</code>, <code>.angular</code>, <code>out</code>,
-                            <code>.expo</code>, <code>.turbo</code>, <code>.cache</code></li>
+                            <code>.expo</code>, <code>.turbo</code>, <code>.cache</code>, <code>.shopify</code>,
+                            <code>.react-router</code>, <code>.tanstack</code>
+                        </li>
                     </ul>
                 </li>
                 <li><strong>Testing/Reporting Folders</strong>
                     <ul>
                         <li><code>coverage</code>, <code>.nyc_output</code></li>
+                    </ul>
+                </li>
+                <li><strong>Miscellaneous Dev Junk</strong>
+                    <ul>
+                        <li><code>.venv</code> (Python Virtual Environments)</li>
                     </ul>
                 </li>
             </ol>
