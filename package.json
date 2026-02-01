@@ -66,5 +66,10 @@
     "testMatch": [
       "**/__tests__/**/*.js"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": "10.5.0"
+    }
   }
 }
