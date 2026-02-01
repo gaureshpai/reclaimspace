@@ -7,6 +7,13 @@ import { formatSize, formatDate } from "./utils.js";
 import { deleteTarget } from "./deleter.js";
 import * as scanner from "./scanner.js";
 
+/**
+ * Runs the directory scanner with a progress bar and spinner.
+ * @param {Array<string>} searchPaths - Directories to scan.
+ * @param {Array<string>} ignorePatterns - Glob patterns to ignore.
+ * @param {Array<string>} includePatterns - Glob patterns to include (overrides default).
+ * @returns {Promise<Object>} Scanner results containing targets, total size, and duration.
+ */
 async function runScannerWithProgress(searchPaths, ignorePatterns, includePatterns) {
   const spinner = ora(chalk.bold.blue("Collecting directories...")).start();
 
@@ -38,6 +45,10 @@ async function runScannerWithProgress(searchPaths, ignorePatterns, includePatter
   return results;
 }
 
+/**
+ * Main UI entry point. Handles dry runs, auto-deletion, and interactive mode.
+ * @param {Object} context - Application context containing targets, options, and state.
+ */
 async function start({ targets, totalSize, duration, options, baseDir, state, buildAnalysis }) {
   if (!targets || targets.length === 0) {
     console.log(chalk.green("No reclaimable space found. Your workspace is clean! \n\n"));
@@ -95,6 +106,11 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
   await interactiveUI(targets, totalSize, baseDir, state);
 }
 
+/**
+ * Displays a list of targets in a formatted table.
+ * @param {Array<Object>} targets - List of targets to display.
+ * @param {string} baseDir - Base directory for relative path calculation.
+ */
 function displayTargets(targets, baseDir) {
   console.log(chalk.bold.gray("  Size      Last Modified  Path"));
   console.log(chalk.bold.gray("  --------- --------------  ----"));
@@ -108,6 +124,13 @@ function displayTargets(targets, baseDir) {
   }
 }
 
+/**
+ * Launches the interactive checkbox UI for selecting items to delete.
+ * @param {Array<Object>} targets - Reclaimable targets.
+ * @param {number} _totalSize - Unused.
+ * @param {string} baseDir - Base directory.
+ * @param {Object} state - Application state.
+ */
 async function interactiveUI(targets, _totalSize, baseDir, state) {
   console.log("");
 
@@ -149,6 +172,12 @@ async function interactiveUI(targets, _totalSize, baseDir, state) {
   console.log(chalk.bold.white("Thanks for using ReclaimSpace!\n\n"));
 }
 
+/**
+ * Handles the deletion of a single target and updates the shared state.
+ * @param {Object} target - Target to delete.
+ * @param {Object} state - Application state to update.
+ * @returns {Promise<boolean>} Success status.
+ */
 async function handleDelete(target, state) {
   process.stdout.write(`Deleting ${target.path}... `);
   const { success, error } = await deleteTarget(target.path);
@@ -159,7 +188,8 @@ async function handleDelete(target, state) {
   } else {
     let msg = error.message;
     if (error.code === "EBUSY") {
-      msg = "Resource busy or locked. Please close any applications (like IDEs or terminals) using this folder and try again.";
+      msg =
+        "Resource busy or locked. Please close any applications (like IDEs or terminals) using this folder and try again.";
     }
     process.stdout.write(chalk.red(`Error: ${msg}\n`));
     return false;

@@ -1,16 +1,25 @@
 import chalk from "./ansi.js";
 
-export default function ora(text) {
+/**
+ * Creates a terminal spinner instance.
+ * @param {string} initialText - Initial text to display next to the spinner.
+ * @returns {Object} Spinner instance with start() and stop() methods.
+ */
+export default function ora(initialText) {
   let interval;
   const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
   let i = 0;
 
-  return {
+  const spinner = {
+    text: initialText,
     start() {
+      if (interval) clearInterval(interval);
       interval = setInterval(() => {
-        process.stdout.clearLine(0);
-        process.stdout.cursorTo(0);
-        process.stdout.write(`${chalk.cyan(frames[i])} ${text}`);
+        if (process.stdout?.isTTY && process.stdout.clearLine && process.stdout.cursorTo) {
+          process.stdout.clearLine(0);
+          process.stdout.cursorTo(0);
+          process.stdout.write(`${chalk.cyan(frames[i])} ${spinner.text}`);
+        }
         i = (i + 1) % frames.length;
       }, 80);
       return this;
@@ -18,10 +27,15 @@ export default function ora(text) {
     stop() {
       if (interval) {
         clearInterval(interval);
+        interval = null;
+      }
+      if (process.stdout?.isTTY && process.stdout.clearLine && process.stdout.cursorTo) {
         process.stdout.clearLine(0);
         process.stdout.cursorTo(0);
       }
       return this;
     },
   };
+
+  return spinner;
 }

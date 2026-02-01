@@ -17,8 +17,12 @@ export async function getFolderSize(directory) {
         totalSize += stats.size;
       }
     }
-  } catch (_err) {
-    // Ignore errors for specific files
+  } catch (err) {
+    if (err.code === "ENOENT" || err.code === "EACCES") {
+      // Expected errors, ignore silently
+    } else {
+      console.debug(`Unexpected error processing ${directory}: ${err.message}`);
+    }
   }
   return totalSize;
 }
@@ -42,15 +46,13 @@ export async function removePath(targetPath, retries = 3, delay = 500) {
   }
 }
 
+/**
+ * Lightweight wrapper for getFolderSize matching the fast-folder-size API.
+ * @param {string} dir - Directory to measure.
+ * @param {Function} cb - Callback (err, size).
+ */
 export const fastFolderSize = (dir, cb) => {
   getFolderSize(dir)
     .then((size) => cb(null, size))
     .catch((err) => cb(err));
-};
-
-export const rimraf = {
-  sync: (_p) => {
-    // This is a bit of a hack to avoid porting synchronous logic if not needed
-    // But rimraf is used in deleter.js
-  },
 };

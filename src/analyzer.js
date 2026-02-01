@@ -1,3 +1,8 @@
+/**
+ * Analyzes found build folders to infer project types and identify common patterns.
+ * @param {Array<Object>} targets - List of found reclaimable targets.
+ * @returns {Object} Analysis object containing inferred project types, common patterns, and unique patterns.
+ */
 function analyzeBuildPatterns(targets) {
   const analysis = {
     inferredProjectTypes: {},

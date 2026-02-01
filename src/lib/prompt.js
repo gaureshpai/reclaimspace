@@ -1,8 +1,13 @@
 import readline from "node:readline";
 import chalk from "./ansi.js";
 
-const isRaw = process.stdin.isTTY;
+const isRaw = process.stdout.isTTY;
 
+/**
+ * Utility for interactive CLI prompts.
+ * @param {Array<Object>} questions - List of question objects.
+ * @returns {Promise<Object>} Object containing answers.
+ */
 export async function prompt(questions) {
   const result = {};
 
@@ -14,7 +19,8 @@ export async function prompt(questions) {
       });
       const answer = await new Promise((resolve) => {
         rl.question(`${chalk.green("?")} ${q.message} (Y/n) `, (input) => {
-          resolve(input.toLowerCase() !== "n");
+          const normalized = input.trim().toLowerCase();
+          resolve(!normalized.startsWith("n"));
         });
       });
       rl.close();
@@ -29,6 +35,11 @@ export async function prompt(questions) {
   return result;
 }
 
+/**
+ * Interactive checkbox prompt for selecting multiple items.
+ * @param {Object} q - Question object.
+ * @returns {Promise<Array<any>>} List of selected values.
+ */
 async function checkboxPrompt(q) {
   if (!isRaw) {
     // Fallback for non-TTY
@@ -55,8 +66,6 @@ async function checkboxPrompt(q) {
 
     const render = () => {
       process.stdout.write("\x1B[?25l"); // Hide cursor
-      process.stdout.clearLine(0);
-      process.stdout.cursorTo(0);
       process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
 
       choices.forEach((c, i) => {
@@ -64,17 +73,16 @@ async function checkboxPrompt(q) {
         const isCursor = i === cursor;
         const prefix = isCursor ? chalk.cyan("❯") : " ";
         const check = isSelected ? chalk.green("◉") : "◯";
-        console.log(`${prefix} ${check} ${c.name}`);
+        process.stdout.write(`${prefix} ${check} ${c.name}\n`);
       });
 
       process.stdout.write(
-        chalk.dim(
-          "\n(Use arrow keys to move, space to select, a to toggle all, enter to proceed)",
-        ),
+        chalk.dim("\n(Use arrow keys to move, space to select, a to toggle all, enter to proceed)"),
       );
     };
 
     const cleanup = () => {
+      process.stdin.removeListener("data", onData);
       process.stdin.setRawMode(false);
       process.stdin.pause();
       process.stdout.write("\x1B[?25h"); // Show cursor
@@ -85,11 +93,7 @@ async function checkboxPrompt(q) {
       }
     };
 
-    render();
-
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.on("data", (data) => {
+    const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {
         // Ctrl+C
@@ -129,13 +133,84 @@ async function checkboxPrompt(q) {
         process.stdout.clearLine(0);
       }
       render();
-    });
+    };
+
+    render();
+
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.on("data", onData);
   });
 }
 
+/**
+ * Interactive list prompt for selecting a single item.
+ * @param {Object} q - Question object.
+ * @returns {Promise<any>} Selected value.
+ */
 async function listPrompt(q) {
-  // Similar logic for list...
-  return q.choices[0]?.value || q.choices[0];
+  const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
+
+  if (choices.length === 0) return null;
+  if (!isRaw) {
+    return choices[0].value;
+  }
+
+  return new Promise((resolve) => {
+    let cursor = 0;
+
+    const render = () => {
+      process.stdout.write("\x1B[?25l"); // Hide cursor
+      process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
+
+      choices.forEach((c, i) => {
+        const isCursor = i === cursor;
+        const prefix = isCursor ? chalk.cyan("❯") : " ";
+        process.stdout.write(`${prefix} ${c.name}\n`);
+      });
+
+      process.stdout.write(chalk.dim("\n(Use arrow keys to move, enter to select)"));
+    };
+
+    const cleanup = () => {
+      process.stdin.removeListener("data", onData);
+      process.stdin.setRawMode(false);
+      process.stdin.pause();
+      process.stdout.write("\x1B[?25h"); // Show cursor
+      for (let i = 0; i < choices.length + 3; i++) {
+        process.stdout.moveCursor(0, -1);
+        process.stdout.clearLine(0);
+      }
+    };
+
+    const onData = (data) => {
+      const key = data.toString();
+      if (key === "\u0003") {
+        cleanup();
+        process.exit();
+      } else if (key === "\r" || key === "\n") {
+        cleanup();
+        resolve(choices[cursor].value);
+      } else if (key === "\u001b[A") {
+        // Up
+        cursor = (cursor - 1 + choices.length) % choices.length;
+      } else if (key === "\u001b[B") {
+        // Down
+        cursor = (cursor + 1) % choices.length;
+      }
+
+      for (let i = 0; i < choices.length + 2; i++) {
+        process.stdout.moveCursor(0, -1);
+        process.stdout.clearLine(0);
+      }
+      render();
+    };
+
+    render();
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.on("data", onData);
+  });
 }
 
 export default { prompt };

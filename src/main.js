@@ -5,6 +5,9 @@ import { analyzeBuildPatterns } from "./analyzer.js";
 import chalk from "./lib/ansi.js";
 import fs from "node:fs/promises";
 
+/**
+ * Displays the ReclaimSpace ASCII logo and initial credits.
+ */
 function displayLogoAndCredits() {
   const Logo = `
 ██████╗ ███████╗ ██████╗██╗      █████╗ ██╗███╗   ███╗
@@ -17,16 +20,21 @@ function displayLogoAndCredits() {
   console.log(chalk.cyan.bold(Logo));
 }
 
+/**
+ * Main application runner. Initialized arguments, starts scan, and launches UI.
+ * @param {string} baseDir - The root directory of the project.
+ */
 async function run(baseDir) {
   const state = { totalReclaimed: 0 };
 
-  process.on("SIGINT", () => {
+  process.once("SIGINT", () => {
     process.stdout.write(
       chalk.green(`
 Total space reclaimed: ${formatSize(state.totalReclaimed)}
 `),
     );
     process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
+    process.exit(130);
   });
 
   displayLogoAndCredits();

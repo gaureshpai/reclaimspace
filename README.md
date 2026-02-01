@@ -2,7 +2,7 @@
 
 **A lightning-fast, zero-dependency CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.**
 
-It behaves like `npx npkill`, but goes further by detecting multiple categories of heavy folders/files, providing a navigable grouped CLI interface, and focusing on modern tech stacks like Shopify and React Router—all without a single runtime dependency.
+It behaves like `npx npkill`, but goes further by detecting multiple categories of heavy folders/files, providing a navigable grouped CLI, and focusing on modern tech stacks like Shopify and React Router—all without a single runtime dependency.
 
 ## Usage
 

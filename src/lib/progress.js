@@ -1,5 +1,9 @@
+import readline from "node:readline";
 import chalk from "./ansi.js";
 
+/**
+ * A simple ASCII progress bar for TTY environments.
+ */
 export class SingleBar {
   constructor(options = {}) {
     this.options = options;
@@ -8,35 +12,58 @@ export class SingleBar {
     this._startTime = Date.now();
   }
 
-  start(total, startValue) {
-    this.total = total;
-    this.value = startValue;
+  /**
+   * Starts the progress bar.
+   * @param {number} total - Total value for 100%.
+   * @param {number} [startValue=0] - Initial value.
+   */
+  start(total, startValue = 0) {
+    this.total = Math.max(0, Number(total) || 0);
+    this.value = Math.max(0, Number(startValue) || 0);
     this.render();
   }
 
+  /**
+   * Updates the current progress value.
+   * @param {number} value - New progress value.
+   */
   update(value) {
-    this.value = value;
+    this.value = Math.max(0, Number(value) || 0);
     this.render();
   }
 
+  /**
+   * Increments the current progress value by 1.
+   */
   increment() {
     this.value++;
     this.render();
   }
 
+  /**
+   * Stops the progress bar and cleans up the line.
+   */
   stop() {
     this.render();
-    process.stdout.write("\n");
+    if (process.stdout.isTTY) {
+      process.stdout.write("\n");
+    }
   }
 
+  /**
+   * Renders the progress bar to stdout if TTY is enabled.
+   */
   render() {
-    const percentage = Math.floor((this.value / this.total) * 100) || 0;
+    if (!process.stdout.isTTY) return;
+
+    const percentage =
+      this.total > 0 ? Math.min(100, Math.floor((this.value / this.total) * 100)) : 0;
     const barWidth = 40;
     const filledWidth = Math.floor((percentage / 100) * barWidth);
     const bar = "█".repeat(filledWidth) + "░".repeat(barWidth - filledWidth);
 
-    process.stdout.clearLine(0);
-    process.stdout.cursorTo(0);
+    readline.clearLine(process.stdout, 0);
+    readline.cursorTo(process.stdout, 0);
     process.stdout.write(
       `Progress |${chalk.cyan(bar)}| ${percentage}% | ${this.value}/${this.total}`,
     );

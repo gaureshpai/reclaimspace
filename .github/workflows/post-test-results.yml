@@ -144,19 +144,34 @@ jobs:
               core.info('No job results file found; proceeding with overall status only.');
             }
       
+            // Read supplementary log results (if generated)
+            const summaryPath = './job-results/parsed-summary.json';
+            let summary = [];
+            if (fs.existsSync(summaryPath)) {
+              summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+            }
+      
             // Build comment body
             const overallStatus = context.payload.workflow_run.conclusion;
             const statusEmoji = overallStatus === 'success' ? '✅'
                               : overallStatus === 'failure' ? '❌'
                               : 'ℹ️';
       
-            let body = `### ${statusEmoji} CI/CD Test Results\n\n`;
+            let body = `### ${statusEmoji} CI/CD Test Results <!-- ci-cd-test-results -->\n\n`;
             body += `**Overall Status**: ${overallStatus}\n\n`;
       
             if (results.length) {
-              body += `#### Node.js Version Results:\n\n`;
+              body += `#### Job Status Summary:\n\n`;
               for (const r of results) {
                 body += `- **Node ${r.nodeVersion}**: ${r.status}${r.htmlUrl ? ` ([View logs](${r.htmlUrl}))` : ''}\n`;
+              }
+              body += `\n`;
+            }
+
+            if (summary.length) {
+              body += `#### Log Analysis Details:\n\n`;
+              for (const s of summary) {
+                body += `- **Node ${s.nodeVersion}**: ${s.status}\n`;
               }
               body += `\n`;
             }
@@ -168,7 +183,7 @@ jobs:
               owner, repo, issue_number: prNumber
             });
             const botComment = comments.find(c =>
-              c.user?.type === 'Bot' && c.body?.includes('CI/CD Test Results')
+              c.user?.login === 'github-actions[bot]' && c.body?.includes('<!-- ci-cd-test-results -->')
             );
       
             if (botComment) {

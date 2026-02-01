@@ -1,6 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+/**
+ * Formats bytes into a human-readable string (e.g., "1.23 MB").
+ * @param {number} bytes - The number of bytes to format.
+ * @returns {string} Human-readable size string.
+ */
 function formatSize(bytes) {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -9,6 +14,11 @@ function formatSize(bytes) {
   return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
+/**
+ * Reads ignore patterns from .reclaimspacerc and appends default system ignores.
+ * @param {string} baseDir - The directory to look for .reclaimspacerc in.
+ * @returns {Promise<Array<string>>} List of glob patterns to ignore.
+ */
 async function readIgnoreFile(baseDir) {
   const ignoreFilePath = path.join(baseDir, ".reclaimspacerc");
   let patterns = [];
@@ -57,6 +67,11 @@ async function readIgnoreFile(baseDir) {
   return patterns;
 }
 
+/**
+ * Formats a Date object or timestamp into YYYY-MM-DD.
+ * @param {Date|number|string} date - The date to format.
+ * @returns {string} Formatted date string.
+ */
 function formatDate(date) {
   const d = new Date(date);
   const year = d.getFullYear();

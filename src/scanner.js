@@ -4,12 +4,17 @@ import { promisify } from "node:util";
 import { fastFolderSize } from "./lib/fs-utils.js";
 import chalk from "./lib/ansi.js";
 import { CATEGORIES, FOLDER_CATEGORIES, BUILD_ARTIFACT_PATTERNS } from "./constants.js";
-import minimatch from "./lib/match.js";
+import { minimatch } from "./lib/match.js";
 
 const fastFolderSizeAsync = promisify(fastFolderSize);
 
 const CONCURRENCY_LIMIT = 5;
 
+/**
+ * Checks a folder for specific build artifact files to help identify project types.
+ * @param {string} folderPath - Path to the folder to check.
+ * @returns {Promise<Array<string>>} List of detected artifact patterns.
+ */
 async function getBuildPatterns(folderPath) {
   const detectedPatterns = [];
   try {
@@ -32,6 +37,15 @@ async function getBuildPatterns(folderPath) {
   return detectedPatterns;
 }
 
+/**
+ * Finds reclaimable files and folders within search paths.
+ * @param {Array<string>} searchPaths - Root directories to scan.
+ * @param {Array<string>} ignorePatterns - Patterns to exclude.
+ * @param {Object} onProgress - Progress reporter instance.
+ * @param {Object} spinner - Spinner instance for status updates.
+ * @param {Array<string>} includePatterns - Custom patterns to include (optional).
+ * @returns {Promise<Object>} Object containing targets, totalSize, and duration.
+ */
 async function find(searchPaths, ignorePatterns, onProgress, spinner, includePatterns) {
   const startTime = process.hrtime.bigint();
 
@@ -54,7 +68,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       ignorePatterns.some((pattern) => {
         try {
           const normalizedPath = currentPath.replace(/\\/g, "/");
-          return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
+          return minimatch(normalizedPath, pattern, { matchBase: true });
         } catch (_e) {
           return false;
         }
@@ -70,7 +84,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
         if (entry.isDirectory()) {
           let isMatch = false;
           for (const cat of currentFolderCategories) {
-            if (cat.names.some((name) => minimatch.minimatch(entry.name, name))) {
+            if (cat.names.some((name) => minimatch(entry.name, name))) {
               isMatch = true;
               break;
             }
@@ -133,7 +147,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       ignorePatterns.some((pattern) => {
         try {
           const normalizedPath = fullPath.replace(/\\/g, "/");
-          return minimatch.minimatch(normalizedPath, pattern, { matchBase: true });
+          return minimatch(normalizedPath, pattern, { matchBase: true });
         } catch (_e) {
           return false;
         }
@@ -145,7 +159,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
     if (entry.isDirectory()) {
       let category = null;
       for (const cat of currentFolderCategories) {
-        if (cat.names.some((name) => minimatch.minimatch(entry.name, name))) {
+        if (cat.names.some((name) => minimatch(entry.name, name))) {
           category = cat.id;
           break;
         }

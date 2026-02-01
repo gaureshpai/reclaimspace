@@ -56,7 +56,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "biome lint . --write"
+      "biome check --write --no-errors-on-unmatched"
     ]
   },
   "jest": {

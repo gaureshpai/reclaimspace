@@ -56,6 +56,11 @@ const _chalkMock = {
 };
 
 // Add a more flexible chainer
+/**
+ * Creates a chainable ANSI style formatter.
+ * @param {Array<string>} styles - Initial styles to apply.
+ * @returns {Function} A formatter function that also has style properties for chaining.
+ */
 const createChainer = (styles = []) => {
   const formatter = (str) => {
     return styles.reduce(
