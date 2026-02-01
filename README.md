@@ -1,8 +1,8 @@
 # ReclaimSpace CLI
 
-**A CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.**
+**A lightning-fast, zero-dependency CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.**
 
-It behaves like `npx npkill`, but goes further by detecting multiple categories of heavy folders/files and providing a navigable, grouped CLI interface.
+It behaves like `npx npkill`, but goes further by detecting multiple categories of heavy folders/files, providing a navigable grouped CLI, and focusing on modern tech stacks like Shopify and React Router—all without a single runtime dependency.
 
 ## Usage
 
@@ -88,7 +88,8 @@ my-project/dist
 
 ## Features
 
-- **Interactive Deletion:** Navigate through a list of found items using arrow keys and press Enter to delete.
+- **Interactive Deletion:** Navigate through a list of found items using arrow keys, space to select, and Enter to proceed.
+- **Zero Runtime Dependencies:** Built from the ground up with native Node.js APIs for maximum speed and security. No `node_modules` at runtime!
 - **Categorized & Grouped:** Results are grouped by type (Node Modules, Build Folders, etc.) for clarity.
 - **Size Information:** See the size of each item and the total reclaimable space.
 - **Concurrent Scanning:** ReclaimSpace uses a concurrent scanner to quickly find and process files.
@@ -96,6 +97,7 @@ my-project/dist
 - **Auto-Delete Mode:** Use the `--yes` flag to delete all found items without confirmation.
 - **Dry Run Mode:** Use the `--dry` flag to see what would be deleted without actually deleting anything.
 - **Ignore Patterns:** Exclude specific folders or patterns using a `.reclaimspacerc` file or the `--ignore` flag.
+- **Interactive UI:** Supports 'a' to select all and 'i' to invert selection.
 - **Cool Logo:** Displays a cool logo when you run the tool.
 
 ## Detected Items
@@ -105,9 +107,11 @@ my-project/dist
 1.  **Node Modules**
     - `node_modules`
 2.  **Build/Cache Folders**
-    - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`
+    - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`, `.shopify`, `.react-router`, `.tanstack`
 3.  **Testing/Reporting Folders**
     - `coverage`, `.nyc_output`
+4.  **Miscellaneous Dev Junk**
+    - `.venv` (Python Virtual Environments)
 
 ## Contributing
 

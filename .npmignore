@@ -2,7 +2,26 @@
 __tests__/
 
 # Local config
-.spacecleanerrc
+.reclaimspacerc
+.env
+
+# Development tools
+.github/
+.husky/
+.agent/
+.vscode/
+docs/
+biome.json
+babel.config.cjs
+pnpm-lock.yaml
+package-lock.json
+
+# Documentation
+*.md
+!README.md
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
 
 # Project setup files
 req.md
+logo.txt

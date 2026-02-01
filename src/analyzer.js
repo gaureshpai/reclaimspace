@@ -1,3 +1,8 @@
+/**
+ * Analyzes found build folders to infer project types and identify common patterns.
+ * @param {Array<Object>} targets - List of found reclaimable targets.
+ * @returns {Object} Analysis object containing inferred project types, common patterns, and unique patterns.
+ */
 function analyzeBuildPatterns(targets) {
   const analysis = {
     inferredProjectTypes: {},
@@ -6,21 +11,23 @@ function analyzeBuildPatterns(targets) {
   };
 
   const allBuildPatterns = [];
-
+  let buildCount = 0;
   for (const target of targets) {
-    if (target.category === 'build' && target.buildPatterns && target.buildPatterns.length > 0) {
+    if (target.category === "build" && target.buildPatterns && target.buildPatterns.length > 0) {
+      buildCount++;
       allBuildPatterns.push(...target.buildPatterns);
 
-      if (target.buildPatterns.includes('angular.json')) {
+      if (target.buildPatterns.includes("angular.json")) {
         analysis.inferredProjectTypes.angular = (analysis.inferredProjectTypes.angular || 0) + 1;
-      } else if (target.buildPatterns.includes('next.config.js')) {
+      } else if (target.buildPatterns.includes("next.config.js")) {
         analysis.inferredProjectTypes.nextjs = (analysis.inferredProjectTypes.nextjs || 0) + 1;
-      } else if (target.buildPatterns.includes('vue.config.js')) {
+      } else if (target.buildPatterns.includes("vue.config.js")) {
         analysis.inferredProjectTypes.vue = (analysis.inferredProjectTypes.vue || 0) + 1;
-      } else if (target.buildPatterns.includes('webpack.config.js')) {
+      } else if (target.buildPatterns.includes("webpack.config.js")) {
         analysis.inferredProjectTypes.webpack = (analysis.inferredProjectTypes.webpack || 0) + 1;
-      } else if (target.buildPatterns.includes('package.json')) {
-        analysis.inferredProjectTypes.javascript = (analysis.inferredProjectTypes.javascript || 0) + 1;
+      } else if (target.buildPatterns.includes("package.json")) {
+        analysis.inferredProjectTypes.javascript =
+          (analysis.inferredProjectTypes.javascript || 0) + 1;
       }
     }
   }
@@ -31,7 +38,7 @@ function analyzeBuildPatterns(targets) {
   }
 
   for (const pattern in patternCounts) {
-    if (patternCounts[pattern] === targets.filter(t => t.category === 'build' && t.buildPatterns && t.buildPatterns.length > 0).length) {
+    if (patternCounts[pattern] === buildCount) {
       analysis.commonPatterns.add(pattern);
     } else if (patternCounts[pattern] === 1) {
       analysis.uniquePatterns.add(pattern);
