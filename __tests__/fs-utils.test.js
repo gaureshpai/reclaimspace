@@ -29,14 +29,22 @@ describe("fs-utils", () => {
       expect(fs.readdir).toHaveBeenCalledTimes(2);
     });
 
-    it("should ignore ENOENT and EACCES errors", async () => {
+    it("should ignore EACCES errors", async () => {
       const error = new Error("Access denied");
       error.code = "EACCES";
       fs.readdir.mockRejectedValue(error);
 
       const size = await getFolderSize("/restricted");
       expect(size).toBe(0);
-      // No error thrown
+    });
+
+    it("should ignore ENOENT errors", async () => {
+      const error = new Error("File not found");
+      error.code = "ENOENT";
+      fs.readdir.mockRejectedValue(error);
+
+      const size = await getFolderSize("/missing");
+      expect(size).toBe(0);
     });
   });
 
@@ -53,6 +61,24 @@ describe("fs-utils", () => {
       fs.rm.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
 
       await removePath("/busy/file", 2, 10);
+      expect(fs.rm).toHaveBeenCalledTimes(2);
+    });
+
+    it("should retry on EPERM", async () => {
+      const error = new Error("Permission denied");
+      error.code = "EPERM";
+      fs.rm.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
+
+      await removePath("/perm/file", 2, 10);
+      expect(fs.rm).toHaveBeenCalledTimes(2);
+    });
+
+    it("should retry on ENOTEMPTY", async () => {
+      const error = new Error("Directory not empty");
+      error.code = "ENOTEMPTY";
+      fs.rm.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
+
+      await removePath("/not/empty", 2, 10);
       expect(fs.rm).toHaveBeenCalledTimes(2);
     });
 
