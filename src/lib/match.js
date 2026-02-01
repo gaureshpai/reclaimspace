@@ -22,7 +22,10 @@ export function minimatch(str, pattern, options = {}) {
 
   // Translate glob tokens back to regex patterns
   const regexStr = escaped
-    .replace(/\\\*\\\*/g, ".*")
+    .replace(/\/\\\*\\\*\//g, "/(?:.*/)?") // mid-path **
+    .replace(/\/\\\*\\\*$/g, "(?:/.*)?") // trailing **
+    .replace(/^\\\*\\\*\//g, "(?:.*/)?") // leading **
+    .replace(/\\\*\\\*/g, ".*") // any other **
     .replace(/\\\*/g, "[^/]*")
     .replace(/\\\?/g, "[^/]");
 

@@ -72,7 +72,7 @@ async function checkboxPrompt(q) {
         const isSelected = selected.has(i);
         const isCursor = i === cursor;
         const prefix = isCursor ? chalk.cyan("❯") : " ";
-        const check = isSelected ? chalk.green("◉") : "◯";
+        const check = isSelected ? chalk.green("◉") : "○";
         process.stdout.write(`${prefix} ${check} ${c.name}\n`);
       });
 
@@ -83,7 +83,9 @@ async function checkboxPrompt(q) {
 
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
-      process.stdin.setRawMode(false);
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
       process.stdin.pause();
       process.stdout.write("\x1B[?25h"); // Show cursor
       // Clear the prompt lines
@@ -135,11 +137,13 @@ async function checkboxPrompt(q) {
       render();
     };
 
-    render();
+    render(); // Initial render
 
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.on("data", onData);
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      process.stdin.on("data", onData);
+    }
   });
 }
 
@@ -174,7 +178,9 @@ async function listPrompt(q) {
 
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
-      process.stdin.setRawMode(false);
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
       process.stdin.pause();
       process.stdout.write("\x1B[?25h"); // Show cursor
       for (let i = 0; i < choices.length + 3; i++) {
@@ -206,10 +212,13 @@ async function listPrompt(q) {
       render();
     };
 
-    render();
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.on("data", onData);
+    render(); // Initial render
+
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      process.stdin.on("data", onData);
+    }
   });
 }
 

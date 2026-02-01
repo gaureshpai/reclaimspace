@@ -21,7 +21,8 @@ async function getBuildPatterns(folderPath) {
     const entries = await fs.readdir(folderPath, { withFileTypes: true });
     for (const pattern of BUILD_ARTIFACT_PATTERNS) {
       if (pattern.includes("*")) {
-        const regex = new RegExp(pattern.replace(/\./g, "\\.\\").replace(/\*/g, ".*"));
+        const regexStr = pattern.replace(/\./g, "\\.").replace(/\*/g, ".*");
+        const regex = new RegExp(`^${regexStr}$`);
         if (entries.some((entry) => regex.test(entry.name))) {
           detectedPatterns.push(pattern);
         }
@@ -112,29 +113,6 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
 
   spinner.stop();
 
-  const queue = [...allPotentialDirs];
-  const activePromises = new Set();
-
-  visited.clear();
-
-  onProgress.start(allPotentialDirs.length, 0);
-
-  while (queue.length > 0 || activePromises.size > 0) {
-    while (queue.length > 0 && activePromises.size < CONCURRENCY_LIMIT) {
-      const dirInfo = queue.shift();
-      const promise = processDir(dirInfo.path, dirInfo.entry).finally(() => {
-        activePromises.delete(promise);
-        onProgress.increment();
-      });
-      activePromises.add(promise);
-    }
-    if (activePromises.size > 0) {
-      await Promise.race(activePromises);
-    } else if (queue.length > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  }
-
   async function processDir(fullPath, entry) {
     spinner.text = chalk.bold.blue(`Scanning: ${fullPath}`);
 
@@ -191,6 +169,29 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
           }
         }
       }
+    }
+  }
+
+  const queue = [...allPotentialDirs];
+  const activePromises = new Set();
+
+  visited.clear();
+
+  onProgress.start(allPotentialDirs.length, 0);
+
+  while (queue.length > 0 || activePromises.size > 0) {
+    while (queue.length > 0 && activePromises.size < CONCURRENCY_LIMIT) {
+      const dirInfo = queue.shift();
+      const promise = processDir(dirInfo.path, dirInfo.entry).finally(() => {
+        activePromises.delete(promise);
+        onProgress.increment();
+      });
+      activePromises.add(promise);
+    }
+    if (activePromises.size > 0) {
+      await Promise.race(activePromises);
+    } else if (queue.length > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 

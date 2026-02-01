@@ -60,13 +60,26 @@ export class SingleBar {
       this.total > 0 ? Math.min(100, Math.floor((this.value / this.total) * 100)) : 0;
     const barWidth = 40;
     const filledWidth = Math.floor((percentage / 100) * barWidth);
-    const bar = "█".repeat(filledWidth) + "░".repeat(barWidth - filledWidth);
+
+    const completeChar = this.options.barCompleteChar || "█";
+    const incompleteChar = this.options.barIncompleteChar || "░";
+    const bar = completeChar.repeat(filledWidth) + incompleteChar.repeat(barWidth - filledWidth);
 
     readline.clearLine(process.stdout, 0);
     readline.cursorTo(process.stdout, 0);
-    process.stdout.write(
-      `Progress |${chalk.cyan(bar)}| ${percentage}% | ${this.value}/${this.total}`,
-    );
+
+    if (this.options.format) {
+      const output = this.options.format
+        .replace("{bar}", bar)
+        .replace("{percentage}", percentage)
+        .replace("{value}", this.value)
+        .replace("{total}", this.total);
+      process.stdout.write(output);
+    } else {
+      process.stdout.write(
+        `Progress |${chalk.cyan(bar)}| ${percentage}% | ${this.value}/${this.total}`,
+      );
+    }
   }
 }
 

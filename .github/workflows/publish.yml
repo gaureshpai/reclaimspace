@@ -53,10 +53,10 @@ jobs:
 
       - name: Bump version
         id: bump
-        run: echo "tag=$(npm version ${{ github.event.inputs.release_type }})" >> $GITHUB_OUTPUT
+        run: echo "tag=$(pnpm version ${{ github.event.inputs.release_type }})" >> $GITHUB_OUTPUT
 
       - name: Publish to NPM
-        run: npm publish
+        run: pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

@@ -73,9 +73,11 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   searchPaths = validSearchPaths;
 
   const configIgnores = await readIgnoreFile(baseDir);
-  const cliIgnores = options.ignore ? options.ignore.split(",") : [];
+  const cliIgnores =
+    typeof options.ignore === "string" ? options.ignore.split(",").filter(Boolean) : [];
   const ignorePatterns = [...configIgnores, ...cliIgnores];
-  const includePatterns = options.include ? options.include.split(",") : [];
+  const includePatterns =
+    typeof options.include === "string" ? options.include.split(",").filter(Boolean) : [];
 
   const { targets, totalSize, duration } = await ui.runScannerWithProgress(
     searchPaths,
@@ -89,7 +91,7 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
     return;
   }
 
-  const buildAnalysis = analyzeBuildPatterns(targets);
+  const buildAnalysis = options.buildAnalysis ? analyzeBuildPatterns(targets) : null;
 
   await ui.start({
     targets,

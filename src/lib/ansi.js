@@ -1,5 +1,4 @@
 const ESC = "\u001b[";
-const _RESET = "\u001b[0m";
 
 const codes = {
   reset: [0, 0],
@@ -36,24 +35,6 @@ const ansi = {};
 for (const [name, [start, end]] of Object.entries(codes)) {
   ansi[name] = (str) => `${ESC}${start}m${str}${ESC}${end}m`;
 }
-
-// Chainable mock for chalk-like usage
-const _chalkMock = {
-  ...ansi,
-  bold: (str) => ansi.bold(str),
-  cyan: (str) => {
-    const fn = (s) => ansi.cyan(s);
-    fn.bold = (s) => ansi.bold(ansi.cyan(s));
-    return typeof str === "string" ? fn(str) : fn;
-  },
-  green: (str) => ansi.green(str),
-  red: (str) => ansi.red(str),
-  yellow: (str) => ansi.yellow(str),
-  blue: (str) => ansi.blue(str),
-  magenta: (str) => ansi.magenta(str),
-  white: (str) => ansi.white(str),
-  gray: (str) => ansi.gray(str),
-};
 
 // Add a more flexible chainer
 /**

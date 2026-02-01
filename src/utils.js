@@ -55,14 +55,14 @@ async function readIgnoreFile(baseDir) {
   patterns.push("/nbproject");
   patterns.push("/.editorconfig");
 
-  patterns.push("src");
-  patterns.push("source");
-  patterns.push("app");
-  patterns.push("lib");
-  patterns.push("components");
-  patterns.push("pages");
-  patterns.push("styles");
-  patterns.push("assets");
+  patterns.push("/src");
+  patterns.push("/source");
+  patterns.push("/app");
+  patterns.push("/lib");
+  patterns.push("/components");
+  patterns.push("/pages");
+  patterns.push("/styles");
+  patterns.push("/assets");
 
   return patterns;
 }

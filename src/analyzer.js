@@ -36,12 +36,12 @@ function analyzeBuildPatterns(targets) {
     patternCounts[pattern] = (patternCounts[pattern] || 0) + 1;
   }
 
+  const buildCount = targets.filter(
+    (t) => t.category === "build" && t.buildPatterns && t.buildPatterns.length > 0,
+  ).length;
+
   for (const pattern in patternCounts) {
-    if (
-      patternCounts[pattern] ===
-      targets.filter((t) => t.category === "build" && t.buildPatterns && t.buildPatterns.length > 0)
-        .length
-    ) {
+    if (patternCounts[pattern] === buildCount) {
       analysis.commonPatterns.add(pattern);
     } else if (patternCounts[pattern] === 1) {
       analysis.uniquePatterns.add(pattern);

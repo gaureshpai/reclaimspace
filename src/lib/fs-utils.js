@@ -39,9 +39,9 @@ export async function removePath(targetPath, retries = 3, delay = 500) {
       const isRetryable = err.code === "EBUSY" || err.code === "EPERM" || err.code === "ENOTEMPTY";
       if (isRetryable && i < retries - 1) {
         await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
+      } else {
+        throw err;
       }
-      throw err;
     }
   }
 }
