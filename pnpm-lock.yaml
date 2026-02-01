@@ -7,7 +7,16 @@ settings:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
+      '@babel/plugin-transform-modules-commonjs':
+        specifier: ^7.27.1
+        version: 7.28.6(@babel/core@7.29.0)
+      '@babel/preset-env':
+        specifier: ^7.28.3
+        version: 7.29.0(@babel/core@7.29.0)
+      '@biomejs/biome':
+        specifier: ^2.3.13
+        version: 2.3.13
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -20,37 +29,27 @@ importers:
       fast-folder-size:
         specifier: ^2.4.0
         version: 2.4.0
-      inquirer:
-        specifier: ^8.2.4
-        version: 8.2.7(@types/node@25.1.0)
-      minimatch:
-        specifier: ^10.0.3
-        version: 10.1.1
-      rimraf:
-        specifier: ^6.1.0
-        version: 6.1.2
-    devDependencies:
-      '@babel/plugin-transform-modules-commonjs':
-        specifier: ^7.27.1
-        version: 7.28.6(@babel/core@7.29.0)
-      '@babel/preset-env':
-        specifier: ^7.28.3
-        version: 7.29.0(@babel/core@7.29.0)
-      '@biomejs/biome':
-        specifier: ^2.3.13
-        version: 2.3.13
       husky:
         specifier: ^9.1.7
         version: 9.1.7
+      inquirer:
+        specifier: ^8.2.4
+        version: 8.2.7(@types/node@25.1.0)
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@25.1.0)
       lint-staged:
         specifier: ^16.2.7
         version: 16.2.7
+      minimatch:
+        specifier: ^10.0.3
+        version: 10.1.1
       ora:
         specifier: ^5.4.1
         version: 5.4.1
+      rimraf:
+        specifier: ^6.1.0
+        version: 6.1.2
 
 packages:
 
