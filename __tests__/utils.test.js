@@ -35,7 +35,7 @@ describe("utils", () => {
       expect(patterns).toContain("dist");
       expect(patterns).not.toContain("# comment");
       // Should also contain default ignores
-      expect(patterns).toContain("/usr");
+      expect(patterns).toContain("usr");
     });
 
     it("should handle missing ignore file", async () => {
@@ -45,7 +45,7 @@ describe("utils", () => {
 
       const patterns = await readIgnoreFile("/mock/dir");
       expect(patterns).toBeDefined();
-      expect(patterns).toContain("/usr"); // Only defaults
+      expect(patterns).toContain("usr"); // Only defaults
     });
 
     it("should throw other errors", async () => {

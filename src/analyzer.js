@@ -11,9 +11,10 @@ function analyzeBuildPatterns(targets) {
   };
 
   const allBuildPatterns = [];
-
+  let buildCount = 0;
   for (const target of targets) {
     if (target.category === "build" && target.buildPatterns && target.buildPatterns.length > 0) {
+      buildCount++;
       allBuildPatterns.push(...target.buildPatterns);
 
       if (target.buildPatterns.includes("angular.json")) {
@@ -35,10 +36,6 @@ function analyzeBuildPatterns(targets) {
   for (const pattern of allBuildPatterns) {
     patternCounts[pattern] = (patternCounts[pattern] || 0) + 1;
   }
-
-  const buildCount = targets.filter(
-    (t) => t.category === "build" && t.buildPatterns && t.buildPatterns.length > 0,
-  ).length;
 
   for (const pattern in patternCounts) {
     if (patternCounts[pattern] === buildCount) {

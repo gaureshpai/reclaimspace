@@ -35,7 +35,7 @@ const FOLDER_CATEGORIES = [
   },
   {
     id: "misc",
-    names: [".venv"],
+    names: [".venv", "__pycache__"],
   },
 ];
 

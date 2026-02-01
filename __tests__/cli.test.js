@@ -26,9 +26,9 @@ describe("Program CLI", () => {
   });
 
   it("should handle short flags", () => {
-    program.option("--yes", "description");
-    program.option("--dry", "description");
-    program.option("--ui", "description");
+    program.option("-y, --yes", "description");
+    program.option("-d, --dry", "description");
+    program.option("-u, --ui", "description");
 
     program.parse(["node", "script", "-y", "-d", "-u"]);
     const opts = program.opts();

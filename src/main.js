@@ -41,12 +41,12 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
 
   program
     .argument("[dirs...]", "Directories to scan", [process.cwd()])
-    .option("--yes", "Auto-delete all found items without confirmation")
-    .option("--dry", "Preview only, do not delete anything")
-    .option("--ui", "Enable interactive UI to select what to delete")
-    .option("--ignore <patterns>", "Comma-separated list of patterns to ignore")
-    .option("--include <patterns>", "Comma-separated list of patterns to include")
-    .option("--build-analysis", "Enable build analysis logs")
+    .option("-y, --yes", "Auto-delete all found items without confirmation")
+    .option("-d, --dry", "Preview only, do not delete anything")
+    .option("-u, --ui", "Enable interactive UI to select what to delete")
+    .option("-i, --ignore <patterns>", "Comma-separated list of patterns to ignore")
+    .option("-c, --include <patterns>", "Comma-separated list of patterns to include")
+    .option("-b, --build-analysis", "Enable build analysis logs")
     .parse(process.argv);
 
   const options = program.opts();

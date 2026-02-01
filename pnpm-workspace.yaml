@@ -1,3 +1,6 @@
+packages:
+  - "."
 ignoredBuiltDependencies:
   - fast-folder-size
   - unrs-resolver
+

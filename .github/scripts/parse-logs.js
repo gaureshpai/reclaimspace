@@ -18,10 +18,16 @@ if (!fs.existsSync(artifactsDir)) {
   process.exit(0);
 }
 
-const dirs = fs
-  .readdirSync(artifactsDir, { withFileTypes: true })
-  .filter((d) => d.isDirectory())
-  .map((d) => path.join(artifactsDir, d.name));
+let dirs = [];
+try {
+  dirs = fs
+    .readdirSync(artifactsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => path.join(artifactsDir, d.name));
+} catch (error) {
+  console.error(`❌ Error reading artifacts directory ${artifactsDir}: ${error.message}`);
+  process.exit(1);
+}
 
 console.log(`Found ${dirs.length} artifact directories`);
 
@@ -39,13 +45,19 @@ for (const dir of dirs) {
     continue;
   }
 
-  const log = fs.readFileSync(logFile, "utf8");
+  let log;
   let status;
-  if (log.includes("Tests passed successfully")) {
-    status = "✅ Passed";
-  } else if (log.includes("Tests failed")) {
-    status = "❌ Failed";
-  } else {
+  try {
+    log = fs.readFileSync(logFile, "utf8");
+    if (log.includes("Tests passed successfully")) {
+      status = "✅ Passed";
+    } else if (log.includes("Tests failed")) {
+      status = "❌ Failed";
+    } else {
+      status = "❓ Unknown";
+    }
+  } catch (error) {
+    console.error(`❌ Error reading log file ${logFile}: ${error.message}`);
     status = "❓ Unknown";
   }
 

@@ -149,7 +149,7 @@ describe("scanner", () => {
       text: "",
     };
 
-    const ignorePatterns = ["/Program Files", "/Program Files (x86)"];
+    const ignorePatterns = ["Program Files", "Program Files (x86)"];
 
     const { targets } = await scanner.find(
       [FIXTURES_DIR],

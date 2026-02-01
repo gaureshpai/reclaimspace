@@ -10,4 +10,8 @@ req.md
 coverage/
 job-results/
 artifacts/
-*.txt
+debug.txt
+output/*.txt
+test-results/*.txt
+!LICENSE.txt
+!README.txt

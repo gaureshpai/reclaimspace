@@ -55,13 +55,13 @@ jobs:
         id: bump
         run: echo "tag=$(pnpm version ${{ github.event.inputs.release_type }})" >> $GITHUB_OUTPUT
 
+      - name: Push changes
+        run: git push --follow-tags
+
       - name: Publish to NPM
         run: pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Push changes
-        run: git push --follow-tags
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
