@@ -18,6 +18,7 @@ const FOLDER_CATEGORIES = [
       "build",
       "storybook-static",
       ".nuxt",
+      ".output",
       ".svelte-kit",
       ".angular",
       "out",
@@ -27,15 +28,45 @@ const FOLDER_CATEGORIES = [
       ".shopify",
       ".react-router",
       ".tanstack",
+      ".rollup.cache",
+      ".parcel-cache",
+      ".vite",
+      ".astro",
+      ".solid",
+      ".remix",
+      ".docusaurus",
+      ".eleventy-cache",
+      ".gatsby-cache",
+      "public/build",
+      ".vercel",
+      ".netlify",
     ],
   },
   {
     id: "testing",
-    names: ["coverage", ".nyc_output"],
+    names: [
+      "coverage",
+      ".nyc_output",
+      ".pytest_cache", // Python pytest cache
+      ".tox", // Python tox environments
+      "htmlcov", // HTML coverage reports
+    ],
   },
   {
     id: "misc",
-    names: [".venv", "__pycache__"],
+    names: [
+      ".venv",
+      "venv", // Common Python venv name
+      "env", // Another common Python env name
+      "__pycache__",
+      ".mypy_cache", // Python type checker cache
+      ".ruff_cache", // Python linter cache
+      ".DS_Store", // macOS metadata files
+      "Thumbs.db", // Windows thumbnail cache
+      "vendor", // Go/PHP dependencies
+      ".vagrant", // Vagrant VMs
+      ".terraform", // Terraform state
+    ],
   },
 ];
 

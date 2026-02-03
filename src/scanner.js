@@ -93,10 +93,10 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
 
           if (isMatch) {
             allPotentialDirs.push({ path: fullPath, entry });
-          }
-
-          if (entry.name !== "node_modules") {
-            await collectDirs(fullPath);
+          } else {
+            if (entry.name !== "node_modules") {
+              await collectDirs(fullPath);
+            }
           }
         }
       }
