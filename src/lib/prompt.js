@@ -70,11 +70,10 @@ async function checkboxPrompt(q) {
     const headerLines = q.header ? q.header.split("\n") : [];
 
     // Viewport management
-    const pageSize = Math.max(
-      1,
-      choices.length,
-      process.stdout.rows ? process.stdout.rows - 5 - headerLines.length : 10,
-    );
+    const computedRowsFallback = process.stdout.rows
+      ? process.stdout.rows - 5 - headerLines.length
+      : 10;
+    const pageSize = Math.max(1, Math.min(choices.length, computedRowsFallback));
     let viewportStart = 0;
 
     const render = () => {
