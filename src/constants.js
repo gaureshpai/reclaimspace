@@ -37,7 +37,6 @@ const FOLDER_CATEGORIES = [
       ".docusaurus",
       ".eleventy-cache",
       ".gatsby-cache",
-      "public/build",
       ".vercel",
       ".netlify",
     ],
@@ -61,8 +60,6 @@ const FOLDER_CATEGORIES = [
       "__pycache__",
       ".mypy_cache", // Python type checker cache
       ".ruff_cache", // Python linter cache
-      ".DS_Store", // macOS metadata files
-      "Thumbs.db", // Windows thumbnail cache
       "vendor", // Go/PHP dependencies
       ".vagrant", // Vagrant VMs
       ".terraform", // Terraform state

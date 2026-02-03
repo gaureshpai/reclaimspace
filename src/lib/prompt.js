@@ -68,7 +68,11 @@ async function checkboxPrompt(q) {
     const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
 
     // Viewport management to prevent scrolling issues
-    const pageSize = Math.min(choices.length, process.stdout.rows ? process.stdout.rows - 5 : 10);
+    const pageSize = Math.max(
+      1,
+      choices.length,
+      process.stdout.rows ? process.stdout.rows - 5 : 10,
+    );
     let viewportStart = 0;
 
     const render = () => {
