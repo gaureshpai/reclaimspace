@@ -1,5 +1,8 @@
 name: Bug Report
 description: Create a report to help us improve.
+title: '[Bug]: '
+labels: ['bug']
+assignees: ''
 body:
   - type: textarea
     attributes:
@@ -23,3 +26,7 @@ body:
     attributes:
       label: Screenshots
       description: If applicable, add screenshots to help explain your problem.
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
