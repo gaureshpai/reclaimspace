@@ -39,13 +39,16 @@ async function getBuildPatterns(folderPath) {
 }
 
 /**
- * Finds reclaimable files and folders within search paths.
+ * Scan the given root paths for reclaimable directories and collect their sizes and metadata.
+ *
  * @param {Array<string>} searchPaths - Root directories to scan.
- * @param {Array<string>} ignorePatterns - Patterns to exclude.
- * @param {Object} onProgress - Progress reporter instance.
- * @param {Object} spinner - Spinner instance for status updates.
- * @param {Array<string>} includePatterns - Custom patterns to include (optional).
- * @returns {Promise<Object>} Object containing targets, totalSize, and duration.
+ * @param {Array<string>} ignorePatterns - Glob patterns used to exclude paths from scanning.
+ * @param {Array<string>} [includePatterns] - Optional custom folder name patterns to treat as categories instead of the default folder categories.
+ * @returns {Promise<{targets: Array<{path: string, size: number, category: string, name: string, lastModified: Date, buildPatterns: Array<string>}>, totalSize: number, duration: number}>}
+ *   An object containing:
+ *   - `targets`: sorted list of discovered directories with metadata: `path`, `size` (bytes), `category` id, `name`, `lastModified` timestamp, and `buildPatterns` (detected build artifact patterns, if any).
+ *   - `totalSize`: aggregate size in bytes of all reported targets.
+ *   - `duration`: elapsed scanning time in seconds.
  */
 async function find(searchPaths, ignorePatterns, onProgress, spinner, includePatterns) {
   const startTime = process.hrtime.bigint();
@@ -61,6 +64,12 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       ? [{ id: "custom", names: includePatterns }]
       : FOLDER_CATEGORIES;
 
+  /**
+   * Recursively collects candidate directories under currentPath that match the configured folder categories and appends them to the shared allPotentialDirs list.
+   *
+   * This function skips paths already visited and paths matching ignorePatterns, adds directories whose names match any entry in currentFolderCategories to allPotentialDirs, and otherwise descends into subdirectories (except "node_modules"). Errors with code "EPERM" are ignored; other errors are logged to stderr.
+   * @param {string} currentPath - Filesystem path to start scanning from.
+   */
   async function collectDirs(currentPath) {
     if (visited.has(currentPath)) return;
     visited.add(currentPath);
