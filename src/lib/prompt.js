@@ -36,12 +36,13 @@ export async function prompt(questions) {
 }
 
 /**
- * Prompt the user to select one or more choices from a checkbox-style list.
+ * Present a checkbox-style prompt and return the values the user selects.
  *
- * @param {Object} q - Question object.
- * @param {string} q.message - The prompt message shown to the user.
- * @param {Array<string|Object>} q.choices - Array of choices; each choice may be a string or an object with `name` and `value` properties.
- * @returns {Array<any>} An array of the selected choice values.
+ * @param {Object} q - Question configuration.
+ * @param {string} q.message - Prompt message displayed to the user.
+ * @param {Array<string|Object>} q.choices - Array of choices; each item may be a string (used for both label and value) or an object with `name` (label) and `value`.
+ * @param {string} [q.header] - Optional header text shown above the prompt; may contain newlines.
+ * @returns {Array<any>} An array of the selected choice `value`s (or the choice itself when a string was provided).
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
@@ -66,20 +67,24 @@ async function checkboxPrompt(q) {
     let cursor = 0;
     const selected = new Set();
     const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
+    const headerLines = q.header ? q.header.split("\n") : [];
 
-    // Viewport management to prevent scrolling issues
-    const pageSize = Math.max(
-      1,
-      choices.length,
-      process.stdout.rows ? process.stdout.rows - 5 : 10,
-    );
+    // Viewport management
+    const computedRowsFallback = process.stdout.rows
+      ? process.stdout.rows - 5 - headerLines.length
+      : 10;
+    const pageSize = Math.max(1, Math.min(choices.length, computedRowsFallback));
     let viewportStart = 0;
 
     const render = () => {
       process.stdout.write("\x1B[?25l"); // Hide cursor
+
+      if (q.header) {
+        process.stdout.write(q.header + "\n");
+      }
+
       process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
 
-      // Update viewport to keep cursor visible
       if (cursor < viewportStart) {
         viewportStart = cursor;
       } else if (cursor >= viewportStart + pageSize) {
@@ -89,7 +94,6 @@ async function checkboxPrompt(q) {
       const viewportEnd = Math.min(viewportStart + pageSize, choices.length);
       const visibleChoices = choices.slice(viewportStart, viewportEnd);
 
-      // Show scroll indicators
       if (viewportStart > 0) {
         process.stdout.write(chalk.dim("  ↑ (More items above)\n"));
       }
@@ -118,20 +122,16 @@ async function checkboxPrompt(q) {
         process.stdin.setRawMode(false);
       }
       process.stdin.pause();
-      process.stdout.write("\x1B[?25h"); // Show cursor
+      process.stdout.write("\x1B[?25h");
 
-      // Clear the prompt lines - account for viewport display
-      // Message line + visible items + scroll indicators + help text
       const visibleLines = Math.min(pageSize, choices.length);
       const scrollIndicators =
         (viewportStart > 0 ? 1 : 0) + (viewportStart + pageSize < choices.length ? 1 : 0);
-      const totalLines = 1 + visibleLines + scrollIndicators + 2; // +2 for blank line and help text
+      const totalLines = headerLines.length + 1 + visibleLines + scrollIndicators + 2;
 
-      // Clear current line first (cursor is at end of help text)
       process.stdout.clearLine(0);
       process.stdout.cursorTo(0);
 
-      // Move up and clear remaining lines (subtract 1 because we already cleared current line)
       for (let i = 1; i < totalLines; i++) {
         process.stdout.moveCursor(0, -1);
         process.stdout.clearLine(0);
@@ -141,22 +141,18 @@ async function checkboxPrompt(q) {
     const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {
-        // Ctrl+C
         cleanup();
         process.exit();
       } else if (key === "\r" || key === "\n") {
-        // Enter
         cleanup();
         resolve(Array.from(selected).map((i) => choices[i].value));
       } else if (key === " ") {
-        // Space
         if (selected.has(cursor)) {
           selected.delete(cursor);
         } else {
           selected.add(cursor);
         }
       } else if (key === "a") {
-        // Toggle all
         if (selected.size === choices.length) {
           selected.clear();
         } else {
@@ -165,24 +161,20 @@ async function checkboxPrompt(q) {
           });
         }
       } else if (key === "\u001b[A") {
-        // Up
         cursor = (cursor - 1 + choices.length) % choices.length;
       } else if (key === "\u001b[B") {
-        // Down
         cursor = (cursor + 1) % choices.length;
       }
 
-      // Calculate current display lines before clearing
       const currentVisibleLines = Math.min(pageSize, choices.length);
       const currentScrollIndicators =
         (viewportStart > 0 ? 1 : 0) + (viewportStart + pageSize < choices.length ? 1 : 0);
-      const linesToClear = 1 + currentVisibleLines + currentScrollIndicators + 2;
+      const linesToClear =
+        headerLines.length + 1 + currentVisibleLines + currentScrollIndicators + 2;
 
-      // Clear current line first (cursor is at end of help text)
       process.stdout.clearLine(0);
       process.stdout.cursorTo(0);
 
-      // Move cursor back up to re-render (subtract 1 because we already cleared current line)
       for (let i = 1; i < linesToClear; i++) {
         process.stdout.moveCursor(0, -1);
         process.stdout.clearLine(0);
@@ -190,7 +182,7 @@ async function checkboxPrompt(q) {
       render();
     };
 
-    render(); // Initial render
+    render();
 
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(true);
