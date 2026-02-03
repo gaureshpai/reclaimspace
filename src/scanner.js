@@ -13,7 +13,7 @@ const CONCURRENCY_LIMIT = 5;
 /**
  * Detects build artifact filename patterns present in a folder.
  * @param {string} folderPath - Path of the folder to inspect.
- * @returns {Array<string>} Detected build artifact patterns found in the folder.
+ * @returns {Promise<Array<string>>} Detected build artifact patterns found in the folder.
  */
 async function getBuildPatterns(folderPath) {
   const detectedPatterns = [];
@@ -43,6 +43,8 @@ async function getBuildPatterns(folderPath) {
  *
  * @param {Array<string>} searchPaths - Root directories to scan.
  * @param {Array<string>} ignorePatterns - Glob patterns used to exclude paths from scanning.
+ * @param {Object} onProgress - Progress bar instance with `start`, `increment`, and `stop` methods for tracking scan progress.
+ * @param {Object} spinner - Spinner instance with `text` property and `stop` method for displaying status updates.
  * @param {Array<string>} [includePatterns] - Optional custom folder name patterns to treat as categories instead of the default folder categories.
  * @returns {Promise<{targets: Array<{path: string, size: number, category: string, name: string, lastModified: Date, buildPatterns: Array<string>}>, totalSize: number, duration: number}>}
  *   An object containing:
