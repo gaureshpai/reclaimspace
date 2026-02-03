@@ -36,9 +36,12 @@ export async function prompt(questions) {
 }
 
 /**
- * Interactive checkbox prompt for selecting multiple items.
+ * Prompt the user to select one or more choices from a checkbox-style list.
+ *
  * @param {Object} q - Question object.
- * @returns {Promise<Array<any>>} List of selected values.
+ * @param {string} q.message - The prompt message shown to the user.
+ * @param {Array<string|Object>} q.choices - Array of choices; each choice may be a string or an object with `name` and `value` properties.
+ * @returns {Array<any>} An array of the selected choice values.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {

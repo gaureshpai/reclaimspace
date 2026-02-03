@@ -11,9 +11,9 @@ const fastFolderSizeAsync = promisify(fastFolderSize);
 const CONCURRENCY_LIMIT = 5;
 
 /**
- * Checks a folder for specific build artifact files to help identify project types.
- * @param {string} folderPath - Path to the folder to check.
- * @returns {Promise<Array<string>>} List of detected artifact patterns.
+ * Detects build artifact filename patterns present in a folder.
+ * @param {string} folderPath - Path of the folder to inspect.
+ * @returns {Array<string>} Detected build artifact patterns found in the folder.
  */
 async function getBuildPatterns(folderPath) {
   const detectedPatterns = [];
@@ -65,9 +65,9 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       : FOLDER_CATEGORIES;
 
   /**
-   * Recursively collects candidate directories under currentPath that match the configured folder categories and appends them to the shared allPotentialDirs list.
+   * Collects candidate directories beneath a starting path that match the configured folder categories and appends them to the shared collection.
    *
-   * This function skips paths already visited and paths matching ignorePatterns, adds directories whose names match any entry in currentFolderCategories to allPotentialDirs, and otherwise descends into subdirectories (except "node_modules"). Errors with code "EPERM" are ignored; other errors are logged to stderr.
+   * Skips paths already visited and those matching ignorePatterns; when a subdirectory's name matches any name in currentFolderCategories it is added to allPotentialDirs, otherwise recursion continues into that subdirectory except for directories named "node_modules". Permission errors (EPERM) are ignored; other errors are logged to stderr.
    * @param {string} currentPath - Filesystem path to start scanning from.
    */
   async function collectDirs(currentPath) {
