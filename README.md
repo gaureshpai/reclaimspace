@@ -126,7 +126,6 @@ my-project/dist
 4.  **Miscellaneous Dev Junk**
     - `.venv`, `venv`, `env` (Python Virtual Environments)
     - `__pycache__`, `.mypy_cache`, `.ruff_cache` (Python caches)
-    - `.DS_Store`, `Thumbs.db` (OS metadata)
     - `vendor` (Go/PHP dependencies)
     - `.vagrant`, `.terraform` (Infrastructure tools)
 
