@@ -36,9 +36,12 @@ export async function prompt(questions) {
 }
 
 /**
- * Interactive checkbox prompt for selecting multiple items.
+ * Prompt the user to select one or more choices from a checkbox-style list.
+ *
  * @param {Object} q - Question object.
- * @returns {Promise<Array<any>>} List of selected values.
+ * @param {string} q.message - The prompt message shown to the user.
+ * @param {Array<string|Object>} q.choices - Array of choices; each choice may be a string or an object with `name` and `value` properties.
+ * @returns {Array<any>} An array of the selected choice values.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
@@ -64,17 +67,45 @@ async function checkboxPrompt(q) {
     const selected = new Set();
     const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
 
+    // Viewport management to prevent scrolling issues
+    const pageSize = Math.max(
+      1,
+      choices.length,
+      process.stdout.rows ? process.stdout.rows - 5 : 10,
+    );
+    let viewportStart = 0;
+
     const render = () => {
       process.stdout.write("\x1B[?25l"); // Hide cursor
       process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
 
-      choices.forEach((c, i) => {
+      // Update viewport to keep cursor visible
+      if (cursor < viewportStart) {
+        viewportStart = cursor;
+      } else if (cursor >= viewportStart + pageSize) {
+        viewportStart = cursor - pageSize + 1;
+      }
+
+      const viewportEnd = Math.min(viewportStart + pageSize, choices.length);
+      const visibleChoices = choices.slice(viewportStart, viewportEnd);
+
+      // Show scroll indicators
+      if (viewportStart > 0) {
+        process.stdout.write(chalk.dim("  ↑ (More items above)\n"));
+      }
+
+      visibleChoices.forEach((c, index) => {
+        const i = viewportStart + index;
         const isSelected = selected.has(i);
         const isCursor = i === cursor;
         const prefix = isCursor ? chalk.cyan("❯") : " ";
         const check = isSelected ? chalk.green("◉") : "○";
         process.stdout.write(`${prefix} ${check} ${c.name}\n`);
       });
+
+      if (viewportEnd < choices.length) {
+        process.stdout.write(chalk.dim("  ↓ (More items below)\n"));
+      }
 
       process.stdout.write(
         chalk.dim("\n(Use arrow keys to move, space to select, a to toggle all, enter to proceed)"),
@@ -88,8 +119,20 @@ async function checkboxPrompt(q) {
       }
       process.stdin.pause();
       process.stdout.write("\x1B[?25h"); // Show cursor
-      // Clear the prompt lines
-      for (let i = 0; i < choices.length + 3; i++) {
+
+      // Clear the prompt lines - account for viewport display
+      // Message line + visible items + scroll indicators + help text
+      const visibleLines = Math.min(pageSize, choices.length);
+      const scrollIndicators =
+        (viewportStart > 0 ? 1 : 0) + (viewportStart + pageSize < choices.length ? 1 : 0);
+      const totalLines = 1 + visibleLines + scrollIndicators + 2; // +2 for blank line and help text
+
+      // Clear current line first (cursor is at end of help text)
+      process.stdout.clearLine(0);
+      process.stdout.cursorTo(0);
+
+      // Move up and clear remaining lines (subtract 1 because we already cleared current line)
+      for (let i = 1; i < totalLines; i++) {
         process.stdout.moveCursor(0, -1);
         process.stdout.clearLine(0);
       }
@@ -129,8 +172,18 @@ async function checkboxPrompt(q) {
         cursor = (cursor + 1) % choices.length;
       }
 
-      // Move cursor back up to re-render
-      for (let i = 0; i < choices.length + 2; i++) {
+      // Calculate current display lines before clearing
+      const currentVisibleLines = Math.min(pageSize, choices.length);
+      const currentScrollIndicators =
+        (viewportStart > 0 ? 1 : 0) + (viewportStart + pageSize < choices.length ? 1 : 0);
+      const linesToClear = 1 + currentVisibleLines + currentScrollIndicators + 2;
+
+      // Clear current line first (cursor is at end of help text)
+      process.stdout.clearLine(0);
+      process.stdout.cursorTo(0);
+
+      // Move cursor back up to re-render (subtract 1 because we already cleared current line)
+      for (let i = 1; i < linesToClear; i++) {
         process.stdout.moveCursor(0, -1);
         process.stdout.clearLine(0);
       }

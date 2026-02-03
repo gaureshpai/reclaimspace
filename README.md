@@ -118,11 +118,17 @@ my-project/dist
 1.  **Node Modules**
     - `node_modules`
 2.  **Build/Cache Folders**
-    - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`, `.shopify`, `.react-router`, `.tanstack`
+    - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`, `.shopify`, `.react-router`, `.tanstack`
+    - `.rollup.cache`, `.parcel-cache`, `.vite`, `.astro`, `.solid`, `.remix`, `.docusaurus`, `.eleventy-cache`, `.gatsby-cache`
+    - `public/build`, `.vercel`, `.netlify`
 3.  **Testing/Reporting Folders**
-    - `coverage`, `.nyc_output`
+    - `coverage`, `.nyc_output`, `.pytest_cache`, `.tox`, `htmlcov`
 4.  **Miscellaneous Dev Junk**
-    - `.venv` (Python Virtual Environments)
+    - `.venv`, `venv`, `env` (Python Virtual Environments)
+    - `__pycache__`, `.mypy_cache`, `.ruff_cache` (Python caches)
+    - `vendor` (Go/PHP dependencies)
+    - `.vagrant`, `.terraform` (Infrastructure tools)
+
 
 ## Contributing
 

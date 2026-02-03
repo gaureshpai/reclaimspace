@@ -11,9 +11,9 @@ const fastFolderSizeAsync = promisify(fastFolderSize);
 const CONCURRENCY_LIMIT = 5;
 
 /**
- * Checks a folder for specific build artifact files to help identify project types.
- * @param {string} folderPath - Path to the folder to check.
- * @returns {Promise<Array<string>>} List of detected artifact patterns.
+ * Detects build artifact filename patterns present in a folder.
+ * @param {string} folderPath - Path of the folder to inspect.
+ * @returns {Promise<Array<string>>} Detected build artifact patterns found in the folder.
  */
 async function getBuildPatterns(folderPath) {
   const detectedPatterns = [];
@@ -39,13 +39,18 @@ async function getBuildPatterns(folderPath) {
 }
 
 /**
- * Finds reclaimable files and folders within search paths.
+ * Scan the given root paths for reclaimable directories and collect their sizes and metadata.
+ *
  * @param {Array<string>} searchPaths - Root directories to scan.
- * @param {Array<string>} ignorePatterns - Patterns to exclude.
- * @param {Object} onProgress - Progress reporter instance.
- * @param {Object} spinner - Spinner instance for status updates.
- * @param {Array<string>} includePatterns - Custom patterns to include (optional).
- * @returns {Promise<Object>} Object containing targets, totalSize, and duration.
+ * @param {Array<string>} ignorePatterns - Glob patterns used to exclude paths from scanning.
+ * @param {Object} onProgress - Progress bar instance with `start`, `increment`, and `stop` methods for tracking scan progress.
+ * @param {Object} spinner - Spinner instance with `text` property and `stop` method for displaying status updates.
+ * @param {Array<string>} [includePatterns] - Optional custom folder name patterns to treat as categories instead of the default folder categories.
+ * @returns {Promise<{targets: Array<{path: string, size: number, category: string, name: string, lastModified: Date, buildPatterns: Array<string>}>, totalSize: number, duration: number}>}
+ *   An object containing:
+ *   - `targets`: sorted list of discovered directories with metadata: `path`, `size` (bytes), `category` id, `name`, `lastModified` timestamp, and `buildPatterns` (detected build artifact patterns, if any).
+ *   - `totalSize`: aggregate size in bytes of all reported targets.
+ *   - `duration`: elapsed scanning time in seconds.
  */
 async function find(searchPaths, ignorePatterns, onProgress, spinner, includePatterns) {
   const startTime = process.hrtime.bigint();
@@ -61,6 +66,12 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       ? [{ id: "custom", names: includePatterns }]
       : FOLDER_CATEGORIES;
 
+  /**
+   * Collects candidate directories beneath a starting path that match the configured folder categories and appends them to the shared collection.
+   *
+   * Skips paths already visited and those matching ignorePatterns; when a subdirectory's name matches any name in currentFolderCategories it is added to allPotentialDirs, otherwise recursion continues into that subdirectory except for directories named "node_modules". Permission errors (EPERM) are ignored; other errors are logged to stderr.
+   * @param {string} currentPath - Filesystem path to start scanning from.
+   */
   async function collectDirs(currentPath) {
     if (visited.has(currentPath)) return;
     visited.add(currentPath);
@@ -93,10 +104,10 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
 
           if (isMatch) {
             allPotentialDirs.push({ path: fullPath, entry });
-          }
-
-          if (entry.name !== "node_modules") {
-            await collectDirs(fullPath);
+          } else {
+            if (entry.name !== "node_modules") {
+              await collectDirs(fullPath);
+            }
           }
         }
       }

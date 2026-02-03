@@ -3,7 +3,11 @@
   "version": "0.1.5",
   "description": "A CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.",
   "main": "src/main.js",
+  "packageManager": "pnpm@10.21.0",
   "type": "module",
+  "engines": {
+    "node": ">=18.12.0"
+  },
   "bin": {
     "reclaimspace": "bin/reclaimspace.js"
   },

@@ -3,21 +3,25 @@
 }
 
 body {
-  padding-top: 56px; /* Height of the fixed navbar */
+  padding-top: 56px;
+  /* Height of the fixed navbar */
 }
 
 .navbar-brand {
   font-weight: bold;
-  color: #e53935; /* Primary red for brand */
+  color: #e53935;
+  /* Primary red for brand */
 }
 
 .navbar-nav .nav-link {
-  color: #212121; /* Dark gray for nav links */
+  color: #212121;
+  /* Dark gray for nav links */
 }
 
 .navbar-nav .nav-link.active,
 .navbar-nav .nav-link:hover {
-  color: #e53935; /* Primary red for active/hover links */
+  color: #e53935;
+  /* Primary red for active/hover links */
 }
 
 h2 {
@@ -48,4 +52,41 @@ pre {
 
 .copy-btn:hover {
   background-color: #212121;
+}
+
+.badge-link {
+  display: inline-block;
+  margin: 0.25rem;
+  transition: opacity 0.2s;
+}
+
+.badge-link:hover {
+  opacity: 0.8;
+}
+
+.badge-link img {
+  vertical-align: middle;
+}
+
+footer a {
+  color: #e53935;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Code blocks in header should have better contrast */
+header code {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+header code:hover {
+  background-color: rgba(0, 0, 0, 0.4);
 }
