@@ -4,9 +4,9 @@ import chalk from "./ansi.js";
 const isRaw = process.stdout.isTTY;
 
 /**
- * Utility for interactive CLI prompts.
- * @param {Array<Object>} questions - List of question objects.
- * @returns {Promise<Object>} Object containing answers.
+ * Prompt the user with a sequence of questions and collect responses.
+ * @param {Array<Object>} questions - Array of question objects. Each object must include `type` ('confirm', 'checkbox', or 'list') and `name`. For `confirm` provide `message`. For `checkbox` and `list` provide `choices` (array of strings or objects with `name` and `value`); `checkbox` may also include an optional `header`.
+ * @returns {Object} An object mapping each question `name` to its answer: for `confirm` a boolean; for `checkbox` an array of selected values (for string choices the string is used as both label and value); for `list` the selected value or `null` if there are no choices.
  */
 export async function prompt(questions) {
   const result = {};
@@ -193,9 +193,12 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Interactive list prompt for selecting a single item.
+ * Present a single-choice interactive list and return the chosen item's value.
+ *
  * @param {Object} q - Question object.
- * @returns {Promise<any>} Selected value.
+ * @param {string} q.message - Prompt message displayed above the list.
+ * @param {(string|{name:string,value:any})[]} q.choices - Choices to present; each item may be a string (used for both label and value) or an object with `name` (label) and `value`.
+ * @returns {any} The selected choice's `value`, or `null` if `q.choices` is empty.
  */
 async function listPrompt(q) {
   const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
