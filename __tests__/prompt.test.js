@@ -40,7 +40,7 @@ describe("prompt", () => {
 
   describe("confirm type questions", () => {
     it("should return true for empty input (default yes)", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("");
       });
 
@@ -57,13 +57,13 @@ describe("prompt", () => {
       expect(result.proceed).toBe(true);
       expect(mockRl.question).toHaveBeenCalledWith(
         expect.stringContaining("Do you want to continue?"),
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockRl.close).toHaveBeenCalled();
     });
 
     it("should return true for 'y' input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("y");
       });
 
@@ -81,7 +81,7 @@ describe("prompt", () => {
     });
 
     it("should return true for 'yes' input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("yes");
       });
 
@@ -99,7 +99,7 @@ describe("prompt", () => {
     });
 
     it("should return false for 'n' input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("n");
       });
 
@@ -117,7 +117,7 @@ describe("prompt", () => {
     });
 
     it("should return false for 'no' input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("no");
       });
 
@@ -135,7 +135,7 @@ describe("prompt", () => {
     });
 
     it("should handle uppercase input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("NO");
       });
 
@@ -153,7 +153,7 @@ describe("prompt", () => {
     });
 
     it("should handle input with whitespace", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("  n  ");
       });
 
@@ -171,7 +171,7 @@ describe("prompt", () => {
     });
 
     it("should handle 'nope' starting with n", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("nope");
       });
 
@@ -191,7 +191,7 @@ describe("prompt", () => {
 
   describe("checkbox type questions - non-TTY mode", () => {
     it("should return all choices when empty input is provided", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("");
       });
 
@@ -211,7 +211,7 @@ describe("prompt", () => {
     });
 
     it("should return selected choices based on numeric input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("1 3");
       });
 
@@ -230,7 +230,7 @@ describe("prompt", () => {
     });
 
     it("should handle choices with name and value objects", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((__msg, callback) => {
         callback("1 2");
       });
 
@@ -253,7 +253,7 @@ describe("prompt", () => {
     });
 
     it("should filter out invalid indices", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("1 10 2");
       });
 
@@ -272,7 +272,7 @@ describe("prompt", () => {
     });
 
     it("should handle multiple spaces in input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("1    2    3");
       });
 
@@ -291,7 +291,7 @@ describe("prompt", () => {
     });
 
     it("should handle single selection", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("2");
       });
 
@@ -312,7 +312,7 @@ describe("prompt", () => {
     it("should display choices with numbers in console log", async () => {
       const consoleSpy = jest.spyOn(console, "log").mockImplementation();
 
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("1");
       });
 
@@ -335,7 +335,7 @@ describe("prompt", () => {
     });
 
     it("should handle non-numeric input gracefully", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("abc xyz");
       });
 
@@ -409,7 +409,7 @@ describe("prompt", () => {
   describe("multiple questions", () => {
     it("should process multiple questions in order", async () => {
       let questionCount = 0;
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         questionCount++;
         if (questionCount === 1) {
           callback("yes");
@@ -440,7 +440,7 @@ describe("prompt", () => {
 
     it("should handle mixed question types", async () => {
       let questionCount = 0;
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         questionCount++;
         if (questionCount === 1) {
           callback("n");
@@ -509,7 +509,7 @@ describe("prompt", () => {
     });
 
     it("should handle mixed string and object choices in checkbox", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("1 3");
       });
 
@@ -518,11 +518,7 @@ describe("prompt", () => {
           type: "checkbox",
           name: "mixed",
           message: "Mixed choices",
-          choices: [
-            "stringChoice",
-            { name: "Object Choice", value: "objValue" },
-            "anotherString",
-          ],
+          choices: ["stringChoice", { name: "Object Choice", value: "objValue" }, "anotherString"],
         },
       ];
 
@@ -531,7 +527,7 @@ describe("prompt", () => {
     });
 
     it("should handle zero-based index correctly", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("0 1");
       });
 
@@ -550,7 +546,7 @@ describe("prompt", () => {
     });
 
     it("should handle negative numbers in input", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("-1 2");
       });
 
@@ -571,7 +567,7 @@ describe("prompt", () => {
 
   describe("TTY mode behavior", () => {
     it("should use fallback mode for checkbox when stdout is not TTY", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("");
       });
 
@@ -609,7 +605,7 @@ describe("prompt", () => {
 
   describe("readline interface creation", () => {
     it("should create readline interface for confirm questions", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("yes");
       });
 
@@ -630,7 +626,7 @@ describe("prompt", () => {
     });
 
     it("should create readline interface for checkbox questions in non-TTY", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("1");
       });
 
@@ -654,7 +650,7 @@ describe("prompt", () => {
 
   describe("choice object handling", () => {
     it("should extract values from choice objects in checkbox", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("1 2 3");
       });
 
@@ -677,7 +673,7 @@ describe("prompt", () => {
     });
 
     it("should use name as value when value is not provided in choice object", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("");
       });
 
@@ -686,20 +682,14 @@ describe("prompt", () => {
           type: "checkbox",
           name: "test",
           message: "Test",
-          choices: [
-            { name: "Option 1" },
-            { name: "Option 2" },
-          ],
+          choices: [{ name: "Option 1" }, { name: "Option 2" }],
         },
       ];
 
       const result = await prompt(questions);
 
       // When empty input (select all), should use the objects themselves
-      expect(result.test).toEqual([
-        { name: "Option 1" },
-        { name: "Option 2" },
-      ]);
+      expect(result.test).toEqual([{ name: "Option 1" }, { name: "Option 2" }]);
     });
   });
 
@@ -713,20 +703,18 @@ describe("prompt", () => {
       ];
 
       for (const testCase of testCases) {
-        mockRl.question.mockImplementation((msg, callback) => {
+        mockRl.question.mockImplementation((_msg, callback) => {
           callback(testCase.input);
         });
 
-        const result = await prompt([
-          { type: "confirm", name: "test", message: "Test?" },
-        ]);
+        const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
 
         expect(result.test).toBe(testCase.expected);
       }
     });
 
     it("should handle various whitespace in checkbox inputs", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("  1\t2\n3  ");
       });
 
@@ -747,25 +735,21 @@ describe("prompt", () => {
 
   describe("confirm question variations", () => {
     it("should treat 'N' as no", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("N");
       });
 
-      const result = await prompt([
-        { type: "confirm", name: "test", message: "Test?" },
-      ]);
+      const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
 
       expect(result.test).toBe(false);
     });
 
     it("should treat 'Y' as yes", async () => {
-      mockRl.question.mockImplementation((msg, callback) => {
+      mockRl.question.mockImplementation((_msg, callback) => {
         callback("Y");
       });
 
-      const result = await prompt([
-        { type: "confirm", name: "test", message: "Test?" },
-      ]);
+      const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
 
       expect(result.test).toBe(true);
     });
@@ -774,13 +758,11 @@ describe("prompt", () => {
       const yesInputs = ["sure", "okay", "yep", "absolutely", "1", "true"];
 
       for (const input of yesInputs) {
-        mockRl.question.mockImplementation((msg, callback) => {
+        mockRl.question.mockImplementation((_msg, callback) => {
           callback(input);
         });
 
-        const result = await prompt([
-          { type: "confirm", name: "test", message: "Test?" },
-        ]);
+        const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
 
         expect(result.test).toBe(true);
       }

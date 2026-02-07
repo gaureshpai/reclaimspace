@@ -37,11 +37,11 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have 'bug' label", () => {
-      expect(bugTemplate).toMatch(/labels:\s*\['bug'\]/);
+      expect(bugTemplate).toMatch(/labels:\s*\[["']bug["']\]/);
     });
 
     it("should have '[Bug]: ' as title prefix", () => {
-      expect(bugTemplate).toMatch(/title:\s*'\[Bug\]:\s*'/);
+      expect(bugTemplate).toMatch(/title:\s*["']?\[Bug\]:\s*["']?/);
     });
 
     it("should contain required bug description field", () => {
@@ -110,7 +110,7 @@ describe("GitHub Issue Templates", () => {
 
       // Check that arrays are properly formatted
       const lines = bugTemplate.split("\n");
-      lines.forEach((line, index) => {
+      lines.forEach((line, _index) => {
         if (line.includes("- type:")) {
           expect(line).toMatch(/^\s*-\s*type:/);
         }
@@ -154,11 +154,11 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have 'feature' label", () => {
-      expect(featureTemplate).toMatch(/labels:\s*\['feature'\]/);
+      expect(featureTemplate).toMatch(/labels:\s*\[["']feature["']\]/);
     });
 
     it("should have '[Feature]: ' as title prefix", () => {
-      expect(featureTemplate).toMatch(/title:\s*'\[Feature\]:\s*'/);
+      expect(featureTemplate).toMatch(/title:\s*["']?\[Feature\]:\s*["']?/);
     });
 
     it("should contain problem description field", () => {
@@ -260,8 +260,8 @@ describe("GitHub Issue Templates", () => {
       const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
       const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
 
-      expect(bugContent).toMatch(/title:\s*'\[Bug\]:/);
-      expect(featureContent).toMatch(/title:\s*'\[Feature\]:/);
+      expect(bugContent).toMatch(/title:\s*["']?\[Bug\]:/);
+      expect(featureContent).toMatch(/title:\s*["']?\[Feature\]:/);
     });
 
     it("should use textarea type for all body fields in both templates", () => {
@@ -319,10 +319,7 @@ describe("GitHub Issue Templates", () => {
 
   describe("template field labels", () => {
     it("bug template should have clear, descriptive labels", () => {
-      const content = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const content = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
 
       const labels = [
         "Describe the bug",
@@ -338,10 +335,7 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("feature template should have clear, descriptive labels", () => {
-      const content = fs.readFileSync(
-        path.join(templatesDir, "feature_request.yml"),
-        "utf8"
-      );
+      const content = fs.readFileSync(path.join(templatesDir, "feature_request.yml"), "utf8");
 
       const labels = [
         "Is your feature request related to a problem?",
@@ -368,13 +362,10 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should not have empty label fields", () => {
-      const bugContent = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
       const featureContent = fs.readFileSync(
         path.join(templatesDir, "feature_request.yml"),
-        "utf8"
+        "utf8",
       );
 
       // Check that label: is followed by non-empty content
@@ -383,13 +374,10 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should not have empty description fields in metadata", () => {
-      const bugContent = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
       const featureContent = fs.readFileSync(
         path.join(templatesDir, "feature_request.yml"),
-        "utf8"
+        "utf8",
       );
 
       // First description is metadata description
@@ -397,9 +385,7 @@ describe("GitHub Issue Templates", () => {
       const featureLines = featureContent.split("\n");
 
       const bugDescLine = bugLines.find((l) => l.startsWith("description:"));
-      const featureDescLine = featureLines.find((l) =>
-        l.startsWith("description:")
-      );
+      const featureDescLine = featureLines.find((l) => l.startsWith("description:"));
 
       expect(bugDescLine).toMatch(/description:\s+\S+/);
       expect(featureDescLine).toMatch(/description:\s+\S+/);
@@ -408,17 +394,10 @@ describe("GitHub Issue Templates", () => {
 
   describe("template completeness", () => {
     it("bug template should cover all essential bug reporting fields", () => {
-      const content = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const content = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
 
       // Essential fields for bug reports
-      const essentialFields = [
-        "Describe the bug",
-        "To Reproduce",
-        "Expected behavior",
-      ];
+      const essentialFields = ["Describe the bug", "To Reproduce", "Expected behavior"];
 
       essentialFields.forEach((field) => {
         expect(content).toContain(field);
@@ -426,10 +405,7 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("feature template should cover all essential feature request fields", () => {
-      const content = fs.readFileSync(
-        path.join(templatesDir, "feature_request.yml"),
-        "utf8"
-      );
+      const content = fs.readFileSync(path.join(templatesDir, "feature_request.yml"), "utf8");
 
       // Essential fields for feature requests
       const essentialFields = [
@@ -444,13 +420,10 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("templates should not be empty", () => {
-      const bugContent = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
       const featureContent = fs.readFileSync(
         path.join(templatesDir, "feature_request.yml"),
-        "utf8"
+        "utf8",
       );
 
       expect(bugContent.length).toBeGreaterThan(0);
@@ -458,13 +431,10 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("templates should have multiple lines", () => {
-      const bugContent = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
       const featureContent = fs.readFileSync(
         path.join(templatesDir, "feature_request.yml"),
-        "utf8"
+        "utf8",
       );
 
       expect(bugContent.split("\n").length).toBeGreaterThan(10);
@@ -474,10 +444,7 @@ describe("GitHub Issue Templates", () => {
 
   describe("GitHub specific requirements", () => {
     it("should use GitHub Form schema compatible structure", () => {
-      const bugContent = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
 
       // GitHub Forms require specific structure
       expect(bugContent).toContain("body:");
@@ -486,13 +453,10 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have proper label array format", () => {
-      const bugContent = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
       const featureContent = fs.readFileSync(
         path.join(templatesDir, "feature_request.yml"),
-        "utf8"
+        "utf8",
       );
 
       // Labels should be in array format
@@ -501,17 +465,15 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have empty string for assignees by default", () => {
-      const bugContent = fs.readFileSync(
-        path.join(templatesDir, "bug.yml"),
-        "utf8"
-      );
+      const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
       const featureContent = fs.readFileSync(
         path.join(templatesDir, "feature_request.yml"),
-        "utf8"
+        "utf8",
       );
 
-      expect(bugContent).toMatch(/assignees:\s*['"]['"]?/);
-      expect(featureContent).toMatch(/assignees:\s*['"]['"]?/);
+      // Match empty array [] or empty string
+      expect(bugContent).toMatch(/assignees:\s*(\[\]|['"]['"]?)/);
+      expect(featureContent).toMatch(/assignees:\s*(\[\]|['"]['"]?)/);
     });
   });
 });

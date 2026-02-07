@@ -3,7 +3,7 @@
   "version": "0.1.7-0",
   "description": "A CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.",
   "main": "src/main.js",
-  "packageManager": "pnpm@10.21.0",
+  "packageManager": "pnpm@10.28.2",
   "type": "module",
   "engines": {
     "node": ">=18.12.0"
@@ -29,7 +29,9 @@
     "disk-space",
     "reclaim",
     "purge",
-    "build-cleaner"
+    "build-cleaner",
+    "shopify",
+    "turbo"
   ],
   "author": "gaureshpai",
   "license": "ISC",
@@ -50,18 +52,10 @@
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.28.6",
     "@babel/preset-env": "^7.29.0",
-    "@biomejs/biome": "^2.3.13",
-    "chalk": "^4.1.2",
-    "cli-progress": "^3.12.0",
-    "commander": "^12.1.0",
-    "fast-folder-size": "^2.4.0",
+    "@biomejs/biome": "^2.3.14",
     "husky": "^9.1.7",
-    "inquirer": "^8.2.7",
     "jest": "^30.2.0",
-    "lint-staged": "^16.2.7",
-    "minimatch": "^10.1.1",
-    "ora": "^5.4.1",
-    "rimraf": "^6.1.2"
+    "lint-staged": "^16.2.7"
   },
   "jest": {
     "transform": {
