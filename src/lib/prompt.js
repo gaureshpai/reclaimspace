@@ -36,13 +36,13 @@ export async function prompt(questions) {
 }
 
 /**
- * Present a checkbox-style prompt and return the values the user selects.
+ * Display an interactive checkbox prompt and collect the selected choice values.
  *
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
- * @param {Array<string|Object>} q.choices - Array of choices; each item may be a string (used for both label and value) or an object with `name` (label) and `value`.
+ * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
  * @param {string} [q.header] - Optional header text shown above the prompt; may contain newlines.
- * @returns {Array<any>} An array of the selected choice `value`s (or the choice itself when a string was provided).
+ * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
