@@ -80,7 +80,7 @@ async function checkboxPrompt(q) {
       process.stdout.write("\x1B[?25l"); // Hide cursor
 
       if (q.header) {
-        process.stdout.write(q.header + "\n");
+        process.stdout.write(`${q.header}\n`);
       }
 
       process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
