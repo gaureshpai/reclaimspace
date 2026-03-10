@@ -35,10 +35,10 @@ export async function prompt(questions) {
   return result;
 }
 
-/ **
+/**
  * Display a checkbox-style prompt to let the user select one or more choices.
  *
- * In non-TTY environments, prints the message and choices, reads a single line of numbers,
+ * In non-TTY environments, prints the message `and choices, reads a single line of numbers,
  * and treats an empty input as selecting all choices. The optional `header` may contain newlines
  * and is shown above the prompt.
  * @param {Object} q - Question configuration.
