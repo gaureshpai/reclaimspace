@@ -196,7 +196,7 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Present a single-choice interactive list and return the chosen item's value.
+ * Display a single-choice list prompt and let the user choose one option.
  *
  * @param {Object} q - Question object.
  * @param {string} q.message - Prompt message displayed above the list.
