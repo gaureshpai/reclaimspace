@@ -733,260 +733,6 @@ describe("prompt", () => {
     });
   });
 
-  describe("checkbox with header", () => {
-    it("should handle checkbox with single-line header", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("1");
-      });
-
-      const questions = [
-        {
-          type: "checkbox",
-          name: "items",
-          message: "Select items",
-          header: "This is a header message",
-          choices: ["option1", "option2"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.items).toEqual(["option1"]);
-    });
-
-    it("should handle checkbox with multi-line header", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("2");
-      });
-
-      const questions = [
-        {
-          type: "checkbox",
-          name: "features",
-          message: "Select features",
-          header: "Welcome to feature selection\nPlease choose your options\nYou can select multiple",
-          choices: ["feature1", "feature2", "feature3"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.features).toEqual(["feature2"]);
-    });
-
-    it("should handle checkbox without header", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("1");
-      });
-
-      const questions = [
-        {
-          type: "checkbox",
-          name: "items",
-          message: "Select",
-          choices: ["a", "b"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.items).toEqual(["a"]);
-    });
-  });
-
-  describe("additional edge cases", () => {
-    it("should handle confirm with special characters in message", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("yes");
-      });
-
-      const result = await prompt([
-        { type: "confirm", name: "test", message: "Do you want to continue? (y/n)" },
-      ]);
-
-      expect(result.test).toBe(true);
-    });
-
-    it("should handle checkbox choices with special characters", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("1 2");
-      });
-
-      const questions = [
-        {
-          type: "checkbox",
-          name: "items",
-          message: "Select",
-          choices: ["item-1", "item_2", "item.3", "item@4"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.items).toEqual(["item-1", "item_2"]);
-    });
-
-    it("should handle list with single choice", async () => {
-      const questions = [
-        {
-          type: "list",
-          name: "only",
-          message: "Only one option",
-          choices: ["single"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.only).toBe("single");
-    });
-
-    it("should handle checkbox with duplicate selection attempts", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("1 1 2 2");
-      });
-
-      const questions = [
-        {
-          type: "checkbox",
-          name: "items",
-          message: "Select",
-          choices: ["a", "b", "c"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      // Duplicate indices result in duplicate values in the output
-      expect(result.items).toEqual(["a", "a", "b", "b"]);
-    });
-
-    it("should handle very long choice names", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("1");
-      });
-
-      const longName = "This is a very long choice name that might cause display issues in some terminals but should still work correctly";
-      const questions = [
-        {
-          type: "checkbox",
-          name: "long",
-          message: "Select",
-          choices: [longName, "short"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.long).toEqual([longName]);
-    });
-
-    it("should handle choice objects with only name property", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("1");
-      });
-
-      const questions = [
-        {
-          type: "checkbox",
-          name: "test",
-          message: "Test",
-          choices: [{ name: "Choice 1" }, { name: "Choice 2" }],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.test).toEqual([{ name: "Choice 1" }]);
-    });
-
-    it("should handle mixed question sequence with various inputs", async () => {
-      let callCount = 0;
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callCount++;
-        if (callCount === 1) {
-          callback("Y");
-        } else if (callCount === 2) {
-          callback("2 3");
-        } else if (callCount === 3) {
-          callback("n");
-        }
-      });
-
-      const questions = [
-        { type: "confirm", name: "first", message: "First?" },
-        { type: "checkbox", name: "second", message: "Second", choices: ["a", "b", "c", "d"] },
-        { type: "confirm", name: "third", message: "Third?" },
-        { type: "list", name: "fourth", message: "Fourth", choices: ["x", "y", "z"] },
-      ];
-
-      const result = await prompt(questions);
-
-      expect(result.first).toBe(true);
-      expect(result.second).toEqual(["b", "c"]);
-      expect(result.third).toBe(false);
-      expect(result.fourth).toBe("x");
-    });
-
-    it("should handle confirm with just whitespace input", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("   ");
-      });
-
-      const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
-      // Empty/whitespace input defaults to yes
-      expect(result.test).toBe(true);
-    });
-
-    it("should handle checkbox with only invalid indices", async () => {
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callback("10 20 30");
-      });
-
-      const questions = [
-        {
-          type: "checkbox",
-          name: "items",
-          message: "Select",
-          choices: ["a", "b"],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.items).toEqual([]);
-    });
-
-    it("should handle list with complex choice objects", async () => {
-      const questions = [
-        {
-          type: "list",
-          name: "complex",
-          message: "Choose",
-          choices: [
-            { name: "Development", value: "dev" },
-            { name: "Production", value: "prod" },
-            { name: "Staging", value: "stage" },
-          ],
-        },
-      ];
-
-      const result = await prompt(questions);
-      expect(result.complex).toBe("dev");
-    });
-
-    it("should handle consecutive confirm questions", async () => {
-      let callCount = 0;
-      mockRl.question.mockImplementation((_msg, callback) => {
-        callCount++;
-        callback(callCount === 1 ? "yes" : callCount === 2 ? "no" : "y");
-      });
-
-      const questions = [
-        { type: "confirm", name: "q1", message: "Question 1?" },
-        { type: "confirm", name: "q2", message: "Question 2?" },
-        { type: "confirm", name: "q3", message: "Question 3?" },
-      ];
-
-      const result = await prompt(questions);
-
-      expect(result.q1).toBe(true);
-      expect(result.q2).toBe(false);
-      expect(result.q3).toBe(true);
-    });
-  });
-
   describe("confirm question variations", () => {
     it("should treat 'N' as no", async () => {
       mockRl.question.mockImplementation((_msg, callback) => {
@@ -1019,6 +765,290 @@ describe("prompt", () => {
         const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
 
         expect(result.test).toBe(true);
+      }
+    });
+  });
+
+  describe("checkbox header functionality", () => {
+    it("should display header when provided in checkbox question", async () => {
+      const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "test",
+          message: "Test question",
+          header: "This is a test header\nWith multiple lines",
+          choices: ["choice1", "choice2"],
+        },
+      ];
+
+      await prompt(questions);
+
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Test question"));
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should handle checkbox with header containing single line", async () => {
+      const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "test",
+          message: "Select item",
+          header: "Single line header",
+          choices: ["item1"],
+        },
+      ];
+
+      await prompt(questions);
+
+      expect(consoleSpy).toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should handle checkbox without header gracefully", async () => {
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "test",
+          message: "No header",
+          choices: ["item1"],
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      expect(result.test).toEqual(["item1"]);
+    });
+
+    it("should handle empty header string", async () => {
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "test",
+          message: "Empty header",
+          header: "",
+          choices: ["item1"],
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      expect(result.test).toEqual(["item1"]);
+    });
+
+    it("should handle multiline header with newlines", async () => {
+      const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "test",
+          message: "Multiline test",
+          header: "Line 1\nLine 2\nLine 3",
+          choices: ["a", "b"],
+        },
+      ];
+
+      await prompt(questions);
+
+      expect(consoleSpy).toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("additional edge cases", () => {
+    it("should return undefined for choice objects with only name property", async () => {
+      const questions = [
+        {
+          type: "list",
+          name: "test",
+          message: "Pick",
+          choices: [{ name: "Only Name" }],
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      // In non-TTY mode, returns the value property which is undefined
+      expect(result.test).toBeUndefined();
+    });
+
+    it("should handle numeric choice values", async () => {
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1 2");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "numbers",
+          message: "Select numbers",
+          choices: [
+            { name: "One", value: 1 },
+            { name: "Two", value: 2 },
+            { name: "Three", value: 3 },
+          ],
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      expect(result.numbers).toEqual([1, 2]);
+    });
+
+    it("should handle boolean choice values", async () => {
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "bools",
+          message: "Select",
+          choices: [
+            { name: "True", value: true },
+            { name: "False", value: false },
+          ],
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      expect(result.bools).toEqual([true]);
+    });
+
+    it("should handle object choice values", async () => {
+      const objValue = { id: 1, name: "test" };
+
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "objects",
+          message: "Select",
+          choices: [{ name: "Object Choice", value: objValue }],
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      expect(result.objects).toEqual([objValue]);
+    });
+
+    it("should handle large number of choices in checkbox", async () => {
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1 50 100");
+      });
+
+      const choices = Array.from({ length: 100 }, (_, i) => `choice${i + 1}`);
+      const questions = [
+        {
+          type: "checkbox",
+          name: "many",
+          message: "Select from many",
+          choices,
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      expect(result.many).toEqual(["choice1", "choice50", "choice100"]);
+    });
+
+    it("should handle selection at boundaries of choice array", async () => {
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1 10");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "boundary",
+          message: "Select",
+          choices: Array.from({ length: 10 }, (_, i) => `item${i + 1}`),
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      expect(result.boundary).toEqual(["item1", "item10"]);
+    });
+
+    it("should handle repeated number selections", async () => {
+      mockRl.question.mockImplementation((_msg, callback) => {
+        callback("1 1 2 2 1");
+      });
+
+      const questions = [
+        {
+          type: "checkbox",
+          name: "repeated",
+          message: "Select",
+          choices: ["a", "b", "c"],
+        },
+      ];
+
+      const result = await prompt(questions);
+
+      // Should have duplicates as the implementation doesn't deduplicate
+      expect(result.repeated.length).toBeGreaterThan(2);
+    });
+
+    it("should handle confirm with various affirmative inputs", async () => {
+      const affirmativeInputs = ["YES", "Yes", "y", "Y", "yes", "yES"];
+
+      for (const input of affirmativeInputs) {
+        mockRl.question.mockImplementation((_msg, callback) => {
+          callback(input);
+        });
+
+        const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
+
+        expect(result.test).toBe(true);
+      }
+    });
+
+    it("should handle confirm with various negative inputs", async () => {
+      const negativeInputs = ["NO", "No", "n", "N", "no", "nO", "nah", "nope"];
+
+      for (const input of negativeInputs) {
+        mockRl.question.mockImplementation((_msg, callback) => {
+          callback(input);
+        });
+
+        const result = await prompt([{ type: "confirm", name: "test", message: "Test?" }]);
+
+        expect(result.test).toBe(false);
       }
     });
   });

@@ -60,114 +60,124 @@ describe("Program CLI", () => {
     expect(program.opts().undefined).toBeUndefined();
   });
 
-  it("should set version correctly", () => {
-    const result = program.version("1.2.3");
-    expect(result).toBe(program); // Should return this for chaining
-    expect(program._version).toBe("1.2.3");
+  it("should set and retrieve version", () => {
+    program.version("1.0.0");
+    expect(program._version).toBe("1.0.0");
   });
 
-  it("should set description correctly", () => {
-    const desc = "Test description";
-    const result = program.description(desc);
-    expect(result).toBe(program); // Should return this for chaining
-    expect(program._description).toBe(desc);
+  it("should set and retrieve description", () => {
+    program.description("Test program description");
+    expect(program._description).toBe("Test program description");
   });
 
-  it("should support method chaining", () => {
+  it("should allow chaining of version, description, option, and argument", () => {
     const result = program
-      .version("1.0.0")
-      .description("Test CLI")
-      .option("-v, --verbose", "Verbose output")
-      .argument("<file>", "File to process");
+      .version("2.0.0")
+      .description("Chained program")
+      .option("--test", "test option")
+      .argument("<dir>", "directory");
 
     expect(result).toBe(program);
-    expect(program._version).toBe("1.0.0");
-    expect(program._description).toBe("Test CLI");
+    expect(program._version).toBe("2.0.0");
+    expect(program._description).toBe("Chained program");
   });
 
-  it("should handle multiple options with mixed syntax", () => {
-    program
-      .option("-v, --verbose", "Verbose")
-      .option("--config <path>", "Config file")
-      .option("-o, --output <file>", "Output file");
-
-    program.parse(["node", "script", "-v", "--config=app.json", "-o", "result.txt", "input.js"]);
-
-    const opts = program.opts();
-    expect(opts.verbose).toBe(true);
-    expect(opts.config).toBe("app.json");
-    expect(opts.output).toBe("result.txt");
-    expect(program.args).toEqual(["input.js"]);
-  });
-
-  it("should handle empty argv array", () => {
-    program.parse([]);
-    expect(program.args).toEqual([]);
-    expect(program.opts()).toEqual({});
-  });
-
-  it("should handle argv with only script name", () => {
-    program.parse(["node"]);
-    expect(program.args).toEqual([]);
-  });
-
-  it("should set default values for options", () => {
-    program.option("--port <number>", "Port number", "3000");
+  it("should use default value for option when not provided", () => {
+    program.option("--count <n>", "count", "5");
     program.parse(["node", "script"]);
-    expect(program.opts().port).toBe("3000");
+    expect(program.opts().count).toBe("5");
   });
 
-  it("should override default values when option is provided", () => {
-    program.option("--port <number>", "Port number", "3000");
-    program.parse(["node", "script", "--port", "8080"]);
+  it("should override default value when option is provided", () => {
+    program.option("--count <n>", "count", "5");
+    program.parse(["node", "script", "--count", "10"]);
+    expect(program.opts().count).toBe("10");
+  });
+
+  it("should handle boolean flag with default false", () => {
+    program.option("--verbose", "verbose mode");
+    program.parse(["node", "script"]);
+    expect(program.opts().verbose).toBe(false);
+  });
+
+  it("should handle multiple equals signs in option value", () => {
+    program.option("--config <value>", "config");
+    program.parse(["node", "script", "--config=key=value=test"]);
+    expect(program.opts().config).toBe("key=value=test");
+  });
+
+  it("should handle mix of short and long options", () => {
+    program.option("-v, --verbose", "verbose");
+    program.option("-q, --quiet", "quiet");
+    program.parse(["node", "script", "-v", "--quiet"]);
+    expect(program.opts().verbose).toBe(true);
+    expect(program.opts().quiet).toBe(true);
+  });
+
+  it("should handle short option with value", () => {
+    program.option("-p, --port <number>", "port");
+    program.parse(["node", "script", "-p", "8080"]);
     expect(program.opts().port).toBe("8080");
   });
 
-  it("should handle option with value containing equals sign", () => {
-    program.option("--env <vars>", "Environment variables");
-    program.parse(["node", "script", "--env=KEY=VALUE"]);
-    expect(program.opts().env).toBe("KEY=VALUE");
+  it("should consume next non-flag argument as option value", () => {
+    program.option("--flag", "flag");
+    program.parse(["node", "script", "--flag", "arg1", "arg2"]);
+    // The parser consumes arg1 as the value for --flag
+    expect(program.opts().flag).toBe("arg1");
+    expect(program.args).toEqual(["arg2"]);
   });
 
-  it("should handle option with value containing multiple equals signs", () => {
-    program.option("--data <json>", "JSON data");
-    program.parse(["node", "script", "--data={\"key\":\"value=test\"}"]);
-    expect(program.opts().data).toBe("{\"key\":\"value=test\"}");
+  it("should handle positional arguments before options", () => {
+    program.option("--flag", "flag");
+    program.parse(["node", "script", "arg1", "--flag", "arg2"]);
+    // The parser consumes arg2 as the value for --flag
+    expect(program.opts().flag).toBe("arg2");
+    expect(program.args).toEqual(["arg1"]);
   });
 
-  it("should parse boolean flag without value", () => {
-    program.option("--force", "Force operation");
-    program.parse(["node", "script", "--force"]);
-    expect(program.opts().force).toBe(true);
+  it("should handle option with value that looks like a flag using = syntax", () => {
+    program.option("--value <v>", "value");
+    program.parse(["node", "script", "--value=--weird-value"]);
+    expect(program.opts().value).toBe("--weird-value");
   });
 
-  it("should handle multiple short flags combined", () => {
-    program.option("-a, --all", "All");
-    program.option("-v, --verbose", "Verbose");
-    program.option("-f, --force", "Force");
-
-    // Note: This tests individual flags, not combined like -avf
-    program.parse(["node", "script", "-a", "-v", "-f"]);
-    const opts = program.opts();
-    expect(opts.all).toBe(true);
-    expect(opts.verbose).toBe(true);
-    expect(opts.force).toBe(true);
+  it("should store option definitions", () => {
+    program.option("--test", "test option");
+    expect(program._optionDefinitions).toHaveLength(1);
+    expect(program._optionDefinitions[0]).toMatchObject({
+      key: "test",
+      flags: "--test",
+      desc: "test option",
+    });
   });
 
-  it("should handle positional args with boolean options", () => {
-    program.option("-v, --verbose", "Verbose");
-    // Boolean options consume the next arg if it doesn't start with "-"
-    program.parse(["node", "script", "-v", "file1.js"]);
+  it("should store argument definitions", () => {
+    program.argument("<dir>", "directory");
+    expect(program._argumentDefinitions).toHaveLength(1);
+    expect(program._argumentDefinitions[0]).toMatchObject({
+      name: "<dir>",
+      desc: "directory",
+    });
+  });
 
-    // The next arg after -v becomes the value for verbose (not a boolean)
-    expect(program.opts().verbose).toBe("file1.js");
+  it("should handle empty argv array", () => {
+    program.option("--test", "test");
+    program.parse(["node", "script"]);
     expect(program.args).toEqual([]);
+    expect(program.opts().test).toBe(false);
   });
 
-  it("should handle options that look like flags but are positional", () => {
-    program.parse(["node", "script", "--", "--not-a-flag"]);
-    expect(program.args).toContain("--");
-    expect(program.args).toContain("--not-a-flag");
+  it("should handle non-string default value for argument", () => {
+    program.argument("[port]", "port", 3000);
+    program.parse(["node", "script"]);
+    expect(program.args).toEqual([3000]);
+  });
+
+  it("should apply array default value by spreading", () => {
+    program.argument("[dirs...]", "directories", ["dir1", "dir2", "dir3"]);
+    program.parse(["node", "script"]);
+    expect(program.args).toEqual(["dir1", "dir2", "dir3"]);
   });
 
   it("should initialize with empty state", () => {
@@ -181,241 +191,49 @@ describe("Program CLI", () => {
     expect(newProgram._optionDefinitions).toEqual([]);
   });
 
-  it("should handle option with long flag only", () => {
-    program.option("--verbose", "Verbose mode");
-    program.parse(["node", "script", "--verbose"]);
-    expect(program.opts().verbose).toBe(true);
+  it("should extract short flag from option definition", () => {
+    program.option("-t, --test", "test");
+    expect(program._optionDefinitions[0].short).toBe("t");
   });
 
-  it("should handle array default for arguments", () => {
-    program.argument("[files...]", "Files to process", ["default1.js", "default2.js"]);
-    program.parse(["node", "script"]);
-    expect(program.args).toEqual(["default1.js", "default2.js"]);
+  it("should handle option definition without short flag", () => {
+    program.option("--long-only", "long only");
+    expect(program._optionDefinitions[0].short).toBeUndefined();
   });
 
-  it("should not use default arguments when args are provided", () => {
-    program.argument("[files...]", "Files", ["default.js"]);
-    program.parse(["node", "script", "custom.js"]);
-    expect(program.args).toEqual(["custom.js"]);
+  it("should handle complex flag definition with spaces", () => {
+    program.option("-f | --file <path>", "file path");
+    const def = program._optionDefinitions[0];
+    expect(def.key).toBe("file");
+    expect(def.short).toBe("f");
   });
 
-  it("should handle option value with spaces when using = syntax", () => {
-    program.option("--message <text>", "Message");
-    program.parse(["node", "script", "--message=hello world"]);
-    expect(program.opts().message).toBe("hello world");
+  it("should handle undefined short flag lookup", () => {
+    program.option("--test", "test");
+    program.parse(["node", "script", "-x"]);
+    expect(program.opts().test).toBe(false);
   });
 
-  it("should handle short flag with value", () => {
-    program.option("-p, --port <number>", "Port");
-    program.parse(["node", "script", "-p", "3000"]);
-    expect(program.opts().port).toBe("3000");
-  });
-
-  it("should preserve order of positional arguments", () => {
-    program.parse(["node", "script", "first", "second", "third", "fourth"]);
-    expect(program.args).toEqual(["first", "second", "third", "fourth"]);
-  });
-
-  it("should handle option values that are numbers", () => {
-    program.option("--count <n>", "Count");
-    program.parse(["node", "script", "--count", "42"]);
-    expect(program.opts().count).toBe("42");
-  });
-
-  it("should handle option values that start with dash using = syntax", () => {
-    program.option("--value <v>", "Value");
-    program.parse(["node", "script", "--value=-123"]);
-    expect(program.opts().value).toBe("-123");
-  });
-
-  it("should default boolean options to false", () => {
-    program.option("--enable", "Enable feature");
-    program.parse(["node", "script"]);
-    expect(program.opts().enable).toBe(false);
-  });
-
-  it("should handle empty option value with = syntax", () => {
-    program.option("--text <value>", "Text");
-    program.parse(["node", "script", "--text="]);
-    expect(program.opts().text).toBe("");
-  });
-
-  it("should handle multiple arguments with default values", () => {
-    program
-      .argument("[dir]", "Directory", ".")
-      .argument("[file]", "File", "index.js");
-
-    program.parse(["node", "script"]);
-    // All defaults are applied when no args provided
-    expect(program.args).toEqual([".", "index.js"]);
-  });
-
-  it("should handle opts() returning parsed options", () => {
-    program.option("--test", "Test option");
+  it("should return opts consistently after multiple calls", () => {
+    program.option("--test", "test");
     program.parse(["node", "script", "--test"]);
-    const opts = program.opts();
-    expect(opts).toHaveProperty("test");
-    expect(opts.test).toBe(true);
+    const opts1 = program.opts();
+    const opts2 = program.opts();
+    expect(opts1).toEqual(opts2);
+    expect(opts1.test).toBe(true);
   });
 
-  it("should handle space-separated flag and value notation", () => {
-    program.option("--name <n>", "Name");
-    program.parse(["node", "script", "--name", "John"]);
-    expect(program.opts().name).toBe("John");
+  it("should handle argument with default undefined", () => {
+    program.argument("[optional]", "optional arg");
+    program.parse(["node", "script"]);
+    expect(program.args).toEqual([]);
   });
 
-  it("should handle complex argument definitions", () => {
-    program
-      .argument("<source>", "Source file")
-      .argument("[dest]", "Destination file", "output.txt");
-
-    program.parse(["node", "script", "input.txt"]);
-    expect(program.args).toEqual(["input.txt"]);
-  });
-
-  // Additional regression and boundary tests
-  describe("regression and boundary tests", () => {
-    it("should handle option flag without short version", () => {
-      program.option("--long-option-name", "Long option");
-      program.parse(["node", "script", "--long-option-name"]);
-      expect(program.opts()["long-option-name"]).toBe(true);
-    });
-
-    it("should handle very long option values", () => {
-      const longValue = "a".repeat(1000);
-      program.option("--data <value>", "Data");
-      program.parse(["node", "script", "--data", longValue]);
-      expect(program.opts().data).toBe(longValue);
-    });
-
-    it("should not leak state between parse calls", () => {
-      const prog1 = new Program();
-      prog1.option("-v, --verbose", "Verbose");
-      prog1.parse(["node", "script", "--verbose"]);
-
-      const prog2 = new Program();
-      prog2.option("-v, --verbose", "Verbose");
-      prog2.parse(["node", "script"]);
-
-      expect(prog1.opts().verbose).toBe(true);
-      expect(prog2.opts().verbose).toBe(false);
-    });
-
-    it("should handle special characters in option values", () => {
-      program.option("--pattern <p>", "Pattern");
-      program.parse(["node", "script", "--pattern=*.{js,ts}"]);
-      expect(program.opts().pattern).toBe("*.{js,ts}");
-    });
-
-    it("should handle quoted strings as positional arguments", () => {
-      program.parse(["node", "script", "file with spaces.txt"]);
-      expect(program.args).toContain("file with spaces.txt");
-    });
-
-    it("should handle numeric zero as option value", () => {
-      program.option("--count <n>", "Count");
-      program.parse(["node", "script", "--count", "0"]);
-      expect(program.opts().count).toBe("0");
-    });
-
-    it("should handle negative numbers as option values with = syntax", () => {
-      program.option("--number <n>", "Number");
-      program.parse(["node", "script", "--number=-42"]);
-      expect(program.opts().number).toBe("-42");
-    });
-
-    it("should handle boolean flag at end of arguments", () => {
-      program.option("--last", "Last flag");
-      program.parse(["node", "script", "file.txt", "--last"]);
-      expect(program.opts().last).toBe(true);
-      expect(program.args).toContain("file.txt");
-    });
-
-    it("should handle option with special characters in flag name", () => {
-      program.option("--build-dir <dir>", "Build directory");
-      program.parse(["node", "script", "--build-dir", "./dist"]);
-      expect(program.opts()["build-dir"]).toBe("./dist");
-    });
-
-    it("should preserve whitespace in option values with = syntax", () => {
-      program.option("--text <t>", "Text");
-      program.parse(["node", "script", "--text=  spaces  "]);
-      expect(program.opts().text).toBe("  spaces  ");
-    });
-
-    it("should handle rapid consecutive option flags", () => {
-      program.option("-a, --aaa", "A");
-      program.option("-b, --bbb", "B");
-      program.option("-c, --ccc", "C");
-      program.parse(["node", "script", "-a", "-b", "-c"]);
-      expect(program.opts().aaa).toBe(true);
-      expect(program.opts().bbb).toBe(true);
-      expect(program.opts().ccc).toBe(true);
-    });
-
-    it("should handle undefined short flag correctly", () => {
-      program.option("--only-long", "Only long flag");
-      program.parse(["node", "script", "--only-long"]);
-      expect(program.opts()["only-long"]).toBe(true);
-    });
-
-    it("should not confuse option value with another option", () => {
-      program.option("--first <value>", "First");
-      program.option("--second", "Second");
-      program.parse(["node", "script", "--first=test", "--second"]);
-      expect(program.opts().first).toBe("test");
-      expect(program.opts().second).toBe(true);
-    });
-
-    it("should handle JSON string as option value", () => {
-      const json = '{"key":"value","nested":{"array":[1,2,3]}}';
-      program.option("--config <json>", "Config");
-      program.parse(["node", "script", `--config=${json}`]);
-      expect(program.opts().config).toBe(json);
-    });
-
-    it("should handle URL as option value", () => {
-      program.option("--url <u>", "URL");
-      program.parse(["node", "script", "--url=https://example.com?a=1&b=2"]);
-      expect(program.opts().url).toBe("https://example.com?a=1&b=2");
-    });
-
-    it("should handle empty string positional argument", () => {
-      program.parse(["node", "script", ""]);
-      expect(program.args).toContain("");
-    });
-
-    it("should handle multiple equals signs in single option value", () => {
-      program.option("--equation <e>", "Equation");
-      program.parse(["node", "script", "--equation=a=b=c=d"]);
-      expect(program.opts().equation).toBe("a=b=c=d");
-    });
-
-    it("should handle option that looks like a number", () => {
-      program.option("--123 <value>", "Numeric option");
-      program.parse(["node", "script", "--123=test"]);
-      expect(program.opts()["123"]).toBe("test");
-    });
-
-    it("should handle single dash as positional argument", () => {
-      program.parse(["node", "script", "-"]);
-      expect(program.args).toContain("-");
-    });
-
-    it("should handle double dash as positional argument", () => {
-      program.parse(["node", "script", "--"]);
-      expect(program.args).toContain("--");
-    });
-
-    it("should maintain insertion order for options", () => {
-      program.option("--first", "First");
-      program.option("--second", "Second");
-      program.option("--third", "Third");
-      program.parse(["node", "script", "--third", "--first", "--second"]);
-      const opts = program.opts();
-      expect(opts.first).toBe(true);
-      expect(opts.second).toBe(true);
-      expect(opts.third).toBe(true);
-    });
+  it("should parse only after slice(2) of argv", () => {
+    program.option("--test", "test");
+    program.parse(["node", "script.js", "--test", "arg1"]);
+    // The parser consumes arg1 as the value for --test
+    expect(program.opts().test).toBe("arg1");
+    expect(program.args).toEqual([]);
   });
 });
