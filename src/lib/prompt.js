@@ -35,9 +35,12 @@ export async function prompt(questions) {
   return result;
 }
 
-/**
- * Display an interactive checkbox prompt and collect the selected choice values.
+/ **
+ * Display a checkbox-style prompt to let the user select one or more choices.
  *
+ * In non-TTY environments, prints the message and choices, reads a single line of numbers,
+ * and treats an empty input as selecting all choices. The optional `header` may contain newlines
+ * and is shown above the prompt.
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
  * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
