@@ -4,10 +4,10 @@
 
 We are committed to ensuring the security of our users. We will release security updates for the latest stable version of the project.
 
-| Version | Supported        |
-| ------- | -----------------|
-| latest  |  ✔              |
-| older   | ❌              |
+| Version | Supported |
+| ------- | --------- |
+| latest  | ✔         |
+| older   | ❌        |
 
 ## Reporting a Vulnerability
 

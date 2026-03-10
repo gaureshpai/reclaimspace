@@ -51,7 +51,10 @@ async function checkboxPrompt(q) {
     q.choices.forEach((c, i) => {
       console.log(`  ${i + 1}) ${c.name || c}`);
     });
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
     const answer = await new Promise((resolve) => {
       rl.question(`Enter numbers separated by space (empty for all): `, (input) => {
         if (!input.trim()) return resolve(q.choices.map((c) => c.value || c));

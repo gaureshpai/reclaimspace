@@ -52,7 +52,10 @@ describe("fs-utils", () => {
     it("should call fs.rm with correct options", async () => {
       fs.rm.mockResolvedValue(undefined);
       await removePath("/to/delete");
-      expect(fs.rm).toHaveBeenCalledWith("/to/delete", { recursive: true, force: true });
+      expect(fs.rm).toHaveBeenCalledWith("/to/delete", {
+        recursive: true,
+        force: true,
+      });
     });
 
     it("should retry on EBUSY", async () => {

@@ -60,7 +60,13 @@ export class Program {
     const short = parts.find((p) => p.startsWith("-") && !p.startsWith("--"))?.replace(/^-/, "");
 
     if (long) {
-      this._optionDefinitions.push({ key: long, short, flags, desc, defaultValue });
+      this._optionDefinitions.push({
+        key: long,
+        short,
+        flags,
+        desc,
+        defaultValue,
+      });
     }
     return this;
   }
