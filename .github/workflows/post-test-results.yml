@@ -46,7 +46,12 @@ jobs:
             }
 
             // 2) Build simplified comment
-            const statusEmoji = overallStatus === 'success' ? '✅' : '❌';
+            const statusEmoji =
+              overallStatus === 'success' ? '✅' :
+              overallStatus === 'failure' ? '❌' :
+              overallStatus === 'cancelled' ? '⏹️' :
+              overallStatus === 'skipped' ? '⏭️' :
+              '❔';
             const body = `### ${statusEmoji} CI/CD Test Results <!-- ci-cd-test-results -->\n` +
                          `**Overall Status**: ${overallStatus}\n\n` +
                          `---\n[View full workflow run](${run.html_url})`;
