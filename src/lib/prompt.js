@@ -36,8 +36,11 @@ export async function prompt(questions) {
 }
 
 /**
- * Display an interactive checkbox prompt and collect the selected choice values.
+ * Display a checkbox-style prompt to let the user select one or more choices.
  *
+ * In non-TTY environments, prints the message `and choices, reads a single line of numbers,
+ * and treats an empty input as selecting all choices. The optional `header` may contain newlines
+ * and is shown above the prompt.
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
  * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
@@ -51,7 +54,10 @@ async function checkboxPrompt(q) {
     q.choices.forEach((c, i) => {
       console.log(`  ${i + 1}) ${c.name || c}`);
     });
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
     const answer = await new Promise((resolve) => {
       rl.question(`Enter numbers separated by space (empty for all): `, (input) => {
         if (!input.trim()) return resolve(q.choices.map((c) => c.value || c));
@@ -193,7 +199,7 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Present a single-choice interactive list and return the chosen item's value.
+ * Display a single-choice list prompt and let the user choose one option.
  *
  * @param {Object} q - Question object.
  * @param {string} q.message - Prompt message displayed above the list.

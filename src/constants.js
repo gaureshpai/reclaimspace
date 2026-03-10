@@ -37,8 +37,7 @@ const FOLDER_CATEGORIES = [
       ".docusaurus",
       ".eleventy-cache",
       ".gatsby-cache",
-      ".vercel",
-      ".netlify",
+      "public/build",
     ],
   },
   {
