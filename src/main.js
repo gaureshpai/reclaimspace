@@ -21,8 +21,13 @@ function displayLogoAndCredits() {
 }
 
 /**
- * Main application runner. Initialized arguments, starts scan, and launches UI.
- * @param {string} baseDir - The root directory of the project.
+ * Run the ReclaimSpace CLI: parse arguments, scan target directories, and launch the UI.
+ *
+ * Reads package metadata for CLI info, resolves and validates search paths, merges ignore/include
+ * patterns, performs a scan with progress reporting, and starts the interactive or non-interactive UI.
+ * Registers a one-time SIGINT handler that prints total reclaimed space and exits.
+ *
+ * @param {string} baseDir - Project root used as the default directory to scan when none are provided.
  */
 async function run(baseDir) {
   const state = { totalReclaimed: 0 };
