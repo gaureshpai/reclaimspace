@@ -1006,7 +1006,12 @@ describe("prompt", () => {
 
       const questions = [
         { type: "confirm", name: "confirm", message: "Confirm?" },
-        { type: "checkbox", name: "check", message: "Check", choices: ["a", "b", "c"] },
+        {
+          type: "checkbox",
+          name: "check",
+          message: "Check",
+          choices: ["a", "b", "c"],
+        },
         { type: "list", name: "list", message: "List", choices: ["x", "y"] },
       ];
 

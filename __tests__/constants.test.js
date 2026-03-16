@@ -296,13 +296,7 @@ describe("constants", () => {
 
     it("should contain patterns useful for build detection", () => {
       // Verify patterns are meaningful for detecting build outputs
-      const meaningfulPatterns = [
-        "index.js",
-        "bundle.js",
-        "assets",
-        "webpack.config.js",
-        "*.map",
-      ];
+      const meaningfulPatterns = ["index.js", "bundle.js", "assets", "webpack.config.js", "*.map"];
       meaningfulPatterns.forEach((pattern) => {
         expect(BUILD_ARTIFACT_PATTERNS).toContain(pattern);
       });
@@ -330,7 +324,7 @@ describe("constants", () => {
 
     it("should maintain consistent ordering", () => {
       // Verify that the order in CATEGORIES matches the order in FOLDER_CATEGORIES
-      CATEGORIES.forEach((category, index) => {
+      CATEGORIES.forEach((category, _index) => {
         const folderCategory = FOLDER_CATEGORIES.find((fc) => fc.id === category.id);
         expect(folderCategory).toBeDefined();
       });

@@ -6,10 +6,21 @@ export class Program {
     this.args = [];
     this._options = {};
     this._commands = [];
+    this._name = "";
     this._description = "";
     this._version = "";
     this._argumentDefinitions = [];
     this._optionDefinitions = [];
+  }
+
+  /**
+   * Sets the name of the application.
+   * @param {string} n - Name string.
+   * @returns {Program} Chained instance.
+   */
+  name(n) {
+    this._name = n;
+    return this;
   }
 
   /**
@@ -72,6 +83,58 @@ export class Program {
   }
 
   /**
+   * Generates and returns the help text.
+   * @returns {string} Formatted help text.
+   */
+  helpInformation() {
+    const lines = [];
+
+    if (this._description) {
+      lines.push(this._description);
+      lines.push("");
+    }
+
+    const name = this._name || "program";
+    const usage = `Usage: ${name} [options]${this._argumentDefinitions.length ? ` ${this._argumentDefinitions.map((a) => a.name).join(" ")}` : ""}`;
+    lines.push(usage);
+    lines.push("");
+
+    if (this._argumentDefinitions.length) {
+      lines.push("Arguments:");
+      for (const arg of this._argumentDefinitions) {
+        lines.push(
+          `  ${arg.name.padEnd(20)} ${arg.desc}${arg.defaultValue !== undefined ? ` (default: ${JSON.stringify(arg.defaultValue)})` : ""}`,
+        );
+      }
+      lines.push("");
+    }
+
+    if (this._optionDefinitions.length) {
+      lines.push("Options:");
+      // Add automatic help option to the display
+      const displayOptions = [
+        ...this._optionDefinitions,
+        { flags: "-h, --help", desc: "display help for command" },
+      ];
+      if (this._version) {
+        displayOptions.push({
+          flags: "-v, --version",
+          desc: "output the version number",
+        });
+      }
+
+      for (const opt of displayOptions) {
+        lines.push(
+          `  ${opt.flags.padEnd(20)} ${opt.desc}${opt.defaultValue !== undefined ? ` (default: ${JSON.stringify(opt.defaultValue)})` : ""}`,
+        );
+      }
+      lines.push("");
+    }
+
+    return lines.join("\n");
+  }
+
+  /**
    * Parses command line arguments and options.
    * Note: values beginning with "-" must use the --opt=value form.
    * @param {Array<string>} argv - Process arguments list.
@@ -79,6 +142,21 @@ export class Program {
    */
   parse(argv) {
     const rawArgs = argv.slice(2);
+
+    // Handle help and version flags first
+    if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
+      console.log(this.helpInformation());
+      process.exit(0);
+    }
+
+    if (
+      this._version &&
+      (rawArgs.includes("--version") || rawArgs.includes("-v") || rawArgs.includes("-V"))
+    ) {
+      console.log(this._version);
+      process.exit(0);
+    }
+
     const args = [];
     const options = {};
 
