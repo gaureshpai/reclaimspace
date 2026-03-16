@@ -11,7 +11,7 @@
   </p>
 </div>
 
-**A lightning-fast, zero-dependency CLI tool to reclaim disk space by finding and removing unnecessary development folders and files.**
+**A CLI tool to reclaim disk space by finding and removing regeneratable development folders.**
 
 It behaves like `npx npkill`, but goes further by detecting multiple categories of heavy folders/files, providing a navigable grouped CLI, and focusing on modern tech stacks like Shopify and React Router—all without a single runtime dependency.
 
@@ -49,6 +49,20 @@ You can specify one or more directories to scan.
 
 ```bash
 npx reclaimspace <foldername>
+```
+
+**To display the version number:**
+
+```bash
+npx reclaimspace --version
+# or
+npx reclaimspace -v
+```
+
+**To display the help message:**
+
+```bash
+npx reclaimspace --help
 ```
 
 **To combine flags and folders:**

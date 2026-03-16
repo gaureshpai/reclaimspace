@@ -279,13 +279,62 @@ describe("Program CLI", () => {
     });
 
     it("should parse with various flag separators", () => {
-      program.option("-h, --help", "Help");
-      program.option("-v | --version", "Version");
-      program.parse(["node", "script", "-h", "-v"]);
+      program.option("-x, --extra", "Extra");
+      program.option("-f | --force", "Force");
+      program.parse(["node", "script", "-x", "-f"]);
 
       const opts = program.opts();
-      expect(opts.help).toBe(true);
-      expect(opts.version).toBe(true);
+      expect(opts.extra).toBe(true);
+      expect(opts.force).toBe(true);
+    });
+  });
+
+  describe("help and version flags", () => {
+    let mockExit;
+    let mockLog;
+
+    beforeEach(() => {
+      mockExit = jest.spyOn(process, "exit").mockImplementation((code) => {
+        throw new Error(`Process exited with code ${code}`);
+      });
+      mockLog = jest.spyOn(console, "log").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      mockExit.mockRestore();
+      mockLog.mockRestore();
+    });
+
+    it("should display help and exit on --help", () => {
+      program.description("Test description");
+      expect(() => program.parse(["node", "script", "--help"])).toThrow(
+        "Process exited with code 0",
+      );
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Test description"));
+      expect(mockExit).toHaveBeenCalledWith(0);
+    });
+
+    it("should display help and exit on -h", () => {
+      program.name("test-app");
+      expect(() => program.parse(["node", "script", "-h"])).toThrow("Process exited with code 0");
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Usage: test-app"));
+      expect(mockExit).toHaveBeenCalledWith(0);
+    });
+
+    it("should display version and exit on --version", () => {
+      program.version("1.2.3");
+      expect(() => program.parse(["node", "script", "--version"])).toThrow(
+        "Process exited with code 0",
+      );
+      expect(mockLog).toHaveBeenCalledWith("1.2.3");
+      expect(mockExit).toHaveBeenCalledWith(0);
+    });
+
+    it("should display version and exit on -V", () => {
+      program.version("1.2.3");
+      expect(() => program.parse(["node", "script", "-V"])).toThrow("Process exited with code 0");
+      expect(mockLog).toHaveBeenCalledWith("1.2.3");
+      expect(mockExit).toHaveBeenCalledWith(0);
     });
   });
 

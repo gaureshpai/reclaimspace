@@ -26,6 +26,7 @@ function displayLogoAndCredits() {
  */
 async function run(baseDir) {
   const state = { totalReclaimed: 0 };
+  const pkg = JSON.parse(await fs.readFile(new URL("../package.json", import.meta.url), "utf8"));
 
   process.once("SIGINT", () => {
     process.stdout.write(
@@ -40,6 +41,9 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   displayLogoAndCredits();
 
   program
+    .name("reclaimspace")
+    .version(pkg.version)
+    .description(pkg.description)
     .argument("[dirs...]", "Directories to scan")
     .option("-y, --yes", "Auto-delete all found items without confirmation")
     .option("-d, --dry", "Preview only, do not delete anything")
