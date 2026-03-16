@@ -330,9 +330,9 @@ describe("Program CLI", () => {
       expect(mockExit).toHaveBeenCalledWith(0);
     });
 
-    it("should display version and exit on -V", () => {
+    it("should display version and exit on -v", () => {
       program.version("1.2.3");
-      expect(() => program.parse(["node", "script", "-V"])).toThrow("Process exited with code 0");
+      expect(() => program.parse(["node", "script", "-v"])).toThrow("Process exited with code 0");
       expect(mockLog).toHaveBeenCalledWith("1.2.3");
       expect(mockExit).toHaveBeenCalledWith(0);
     });

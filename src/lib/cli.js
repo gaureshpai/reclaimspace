@@ -149,7 +149,10 @@ export class Program {
       process.exit(0);
     }
 
-    if (this._version && (rawArgs.includes("--version") || rawArgs.includes("-v"))) {
+    if (
+      this._version &&
+      (rawArgs.includes("--version") || rawArgs.includes("-v") || rawArgs.includes("-V"))
+    ) {
       console.log(this._version);
       process.exit(0);
     }
