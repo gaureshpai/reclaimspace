@@ -223,6 +223,18 @@ describe("constants", () => {
       expect(buildCategory.names).toContain(".turbo");
     });
 
+    it("should include WhatsApp Web.js and other safe cache folders", () => {
+      const buildCategory = FOLDER_CATEGORIES.find((c) => c.id === "build");
+      expect(buildCategory).toBeDefined();
+      expect(buildCategory.names).toContain(".wwebjs_cache");
+      expect(buildCategory.names).toContain(".wwebjs_auth");
+      expect(buildCategory.names).toContain(".eslintcache");
+      expect(buildCategory.names).toContain(".stylelintcache");
+      expect(buildCategory.names).toContain(".tsbuildinfo");
+      expect(buildCategory.names).toContain(".swc");
+      expect(buildCategory.names).toContain(".sass-cache");
+    });
+
     it("should include static site generator folders", () => {
       const buildCategory = FOLDER_CATEGORIES.find((c) => c.id === "build");
       expect(buildCategory).toBeDefined();
