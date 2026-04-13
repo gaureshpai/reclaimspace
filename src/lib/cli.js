@@ -71,8 +71,11 @@ export class Program {
     const short = parts.find((p) => p.startsWith("-") && !p.startsWith("--"))?.replace(/^-/, "");
 
     if (long) {
+      // Convert kebab-case to camelCase for the key
+      const camelKey = long.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
       this._optionDefinitions.push({
-        key: long,
+        key: camelKey,
+        rawKey: long,
         short,
         flags,
         desc,
@@ -192,14 +195,15 @@ export class Program {
         }
 
         if (key) {
-          const def = this._optionDefinitions.find((d) => d.key === key);
+          const def = this._optionDefinitions.find((d) => d.key === key || d.rawKey === key);
           if (def) {
+            const targetKey = def.key;
             if (value !== null) {
-              options[key] = value;
+              options[targetKey] = value;
             } else if (rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
-              options[key] = rawArgs[++i];
+              options[targetKey] = rawArgs[++i];
             } else {
-              options[key] = true;
+              options[targetKey] = true;
             }
             continue;
           }

@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { formatSize, formatDate, readIgnoreFile } from "../src/utils.js";
+import { formatSize, formatDate, readIgnoreFile, saveIgnorePatterns } from "../src/utils.js";
 
 jest.mock("node:fs/promises");
 
@@ -51,6 +51,60 @@ describe("utils", () => {
     it("should throw other errors", async () => {
       fs.readFile.mockRejectedValue(new Error("Permission denied"));
       await expect(readIgnoreFile("/mock/dir")).rejects.toThrow("Permission denied");
+    });
+  });
+
+  describe("saveIgnorePatterns", () => {
+    it("should save patterns to a new .reclaimspacerc", async () => {
+      fs.readFile.mockRejectedValue({ code: "ENOENT" });
+      fs.writeFile.mockResolvedValue();
+
+      await saveIgnorePatterns("/mock/dir", ["node_modules", "dist"]);
+
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining(".reclaimspacerc"),
+        "node_modules\ndist\n",
+        "utf-8",
+      );
+    });
+
+    it("should append patterns to an existing .reclaimspacerc", async () => {
+      fs.readFile.mockResolvedValue("existing_pattern\n");
+      fs.writeFile.mockResolvedValue();
+
+      await saveIgnorePatterns("/mock/dir", ["new_pattern"]);
+
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining(".reclaimspacerc"),
+        "existing_pattern\nnew_pattern\n",
+        "utf-8",
+      );
+    });
+
+    it("should not add duplicate patterns", async () => {
+      fs.readFile.mockResolvedValue("existing_pattern\n");
+      fs.writeFile.mockResolvedValue();
+
+      await saveIgnorePatterns("/mock/dir", ["existing_pattern", "new_pattern"]);
+
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining(".reclaimspacerc"),
+        "existing_pattern\nnew_pattern\n",
+        "utf-8",
+      );
+    });
+
+    it("should handle existing file without trailing newline", async () => {
+      fs.readFile.mockResolvedValue("existing_pattern");
+      fs.writeFile.mockResolvedValue();
+
+      await saveIgnorePatterns("/mock/dir", ["new_pattern"]);
+
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining(".reclaimspacerc"),
+        "existing_pattern\nnew_pattern\n",
+        "utf-8",
+      );
     });
   });
 });

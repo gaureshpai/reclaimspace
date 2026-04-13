@@ -83,10 +83,18 @@ npx reclaimspace --build-analysis
 
 **To ignore certain folders:**
 
-You can exclude folders from the scan by providing a comma-separated list of patterns.
+You can temporarily exclude folders from the scan by providing a comma-separated list of patterns.
 
 ```bash
 npx reclaimspace --ignore "node_modules,dist"
+```
+
+**To ignore certain folders permanently:**
+
+You can permanently exclude folders from the scan by providing a comma-separated list of patterns. This will update or create a `.reclaimspacerc` file in the current directory.
+
+```bash
+npx reclaimspace --save-ignore "node_modules,dist"
 ```
 
 **To include only specific folders:**

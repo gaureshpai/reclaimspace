@@ -1,6 +1,6 @@
 import { program } from "./lib/cli.js";
 import * as ui from "./ui.js";
-import { readIgnoreFile, formatSize } from "./utils.js";
+import { readIgnoreFile, saveIgnorePatterns, formatSize } from "./utils.js";
 import { analyzeBuildPatterns } from "./analyzer.js";
 import chalk from "./lib/ansi.js";
 import fs from "node:fs/promises";
@@ -54,12 +54,28 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
     .option("-d, --dry", "Preview only, do not delete anything")
     .option("-u, --ui", "Enable interactive UI to select what to delete")
     .option("-i, --ignore <patterns>", "Comma-separated list of patterns to ignore")
+    .option(
+      "-s, --save-ignore <patterns>",
+      "Permanently ignore patterns by saving them to .reclaimspacerc",
+    )
     .option("-c, --include <patterns>", "Comma-separated list of patterns to include")
     .option("-b, --build-analysis", "Enable build analysis logs")
     .parse(process.argv);
 
   const options = program.opts();
   let searchPaths = program.args.length ? program.args : [baseDir];
+
+  if (options.saveIgnore) {
+    const patternsToSave = options.saveIgnore.split(",").filter(Boolean);
+    if (patternsToSave.length > 0) {
+      await saveIgnorePatterns(baseDir, patternsToSave);
+      console.log(
+        chalk.green(
+          `Successfully saved ignore patterns to .reclaimspacerc: ${patternsToSave.join(", ")}`,
+        ),
+      );
+    }
+  }
 
   if (!options.ui && !options.dry && !options.yes && program.args.length === 0) {
     options.ui = true;

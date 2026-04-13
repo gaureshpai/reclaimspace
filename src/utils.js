@@ -72,6 +72,44 @@ async function readIgnoreFile(baseDir) {
 }
 
 /**
+ * Saves ignore patterns to .reclaimspacerc.
+ * @param {string} baseDir - The directory to look for .reclaimspacerc in.
+ * @param {Array<string>} patterns - List of glob patterns to ignore.
+ * @returns {Promise<void>}
+ */
+async function saveIgnorePatterns(baseDir, patterns) {
+  const ignoreFilePath = path.join(baseDir, ".reclaimspacerc");
+  let existingContent = "";
+  try {
+    existingContent = await fs.readFile(ignoreFilePath, "utf-8");
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+  }
+
+  const existingPatterns = existingContent
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    .map((line) => line.replace(/^\/+/, ""));
+
+  const patternsToAdd = patterns
+    .map((p) => p.trim().replace(/^\/+/, ""))
+    .filter((p) => p && !existingPatterns.includes(p));
+
+  if (patternsToAdd.length === 0) return;
+
+  let finalContent = existingContent;
+  if (finalContent && !finalContent.endsWith("\n")) {
+    finalContent += "\n";
+  }
+  finalContent += `${patternsToAdd.join("\n")}\n`;
+
+  await fs.writeFile(ignoreFilePath, finalContent, "utf-8");
+}
+
+/**
  * Formats a Date object or timestamp into YYYY-MM-DD.
  * @param {Date|number|string} date - The date to format.
  * @returns {string} Formatted date string.
@@ -84,4 +122,4 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
-export { formatSize, readIgnoreFile, formatDate };
+export { formatSize, readIgnoreFile, saveIgnorePatterns, formatDate };
