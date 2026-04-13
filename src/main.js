@@ -76,9 +76,9 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   }
 
   if (validSearchPaths.length === 0) {
-    console.log(chalk.yellow("No valid directories to scan."));
-    console.log(`\n${program.helpInformation()}`);
-    return;
+    console.error(chalk.red("Error: No valid directories to scan."));
+    console.error("\n" + program.helpInformation());
+    process.exit(1);
   }
   searchPaths = validSearchPaths;
 
