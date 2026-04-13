@@ -127,7 +127,6 @@ async function checkboxPrompt(q) {
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
-      process.stdin.pause();
       process.stdout.write("\x1B[?25h");
 
       const visibleLines = Math.min(pageSize, choices.length);
@@ -148,7 +147,7 @@ async function checkboxPrompt(q) {
       const key = data.toString();
       if (key === "\u0003") {
         cleanup();
-        process.exit();
+        process.emit("SIGINT");
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(Array.from(selected).map((i) => choices[i].value));
@@ -235,7 +234,6 @@ async function listPrompt(q) {
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
-      process.stdin.pause();
       process.stdout.write("\x1B[?25h"); // Show cursor
       for (let i = 0; i < choices.length + 3; i++) {
         process.stdout.moveCursor(0, -1);
@@ -247,7 +245,7 @@ async function listPrompt(q) {
       const key = data.toString();
       if (key === "\u0003") {
         cleanup();
-        process.exit();
+        process.emit("SIGINT");
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(choices[cursor].value);

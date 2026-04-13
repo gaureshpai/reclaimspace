@@ -89,7 +89,7 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
     console.log(chalk.yellow("--dry run: No files will be deleted."));
     displayTargets(targets, baseDir);
     console.log(chalk.cyan(`Total reclaimable space: ${formatSize(totalSize)}`));
-    process.stdout.write(chalk.bold.white("Thanks for using ReclaimSpace!\n\n"));
+    process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
     return;
   }
 
@@ -99,7 +99,7 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
       await handleDelete(target, state);
     }
     console.log(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
-    process.stdout.write(chalk.bold.white("Thanks for using ReclaimSpace!\n\n"));
+    process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
     return;
   }
 
@@ -165,11 +165,11 @@ async function interactiveUI(targets, _totalSize, baseDir, state) {
       }
     }
   } catch (_error) {
-    process.kill(process.pid, "SIGINT");
+    process.emit("SIGINT");
   }
 
   console.log(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
-  console.log(chalk.bold.white("Thanks for using ReclaimSpace!\n\n"));
+  console.log(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
 }
 
 /**

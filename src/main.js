@@ -33,7 +33,10 @@ async function run(baseDir) {
   const state = { totalReclaimed: 0 };
   const pkg = JSON.parse(await fs.readFile(new URL("../package.json", import.meta.url), "utf8"));
 
-  process.once("SIGINT", () => {
+  let isExiting = false;
+  process.on("SIGINT", () => {
+    if (isExiting) return;
+    isExiting = true;
     process.stdout.write(
       chalk.green(`
 Total space reclaimed: ${formatSize(state.totalReclaimed)}
@@ -42,6 +45,8 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
     process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
     process.exit(130);
   });
+
+  process.stdin.resume();
 
   displayLogoAndCredits();
 
@@ -96,7 +101,7 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
 
   if (!targets || targets.length === 0) {
     console.log(chalk.green("No reclaimable space found. Your workspace is clean!"));
-    console.log(chalk.bold.white("Thanks for using ReclaimSpace!\n\n"));
+    console.log(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
     return;
   }
 
@@ -111,6 +116,8 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
     state,
     buildAnalysis,
   });
+
+  process.stdin.unref();
 }
 
 export { run };
