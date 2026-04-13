@@ -2,6 +2,20 @@
  * Simple CLI program handler inspired by Commander.js.
  */
 export class Program {
+  /**
+   * Initializes a new instance of the Program class.
+   *
+   * @remarks
+   * All properties are initialized to their default values.
+   * @property {Array<string>} args - List of command line arguments.
+   * @property {Object} _options - List of parsed options.
+   * @property {Array<string>} _commands - List of command names.
+   * @property {string} _name - Name of the program.
+   * @property {string} _description - Description of the program.
+   * @property {string} _version - Version of the program.
+   * @property {Array<Object>} _argumentDefinitions - List of argument definitions.
+   * @property {Array<Object>} _optionDefinitions - List of option definitions.
+   */
   constructor() {
     this.args = [];
     this._options = {};

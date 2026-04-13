@@ -122,6 +122,11 @@ async function checkboxPrompt(q) {
       );
     };
 
+    /**
+     * Clean up after the user has finished interacting with the checkbox prompt.
+     *
+     * Restores the terminal to its original state.
+     */
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
       if (process.stdin.isTTY) {
@@ -144,6 +149,18 @@ async function checkboxPrompt(q) {
       }
     };
 
+    /**
+     * Handles data input from the user.
+     *
+     * @param {string} data - A single character of user input.
+     *
+     * Handles the following keys:
+     *   - Ctrl+C: Exits the program.
+     *   - Enter: Submits the current selection.
+     *   - Space: Toggles the selected state of the current item.
+     *   - A: Toggles the selected state of all items.
+     *   - Up/Down arrow: Moves the cursor up/down.
+     */
     const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {
@@ -217,6 +234,10 @@ async function listPrompt(q) {
   return new Promise((resolve) => {
     let cursor = 0;
 
+    /**
+     * Render the single-choice list prompt.
+     * This function is responsible for drawing the prompt in the terminal.
+     */
     const render = () => {
       process.stdout.write("\x1B[?25l"); // Hide cursor
       process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
@@ -230,6 +251,11 @@ async function listPrompt(q) {
       process.stdout.write(chalk.dim("\n(Use arrow keys to move, enter to select)"));
     };
 
+    /**
+     * Clean up after the user has finished interacting with the single-choice list prompt.
+     *
+     * Restores the terminal to its original state.
+     */
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
       if (process.stdin.isTTY) {
@@ -243,6 +269,17 @@ async function listPrompt(q) {
       }
     };
 
+    /**
+     * Handles data input from the user.
+     *
+     * @param {string} data - A single character of user input.
+     *
+     * Handles the following keys:
+     *   - Ctrl+C: Exits the program.
+     *   - Enter: Submits the current selection.
+     *   - Up arrow: Moves the cursor up.
+     *   - Down arrow: Moves the cursor down.
+     */
     const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {

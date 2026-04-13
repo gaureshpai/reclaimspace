@@ -124,6 +124,12 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
 
   spinner.stop();
 
+  /**
+   * Recursively processes a directory and its contents.
+   * @param {string} fullPath - Full path of the directory to process.
+   * @param {fs.DirenteryEntry} entry - Directory entry object.
+   * @returns {Promise<void>}
+   */
   async function processDir(fullPath, entry) {
     spinner.text = chalk.bold.blue(`Scanning: ${fullPath}`);
 
