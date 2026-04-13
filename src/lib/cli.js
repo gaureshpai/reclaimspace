@@ -204,6 +204,11 @@ export class Program {
             continue;
           }
         }
+
+        // Unknown option
+        console.error(`error: unknown option '${arg}'`);
+        console.log(this.helpInformation());
+        process.exit(1);
       }
 
       args.push(arg);

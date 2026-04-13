@@ -54,10 +54,21 @@ describe("Program CLI", () => {
     expect(program.args).toEqual(["real_dir"]);
   });
 
-  it("should handle options that are not defined by ignoring them in opts but keeping in args if treated as such", () => {
-    // Current implementation ignores undefined options in loop
-    program.parse(["node", "script", "--undefined"]);
-    expect(program.opts().undefined).toBeUndefined();
+  it("should handle unknown options by exiting with error", () => {
+    const mockExit = jest.spyOn(process, "exit").mockImplementation((code) => {
+      throw new Error(`Process exited with code ${code}`);
+    });
+    const mockError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const mockLog = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    expect(() => program.parse(["node", "script", "--undefined"])).toThrow(
+      "Process exited with code 1",
+    );
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining("unknown option '--undefined'"));
+
+    mockExit.mockRestore();
+    mockError.mockRestore();
+    mockLog.mockRestore();
   });
 
   describe("version and description", () => {
@@ -377,9 +388,19 @@ describe("Program CLI", () => {
       expect(program.opts().output).toBe(true);
     });
 
-    it("should handle unknown short flags", () => {
-      program.parse(["node", "script", "-x"]);
-      expect(program.args).toEqual(["-x"]);
+    it("should handle unknown short flags by exiting with error", () => {
+      const mockExit = jest.spyOn(process, "exit").mockImplementation((code) => {
+        throw new Error(`Process exited with code ${code}`);
+      });
+      const mockError = jest.spyOn(console, "error").mockImplementation(() => {});
+      const mockLog = jest.spyOn(console, "log").mockImplementation(() => {});
+
+      expect(() => program.parse(["node", "script", "-x"])).toThrow("Process exited with code 1");
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining("unknown option '-x'"));
+
+      mockExit.mockRestore();
+      mockError.mockRestore();
+      mockLog.mockRestore();
     });
 
     it("should initialize with empty state", () => {
