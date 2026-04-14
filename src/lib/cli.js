@@ -213,8 +213,14 @@ export class Program {
           if (def) {
             if (value !== null) {
               options[key] = value;
-            } else if (!def.boolean && rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
-              options[key] = rawArgs[++i];
+            } else if (!def.boolean) {
+              if (rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
+                options[key] = rawArgs[++i];
+              } else {
+                console.error(`error: option '--${key}' argument missing`);
+                console.error(this.helpInformation());
+                process.exit(1);
+              }
             } else {
               options[key] = true;
             }
