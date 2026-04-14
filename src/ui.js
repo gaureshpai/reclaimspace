@@ -46,8 +46,16 @@ async function runScannerWithProgress(searchPaths, ignorePatterns, includePatter
 }
 
 /**
- * Main UI entry point. Handles dry runs, auto-deletion, and interactive mode.
- * @param {Object} context - Application context containing targets, options, and state.
+ * Drive the user-facing flow: display scan summary, optionally show build analysis, and perform a dry run, automatic deletion, or interactive deletion of found targets.
+ *
+ * @param {Object} context - Function context (destructured below).
+ * @param {Array<Object>} context.targets - List of found targets eligible for deletion.
+ * @param {number} context.totalSize - Total size in bytes of all found targets.
+ * @param {number} context.duration - Search duration in seconds.
+ * @param {Object} context.options - CLI/options object (e.g., `dry`, `yes`, `buildAnalysis` flags).
+ * @param {string} context.baseDir - Base directory used to compute relative paths for display.
+ * @param {Object} context.state - Mutable state object used to accumulate `totalReclaimed`.
+ * @param {Object} [context.buildAnalysis] - Optional build analysis containing inferred project types and pattern sets.
  */
 async function start({ targets, totalSize, duration, options, baseDir, state, buildAnalysis }) {
   if (!targets || targets.length === 0) {
@@ -125,11 +133,15 @@ function displayTargets(targets, baseDir) {
 }
 
 /**
- * Launches the interactive checkbox UI for selecting items to delete.
- * @param {Array<Object>} targets - Reclaimable targets.
- * @param {number} _totalSize - Unused.
- * @param {string} baseDir - Base directory.
- * @param {Object} state - Application state.
+ * Present an interactive checkbox prompt to select reclaimable targets and delete the selected items.
+ *
+ * Prints selection instructions and a table header, prompts the user to choose items, displays the chosen items,
+ * deletes each selected target while updating state.totalReclaimed, and prints the final reclaimed total.
+ *
+ * @param {Array<Object>} targets - Array of reclaimable target objects (each should include `path`, `size`, and `lastModified`).
+ * @param {number} _totalSize - Unused placeholder for total size; kept for signature compatibility.
+ * @param {string} baseDir - Base directory used to compute and display relative target paths.
+ * @param {Object} state - Mutable application state object; `state.totalReclaimed` will be incremented as deletions succeed.
  */
 async function interactiveUI(targets, _totalSize, baseDir, state) {
   console.log("");

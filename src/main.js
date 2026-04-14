@@ -21,13 +21,14 @@ function displayLogoAndCredits() {
 }
 
 /**
- * Run the ReclaimSpace CLI: parse arguments, scan target directories, and launch the UI.
+ * Start the ReclaimSpace CLI, perform a scan of target directories, and launch the UI.
  *
- * Reads package metadata for CLI info, resolves and validates search paths, merges ignore/include
- * patterns, performs a scan with progress reporting, and starts the interactive or non-interactive UI.
- * Registers a one-time SIGINT handler that prints total reclaimed space and exits.
+ * Parses command-line arguments and options, validates and resolves search paths, combines ignore
+ * and include patterns, runs a scan with progress reporting, optionally performs build analysis,
+ * and starts either the interactive or non-interactive UI. Registers a SIGINT handler that prints
+ * the total reclaimed space and exits the process.
  *
- * @param {string} baseDir - Project root used as the default directory to scan when none are provided.
+ * @param {string} baseDir - Project root used as the default directory to scan when no paths are provided.
  */
 async function run(baseDir) {
   const state = { totalReclaimed: 0 };
@@ -47,7 +48,6 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   });
 
   process.stdin.resume();
-  process.stdin.unref();
 
   displayLogoAndCredits();
 

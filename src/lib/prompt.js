@@ -36,15 +36,16 @@ export async function prompt(questions) {
 }
 
 /**
- * Display a checkbox-style prompt to let the user select one or more choices.
+ * Prompt the user to select one or more choices from a checkbox-style list.
  *
- * In non-TTY environments, prints the message `and choices, reads a single line of numbers,
- * and treats an empty input as selecting all choices. The optional `header` may contain newlines
- * and is shown above the prompt.
+ * In non-TTY environments, prints the message and numbered choices, reads a single line
+ * of numbers (space-separated), and treats an empty input as selecting all choices.
+ * The optional `header` is displayed above the prompt and may contain newlines.
+ *
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
  * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
- * @param {string} [q.header] - Optional header text shown above the prompt; may contain newlines.
+ * @param {string} [q.header] - Optional header text shown above the prompt.
  * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value.
  */
 async function checkboxPrompt(q) {
