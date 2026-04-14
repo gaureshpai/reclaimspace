@@ -217,9 +217,7 @@ export class Program {
               if (rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
                 options[key] = rawArgs[++i];
               } else {
-                console.error(`error: option '--${key}' argument missing`);
-                console.error(this.helpInformation());
-                process.exit(1);
+                options[key] = true;
               }
             } else {
               options[key] = true;
