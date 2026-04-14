@@ -84,6 +84,8 @@ export class Program {
       .split(/[ <]/)[0];
     const short = parts.find((p) => p.startsWith("-") && !p.startsWith("--"))?.replace(/^-/, "");
 
+    const isBoolean = !flags.includes("<") && !flags.includes("[");
+
     if (long) {
       this._optionDefinitions.push({
         key: long,
@@ -91,6 +93,7 @@ export class Program {
         flags,
         desc,
         defaultValue,
+        boolean: isBoolean,
       });
     }
     return this;
@@ -210,7 +213,7 @@ export class Program {
           if (def) {
             if (value !== null) {
               options[key] = value;
-            } else if (rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
+            } else if (!def.boolean && rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
               options[key] = rawArgs[++i];
             } else {
               options[key] = true;

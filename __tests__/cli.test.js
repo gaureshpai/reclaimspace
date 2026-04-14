@@ -161,18 +161,18 @@ describe("Program CLI", () => {
       program.option("--verbose", "Verbose");
       program.parse(["node", "script", "--verbose", "arg1", "arg2"]);
 
-      // When a flag is followed by a non-flag value, it consumes it as the value
-      expect(program.opts().verbose).toBe("arg1");
-      expect(program.args).toEqual(["arg2"]);
+      // Boolean flag should not consume the next positional argument
+      expect(program.opts().verbose).toBe(true);
+      expect(program.args).toEqual(["arg1", "arg2"]);
     });
 
     it("should parse arguments before options", () => {
       program.option("--verbose", "Verbose");
       program.parse(["node", "script", "arg1", "--verbose", "arg2"]);
 
-      // When a flag is followed by a non-flag value, it consumes it as the value
-      expect(program.opts().verbose).toBe("arg2");
-      expect(program.args).toEqual(["arg1"]);
+      // Boolean flag should not consume the next positional argument
+      expect(program.opts().verbose).toBe(true);
+      expect(program.args).toEqual(["arg1", "arg2"]);
     });
 
     it("should parse intermixed options and arguments", () => {
@@ -181,11 +181,10 @@ describe("Program CLI", () => {
       program.parse(["node", "script", "arg1", "--flag1", "arg2", "--flag2"]);
 
       const opts = program.opts();
-      // flag1 followed by arg2, so it consumes arg2 as value
-      expect(opts.flag1).toBe("arg2");
-      // flag2 has no value after it, so it becomes true
+      // Boolean flags should not consume the next positional arguments
+      expect(opts.flag1).toBe(true);
       expect(opts.flag2).toBe(true);
-      expect(program.args).toEqual(["arg1"]);
+      expect(program.args).toEqual(["arg1", "arg2"]);
     });
 
     it("should handle multiple = syntax options", () => {
