@@ -15,6 +15,7 @@
     "test": "jest",
     "lint": "biome lint . --write",
     "format": "biome format . --write",
+    "check": "biome check . --write",
     "prepare": "husky"
   },
   "lint-staged": {

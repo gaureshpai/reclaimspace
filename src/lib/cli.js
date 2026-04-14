@@ -2,6 +2,20 @@
  * Simple CLI program handler inspired by Commander.js.
  */
 export class Program {
+  /**
+   * Initializes a new instance of the Program class.
+   *
+   * @remarks
+   * All properties are initialized to their default values.
+   * @property {Array<string>} args - List of command line arguments.
+   * @property {Object} _options - List of parsed options.
+   * @property {Array<string>} _commands - List of command names.
+   * @property {string} _name - Name of the program.
+   * @property {string} _description - Description of the program.
+   * @property {string} _version - Version of the program.
+   * @property {Array<Object>} _argumentDefinitions - List of argument definitions.
+   * @property {Array<Object>} _optionDefinitions - List of option definitions.
+   */
   constructor() {
     this.args = [];
     this._options = {};
@@ -70,6 +84,8 @@ export class Program {
       .split(/[ <]/)[0];
     const short = parts.find((p) => p.startsWith("-") && !p.startsWith("--"))?.replace(/^-/, "");
 
+    const isBoolean = !flags.includes("<") && !flags.includes("[");
+
     if (long) {
       this._optionDefinitions.push({
         key: long,
@@ -77,6 +93,7 @@ export class Program {
         flags,
         desc,
         defaultValue,
+        boolean: isBoolean,
       });
     }
     return this;
@@ -196,14 +213,23 @@ export class Program {
           if (def) {
             if (value !== null) {
               options[key] = value;
-            } else if (rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
-              options[key] = rawArgs[++i];
+            } else if (!def.boolean) {
+              if (rawArgs[i + 1] && !rawArgs[i + 1].startsWith("-")) {
+                options[key] = rawArgs[++i];
+              } else {
+                options[key] = true;
+              }
             } else {
               options[key] = true;
             }
             continue;
           }
         }
+
+        // Unknown option
+        console.error(`error: unknown option '${arg}'`);
+        console.log(this.helpInformation());
+        process.exit(1);
       }
 
       args.push(arg);

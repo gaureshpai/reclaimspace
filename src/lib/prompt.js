@@ -36,16 +36,15 @@ export async function prompt(questions) {
 }
 
 /**
- * Display a checkbox-style prompt to let the user select one or more choices.
+ * Present a checkbox-style prompt and collect the selected choice values.
  *
- * In non-TTY environments, prints the message `and choices, reads a single line of numbers,
- * and treats an empty input as selecting all choices. The optional `header` may contain newlines
- * and is shown above the prompt.
+ * In a TTY, displays an interactive multi-select UI (arrow keys to move, space to toggle, "a" to toggle all, Enter to confirm).
+ * In a non-TTY environment, prints a numbered list and accepts space-separated numbers (empty input selects all).
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
- * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
+ * @param {Array<string|Object>} q.choices - Choices to present; each item may be a string (used as both label and value) or an object `{ name, value }`.
  * @param {string} [q.header] - Optional header text shown above the prompt; may contain newlines.
- * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value.
+ * @returns {Array<any>} The selected choices' `value`s; for string choices the string itself is used as the value.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
@@ -122,6 +121,11 @@ async function checkboxPrompt(q) {
       );
     };
 
+    /**
+     * Clean up after the user has finished interacting with the checkbox prompt.
+     *
+     * Restores the terminal to its original state.
+     */
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
       if (process.stdin.isTTY) {
@@ -144,6 +148,18 @@ async function checkboxPrompt(q) {
       }
     };
 
+    /**
+     * Handles data input from the user.
+     *
+     * @param {string} data - A single character of user input.
+     *
+     * Handles the following keys:
+     *   - Ctrl+C: Exits the program.
+     *   - Enter: Submits the current selection.
+     *   - Space: Toggles the selected state of the current item.
+     *   - A: Toggles the selected state of all items.
+     *   - Up/Down arrow: Moves the cursor up/down.
+     */
     const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {
@@ -199,7 +215,11 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Display a single-choice list prompt and let the user choose one option.
+ * Show a single-choice list prompt and return the chosen option's value.
+ *
+ * Presents `q.choices` as either strings (used as both label and value) or objects
+ * of shape `{ name, value }`. In a non-TTY environment the first choice is returned
+ * immediately; in a TTY environment an interactive arrow-key UI is presented.
  *
  * @param {Object} q - Question object.
  * @param {string} q.message - Prompt message displayed above the list.
@@ -217,6 +237,10 @@ async function listPrompt(q) {
   return new Promise((resolve) => {
     let cursor = 0;
 
+    /**
+     * Render the single-choice list prompt.
+     * This function is responsible for drawing the prompt in the terminal.
+     */
     const render = () => {
       process.stdout.write("\x1B[?25l"); // Hide cursor
       process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
@@ -230,6 +254,11 @@ async function listPrompt(q) {
       process.stdout.write(chalk.dim("\n(Use arrow keys to move, enter to select)"));
     };
 
+    /**
+     * Clean up after the user has finished interacting with the single-choice list prompt.
+     *
+     * Restores the terminal to its original state.
+     */
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
       if (process.stdin.isTTY) {
@@ -243,6 +272,17 @@ async function listPrompt(q) {
       }
     };
 
+    /**
+     * Handles data input from the user.
+     *
+     * @param {string} data - A single character of user input.
+     *
+     * Handles the following keys:
+     *   - Ctrl+C: Exits the program.
+     *   - Enter: Submits the current selection.
+     *   - Up arrow: Moves the cursor up.
+     *   - Down arrow: Moves the cursor down.
+     */
     const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {

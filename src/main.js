@@ -21,12 +21,9 @@ function displayLogoAndCredits() {
 }
 
 /**
- * Run the ReclaimSpace CLI: parse arguments, scan target directories, and launch the UI.
+ * Start the ReclaimSpace CLI: parse arguments, validate target directories, scan for reclaimable items, and launch the UI.
  *
- * Reads package metadata for CLI info, resolves and validates search paths, merges ignore/include
- * patterns, performs a scan with progress reporting, and starts the interactive or non-interactive UI.
- * Registers a one-time SIGINT handler that prints total reclaimed space and exits.
- *
+ * Registers a one-time SIGINT handler that prints total reclaimed space before exiting.
  * @param {string} baseDir - Project root used as the default directory to scan when none are provided.
  */
 async function run(baseDir) {
@@ -76,8 +73,9 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   }
 
   if (validSearchPaths.length === 0) {
-    console.log(chalk.yellow("No valid directories to scan. Exiting."));
-    return;
+    console.error(chalk.red("Error: No valid directories to scan."));
+    console.error(`\n${program.helpInformation()}`);
+    process.exit(1);
   }
   searchPaths = validSearchPaths;
 
