@@ -39,15 +39,16 @@ async function getBuildPatterns(folderPath) {
 }
 
 /**
- * Scan the given root paths for reclaimable directories and collect their sizes and metadata.
+ * Scan root directories for reclaimable folders and collect their sizes and metadata.
+ *
+ * Recursively searches the provided searchPaths for directories whose names match the configured folder categories (or the optional includePatterns), excludes paths matching ignorePatterns, computes folder sizes, detects build artifact patterns for build folders, and returns sorted targets with aggregate size and elapsed scanning time.
  *
  * @param {Array<string>} searchPaths - Root directories to scan.
  * @param {Array<string>} ignorePatterns - Glob patterns used to exclude paths from scanning.
- * @param {Object} onProgress - Progress bar instance with `start`, `increment`, and `stop` methods for tracking scan progress.
- * @param {Object} spinner - Spinner instance with `text` property and `stop` method for displaying status updates.
+ * @param {Object} onProgress - Progress tracker implementing `start(total, current)`, `increment()`, and `stop()` to report scan progress.
+ * @param {Object} spinner - Spinner/UI object with a mutable `text` property and a `stop()` method used for status updates.
  * @param {Array<string>} [includePatterns] - Optional custom folder name patterns to treat as categories instead of the default folder categories.
- * @returns {Promise<{targets: Array<{path: string, size: number, category: string, name: string, lastModified: Date, buildPatterns: Array<string>}>, totalSize: number, duration: number}>}
- *   An object containing:
+ * @returns {{targets: Array<{path: string, size: number, category: string, name: string, lastModified: Date, buildPatterns: Array<string>}>, totalSize: number, duration: number}} An object containing:
  *   - `targets`: sorted list of discovered directories with metadata: `path`, `size` (bytes), `category` id, `name`, `lastModified` timestamp, and `buildPatterns` (detected build artifact patterns, if any).
  *   - `totalSize`: aggregate size in bytes of all reported targets.
  *   - `duration`: elapsed scanning time in seconds.
@@ -124,6 +125,17 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
 
   spinner.stop();
 
+  /**
+   * Collect metadata and disk usage for a directory candidate when it matches a configured folder category.
+   *
+   * If the candidate's name matches a configured category, records a target entry with path, size, category id,
+   * directory name, last modified time, and any detected build artifact patterns (for the "build" category), and
+   * adds the folder size to the running total. Skips already visited or ignored paths and ignores directories with
+   * zero size.
+   *
+   * @param {string} fullPath - Full filesystem path of the directory candidate.
+   * @param {import("node:fs").Dirent} entry - Directory entry corresponding to the candidate.
+   */
   async function processDir(fullPath, entry) {
     spinner.text = chalk.bold.blue(`Scanning: ${fullPath}`);
 
