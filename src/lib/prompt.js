@@ -36,16 +36,15 @@ export async function prompt(questions) {
 }
 
 /**
- * Present a checkbox-style prompt and return the selected choice values.
+ * Present a checkbox-style prompt and collect the selected choice values.
  *
- * In non-TTY environments, prints the message and numbered choices and reads a line of numbers
- * (empty input selects all choices). In a TTY, shows an interactive multi-select UI where the
- * user can move the cursor, toggle selections, toggle all, and confirm with Enter.
+ * In a TTY, displays an interactive multi-select UI (arrow keys to move, space to toggle, "a" to toggle all, Enter to confirm).
+ * In a non-TTY environment, prints a numbered list and accepts space-separated numbers (empty input selects all).
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
  * @param {Array<string|Object>} q.choices - Choices to present; each item may be a string (used as both label and value) or an object `{ name, value }`.
  * @param {string} [q.header] - Optional header text shown above the prompt; may contain newlines.
- * @returns {Array<any>} The selected choices' `value`s; for string choices the string is used as the value.
+ * @returns {Array<any>} The selected choices' `value`s; for string choices the string itself is used as the value.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
@@ -216,7 +215,11 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Display a single-choice list prompt and let the user choose one option.
+ * Show a single-choice list prompt and return the chosen option's value.
+ *
+ * Presents `q.choices` as either strings (used as both label and value) or objects
+ * of shape `{ name, value }`. In a non-TTY environment the first choice is returned
+ * immediately; in a TTY environment an interactive arrow-key UI is presented.
  *
  * @param {Object} q - Question object.
  * @param {string} q.message - Prompt message displayed above the list.
