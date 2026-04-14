@@ -132,10 +132,10 @@ my-project/dist
 1.  **Node Modules**
     - `node_modules`
 2.  **Build/Cache Folders**
-    - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`, `.shopify`, `.react-router`, `.tanstack`, `.vite-ssg-temp` 
+    - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`, `.shopify`, `.react-router`, `.tanstack`, `.vite-ssg-temp`
     - `.rollup.cache`, `.parcel-cache`, `.vite`, `.astro`, `.solid`, `.remix`, `.docusaurus`, `.eleventy-cache`, `.gatsby-cache`, `public/build`
-3.  **Testing/Reporting Folders**
-    - `coverage`, `.nyc_output`, `.pytest_cache`, `.tox`, `htmlcov`
+    - `.eslintcache`, `.stylelintcache`, `.prettiercache`, `.tsbuildinfo`, `.swc`, `.nx`, `.pnpm-store`, `.wwebjs_cache`, `.wwebjs_auth`
+3.  **Testing/Reporting Folders**    - `coverage`, `.nyc_output`, `.pytest_cache`, `.tox`, `htmlcov`
 4.  **Miscellaneous Dev Junk**
     - `.venv`, `venv`, `env` (Python Virtual Environments)
     - `__pycache__`, `.mypy_cache`, `.ruff_cache` (Python caches)
