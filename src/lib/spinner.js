@@ -12,6 +12,12 @@ export default function ora(initialText) {
 
   const spinner = {
     text: initialText,
+    /**
+     * Starts the spinner animation.
+     * Clears the current line and writes the spinner frame followed by the text.
+     * Updates the spinner frame every 80ms.
+     * @returns {Object} Spinner instance for chaining.
+     */
     start() {
       if (interval) clearInterval(interval);
       interval = setInterval(() => {
@@ -24,6 +30,11 @@ export default function ora(initialText) {
       }, 80);
       return this;
     },
+    /**
+     * Stops the spinner animation and cleans up the current line.
+     * If the current line is a TTY, clears the line and moves the cursor to the start of the line.
+     * @returns {Object} Spinner instance for chaining.
+     */
     stop() {
       if (interval) {
         clearInterval(interval);

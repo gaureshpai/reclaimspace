@@ -28,6 +28,7 @@ const FOLDER_CATEGORIES = [
       ".shopify",
       ".react-router",
       ".tanstack",
+      ".vite-ssg-temp",
       ".rollup.cache",
       ".parcel-cache",
       ".vite",

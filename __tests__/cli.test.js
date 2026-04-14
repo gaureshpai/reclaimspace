@@ -54,10 +54,21 @@ describe("Program CLI", () => {
     expect(program.args).toEqual(["real_dir"]);
   });
 
-  it("should handle options that are not defined by ignoring them in opts but keeping in args if treated as such", () => {
-    // Current implementation ignores undefined options in loop
-    program.parse(["node", "script", "--undefined"]);
-    expect(program.opts().undefined).toBeUndefined();
+  it("should handle unknown options by exiting with error", () => {
+    const mockExit = jest.spyOn(process, "exit").mockImplementation((code) => {
+      throw new Error(`Process exited with code ${code}`);
+    });
+    const mockError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const mockLog = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    expect(() => program.parse(["node", "script", "--undefined"])).toThrow(
+      "Process exited with code 1",
+    );
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining("unknown option '--undefined'"));
+
+    mockExit.mockRestore();
+    mockError.mockRestore();
+    mockLog.mockRestore();
   });
 
   describe("version and description", () => {
@@ -150,18 +161,18 @@ describe("Program CLI", () => {
       program.option("--verbose", "Verbose");
       program.parse(["node", "script", "--verbose", "arg1", "arg2"]);
 
-      // When a flag is followed by a non-flag value, it consumes it as the value
-      expect(program.opts().verbose).toBe("arg1");
-      expect(program.args).toEqual(["arg2"]);
+      // Boolean flag should not consume the next positional argument
+      expect(program.opts().verbose).toBe(true);
+      expect(program.args).toEqual(["arg1", "arg2"]);
     });
 
     it("should parse arguments before options", () => {
       program.option("--verbose", "Verbose");
       program.parse(["node", "script", "arg1", "--verbose", "arg2"]);
 
-      // When a flag is followed by a non-flag value, it consumes it as the value
-      expect(program.opts().verbose).toBe("arg2");
-      expect(program.args).toEqual(["arg1"]);
+      // Boolean flag should not consume the next positional argument
+      expect(program.opts().verbose).toBe(true);
+      expect(program.args).toEqual(["arg1", "arg2"]);
     });
 
     it("should parse intermixed options and arguments", () => {
@@ -170,11 +181,10 @@ describe("Program CLI", () => {
       program.parse(["node", "script", "arg1", "--flag1", "arg2", "--flag2"]);
 
       const opts = program.opts();
-      // flag1 followed by arg2, so it consumes arg2 as value
-      expect(opts.flag1).toBe("arg2");
-      // flag2 has no value after it, so it becomes true
+      // Boolean flags should not consume the next positional arguments
+      expect(opts.flag1).toBe(true);
       expect(opts.flag2).toBe(true);
-      expect(program.args).toEqual(["arg1"]);
+      expect(program.args).toEqual(["arg1", "arg2"]);
     });
 
     it("should handle multiple = syntax options", () => {
@@ -377,9 +387,19 @@ describe("Program CLI", () => {
       expect(program.opts().output).toBe(true);
     });
 
-    it("should handle unknown short flags", () => {
-      program.parse(["node", "script", "-x"]);
-      expect(program.args).toEqual(["-x"]);
+    it("should handle unknown short flags by exiting with error", () => {
+      const mockExit = jest.spyOn(process, "exit").mockImplementation((code) => {
+        throw new Error(`Process exited with code ${code}`);
+      });
+      const mockError = jest.spyOn(console, "error").mockImplementation(() => {});
+      const mockLog = jest.spyOn(console, "log").mockImplementation(() => {});
+
+      expect(() => program.parse(["node", "script", "-x"])).toThrow("Process exited with code 1");
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining("unknown option '-x'"));
+
+      mockExit.mockRestore();
+      mockError.mockRestore();
+      mockLog.mockRestore();
     });
 
     it("should initialize with empty state", () => {
