@@ -65,7 +65,7 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   const options = program.opts();
   let searchPaths = program.args.length ? program.args : [baseDir];
 
-  if (options.saveIgnore) {
+  if (typeof options.saveIgnore === "string") {
     const patternsToSave = options.saveIgnore.split(",").filter(Boolean);
     if (patternsToSave.length > 0) {
       await saveIgnorePatterns(baseDir, patternsToSave);
