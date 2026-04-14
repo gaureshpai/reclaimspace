@@ -29,12 +29,14 @@ describe("Program CLI", () => {
     program.option("-y, --yes", "description");
     program.option("-d, --dry", "description");
     program.option("-u, --ui", "description");
+    program.option("-s, --save", "description");
 
-    program.parse(["node", "script", "-y", "-d", "-u"]);
+    program.parse(["node", "script", "-y", "-d", "-u", "-s"]);
     const opts = program.opts();
     expect(opts.yes).toBe(true);
     expect(opts.dry).toBe(true);
     expect(opts.ui).toBe(true);
+    expect(opts.save).toBe(true);
   });
 
   it("should collect positional arguments", () => {

@@ -87,8 +87,11 @@ export class Program {
     const isBoolean = !flags.includes("<") && !flags.includes("[");
 
     if (long) {
+      // Convert kebab-case to camelCase for the key
+      const camelKey = long.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
       this._optionDefinitions.push({
-        key: long,
+        key: camelKey,
+        rawKey: long,
         short,
         flags,
         desc,
@@ -209,8 +212,9 @@ export class Program {
         }
 
         if (key) {
-          const def = this._optionDefinitions.find((d) => d.key === key);
+          const def = this._optionDefinitions.find((d) => d.key === key || d.rawKey === key);
           if (def) {
+            const targetKey = def.key;
             if (value !== null) {
               options[key] = value;
             } else if (!def.boolean) {
@@ -220,7 +224,7 @@ export class Program {
                 options[key] = true;
               }
             } else {
-              options[key] = true;
+              options[targetKey] = true;
             }
             continue;
           }

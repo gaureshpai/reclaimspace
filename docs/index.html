@@ -238,14 +238,16 @@
           class="position-relative"
         ><button class="copy-btn">Copy</button><code>npx reclaimspace --build-analysis</code></pre>
 
-        <h3>Ignore Certain Folders</h3>
+        <h3>Ignore Certain Folders Permanently</h3>
         <p>
-          You can exclude folders from the scan by providing a comma-separated
-          list of patterns.
+          You can permanently exclude folders from the scan by providing a
+          comma-separated list of patterns. This will update or create a
+          <code>.reclaimspacerc</code> file in the current directory using the
+          <code>--save</code> or <code>-s</code> flag.
         </p>
         <pre
           class="position-relative"
-        ><button class="copy-btn">Copy</button><code>npx reclaimspace --ignore "node_modules,dist"</code></pre>
+        ><button class="copy-btn">Copy</button><code>npx reclaimspace --ignore "node_modules,dist" --save</code></pre>
 
         <h3>Include Only Specific Folders</h3>
         <p>
