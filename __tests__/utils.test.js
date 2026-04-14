@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { formatSize, formatDate, readIgnoreFile, saveIgnorePatterns } from "../src/utils.js";
+import { formatSize, formatDate, readIgnoreFile } from "../src/utils.js";
 
 jest.mock("node:fs/promises");
 
@@ -54,57 +54,17 @@ describe("utils", () => {
     });
   });
 
-  describe("saveIgnorePatterns", () => {
-    it("should save patterns to a new .reclaimspacerc", async () => {
-      fs.readFile.mockRejectedValue({ code: "ENOENT" });
-      fs.writeFile.mockResolvedValue();
-
-      await saveIgnorePatterns("/mock/dir", ["node_modules", "dist"]);
-
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(".reclaimspacerc"),
-        "node_modules\ndist\n",
-        "utf-8",
-      );
+  describe("saveIgnorePatterns removal", () => {
+    it("should not export saveIgnorePatterns", async () => {
+      const utilsModule = await import("../src/utils.js");
+      expect(utilsModule.saveIgnorePatterns).toBeUndefined();
     });
 
-    it("should append patterns to an existing .reclaimspacerc", async () => {
-      fs.readFile.mockResolvedValue("existing_pattern\n");
-      fs.writeFile.mockResolvedValue();
-
-      await saveIgnorePatterns("/mock/dir", ["new_pattern"]);
-
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(".reclaimspacerc"),
-        "existing_pattern\nnew_pattern\n",
-        "utf-8",
-      );
-    });
-
-    it("should not add duplicate patterns", async () => {
-      fs.readFile.mockResolvedValue("existing_pattern\n");
-      fs.writeFile.mockResolvedValue();
-
-      await saveIgnorePatterns("/mock/dir", ["existing_pattern", "new_pattern"]);
-
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(".reclaimspacerc"),
-        "existing_pattern\nnew_pattern\n",
-        "utf-8",
-      );
-    });
-
-    it("should handle existing file without trailing newline", async () => {
-      fs.readFile.mockResolvedValue("existing_pattern");
-      fs.writeFile.mockResolvedValue();
-
-      await saveIgnorePatterns("/mock/dir", ["new_pattern"]);
-
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(".reclaimspacerc"),
-        "existing_pattern\nnew_pattern\n",
-        "utf-8",
-      );
+    it("should still export the remaining public API", async () => {
+      const utilsModule = await import("../src/utils.js");
+      expect(typeof utilsModule.formatSize).toBe("function");
+      expect(typeof utilsModule.formatDate).toBe("function");
+      expect(typeof utilsModule.readIgnoreFile).toBe("function");
     });
   });
 });

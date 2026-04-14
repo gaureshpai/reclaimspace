@@ -29,14 +29,12 @@ describe("Program CLI", () => {
     program.option("-y, --yes", "description");
     program.option("-d, --dry", "description");
     program.option("-u, --ui", "description");
-    program.option("-s, --save", "description");
 
-    program.parse(["node", "script", "-y", "-d", "-u", "-s"]);
+    program.parse(["node", "script", "-y", "-d", "-u"]);
     const opts = program.opts();
     expect(opts.yes).toBe(true);
     expect(opts.dry).toBe(true);
     expect(opts.ui).toBe(true);
-    expect(opts.save).toBe(true);
   });
 
   it("should collect positional arguments", () => {
@@ -298,6 +296,97 @@ describe("Program CLI", () => {
       const opts = program.opts();
       expect(opts.extra).toBe(true);
       expect(opts.force).toBe(true);
+    });
+
+    it("should store kebab-case option key as-is without camelCase conversion", () => {
+      program.option("--build-analysis", "Enable build analysis");
+      expect(program._optionDefinitions[0]).toMatchObject({
+        key: "build-analysis",
+      });
+    });
+
+    it("should not have a rawKey property on option definitions", () => {
+      program.option("-b, --build-analysis", "Enable build analysis");
+      const def = program._optionDefinitions[0];
+      expect(def).not.toHaveProperty("rawKey");
+    });
+
+    it("should not have a rawKey property for simple options either", () => {
+      program.option("-v, --verbose", "Verbose output");
+      const def = program._optionDefinitions[0];
+      expect(def).not.toHaveProperty("rawKey");
+    });
+  });
+
+  describe("kebab-case option parsing", () => {
+    it("should parse kebab-case long option and store under kebab-case key", () => {
+      program.option("--build-analysis", "Enable build analysis");
+      program.parse(["node", "script", "--build-analysis"]);
+      expect(program.opts()["build-analysis"]).toBe(true);
+    });
+
+    it("should not set camelCase key for kebab-case option", () => {
+      program.option("--build-analysis", "Enable build analysis");
+      program.parse(["node", "script", "--build-analysis"]);
+      expect(program.opts().buildAnalysis).toBeUndefined();
+    });
+
+    it("should default kebab-case boolean option to false when not provided", () => {
+      program.option("--build-analysis", "Enable build analysis");
+      program.parse(["node", "script"]);
+      expect(program.opts()["build-analysis"]).toBe(false);
+    });
+
+    it("should parse short flag for kebab-case option and store under kebab-case key", () => {
+      program.option("-b, --build-analysis", "Enable build analysis");
+      program.parse(["node", "script", "-b"]);
+      expect(program.opts()["build-analysis"]).toBe(true);
+    });
+
+    it("should parse multi-word kebab-case option with a value", () => {
+      program.option("--output-dir <path>", "Output directory");
+      program.parse(["node", "script", "--output-dir", "/tmp/out"]);
+      expect(program.opts()["output-dir"]).toBe("/tmp/out");
+    });
+
+    it("should parse multi-word kebab-case option with = syntax", () => {
+      program.option("--output-dir <path>", "Output directory");
+      program.parse(["node", "script", "--output-dir=/tmp/out"]);
+      expect(program.opts()["output-dir"]).toBe("/tmp/out");
+    });
+  });
+
+  describe("removed --save option", () => {
+    it("should reject --save as an unknown option", () => {
+      const mockExit = jest.spyOn(process, "exit").mockImplementation((code) => {
+        throw new Error(`Process exited with code ${code}`);
+      });
+      const mockError = jest.spyOn(console, "error").mockImplementation(() => {});
+      const mockLog = jest.spyOn(console, "log").mockImplementation(() => {});
+
+      expect(() => program.parse(["node", "script", "--save"])).toThrow(
+        "Process exited with code 1",
+      );
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining("unknown option '--save'"));
+
+      mockExit.mockRestore();
+      mockError.mockRestore();
+      mockLog.mockRestore();
+    });
+
+    it("should reject -s as an unknown short option", () => {
+      const mockExit = jest.spyOn(process, "exit").mockImplementation((code) => {
+        throw new Error(`Process exited with code ${code}`);
+      });
+      const mockError = jest.spyOn(console, "error").mockImplementation(() => {});
+      const mockLog = jest.spyOn(console, "log").mockImplementation(() => {});
+
+      expect(() => program.parse(["node", "script", "-s"])).toThrow("Process exited with code 1");
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining("unknown option '-s'"));
+
+      mockExit.mockRestore();
+      mockError.mockRestore();
+      mockLog.mockRestore();
     });
   });
 
