@@ -125,9 +125,9 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
   spinner.stop();
 
   /**
-   * Recursively processes a directory and its contents.
-   * @param {string} fullPath - Full path of the directory to process.
-   * @param {fs.DirenteryEntry} entry - Directory entry object.
+   * Processes a single matched directory candidate from the queue.
+   * @param {string} fullPath - Full path of the directory candidate to process.
+   * @param {import("node:fs").Dirent} entry - Directory entry object for the candidate.
    * @returns {Promise<void>}
    */
   async function processDir(fullPath, entry) {
