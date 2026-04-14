@@ -44,6 +44,7 @@ const FOLDER_CATEGORIES = [
       ".tsbuildinfo",
       ".swc",
       ".nx",
+      ".pnpm-store",
       ".wwebjs_cache",
       ".wwebjs_auth",
       "public/build",
