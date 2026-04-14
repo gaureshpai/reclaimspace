@@ -59,8 +59,9 @@ async function runScannerWithProgress(searchPaths, ignorePatterns, includePatter
  */
 async function start({ targets, totalSize, duration, options, baseDir, state, buildAnalysis }) {
   if (!targets || targets.length === 0) {
-    console.log(chalk.green("No reclaimable space found. Your workspace is clean! \n\n"));
+    console.log(chalk.green("No reclaimable space found. Your workspace is clean!"));
     console.log(chalk.gray(`Search completed in ${duration.toFixed(2)}s`));
+    displaySummary(state);
     return;
   }
 
@@ -97,7 +98,7 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
     console.log(chalk.yellow("--dry run: No files will be deleted."));
     displayTargets(targets, baseDir);
     console.log(chalk.cyan(`Total reclaimable space: ${formatSize(totalSize)}`));
-    process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
+    displaySummary(state);
     return;
   }
 
@@ -106,12 +107,23 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
     for (const target of targets) {
       await handleDelete(target, state);
     }
-    console.log(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
-    process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
+    displaySummary(state);
     return;
   }
 
   await interactiveUI(targets, totalSize, baseDir, state);
+}
+
+/**
+ * Displays the final summary of reclaimed space and a thank you message.
+ * @param {Object} state - Application state containing totalReclaimed.
+ * @param {Function} [callback] - Optional callback to call after writing.
+ */
+function displaySummary(state, callback) {
+  if (state.totalReclaimed > 0) {
+    console.log(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
+  }
+  process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"), callback);
 }
 
 /**
@@ -167,7 +179,7 @@ async function interactiveUI(targets, _totalSize, baseDir, state) {
       },
     ]);
 
-    if (selectedTargets.length > 0) {
+    if (selectedTargets?.length > 0) {
       console.log(chalk.bold.white("\nSelected items for deletion:"));
       displayTargets(selectedTargets, baseDir);
       console.log("\n");
@@ -176,12 +188,14 @@ async function interactiveUI(targets, _totalSize, baseDir, state) {
         await handleDelete(target, state);
       }
     }
-  } catch (_error) {
-    process.emit("SIGINT");
+  } catch (error) {
+    if (error.message !== "User interrupted") {
+      throw error;
+    }
+    return;
   }
 
-  console.log(chalk.green(`Total space reclaimed: ${formatSize(state.totalReclaimed)}`));
-  console.log(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
+  displaySummary(state);
 }
 
 /**
@@ -208,4 +222,4 @@ async function handleDelete(target, state) {
   }
 }
 
-export { start, runScannerWithProgress };
+export { start, runScannerWithProgress, displaySummary };

@@ -1,6 +1,6 @@
 import { program } from "./lib/cli.js";
 import * as ui from "./ui.js";
-import { readIgnoreFile, formatSize } from "./utils.js";
+import { readIgnoreFile } from "./utils.js";
 import { analyzeBuildPatterns } from "./analyzer.js";
 import chalk from "./lib/ansi.js";
 import fs from "node:fs/promises";
@@ -35,22 +35,24 @@ async function run(baseDir) {
   const pkg = JSON.parse(await fs.readFile(new URL("../package.json", import.meta.url), "utf8"));
 
   let isExiting = false;
+
+  /**
+   * Handles SIGINT signal (Ctrl+C) by printing summary and exiting.
+   */
   const onSigint = () => {
     if (isExiting) return;
     isExiting = true;
-    process.stdout.write(
-      chalk.green(`
-Total space reclaimed: ${formatSize(state.totalReclaimed)}
-`),
-    );
-    process.stdout.write(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
-    process.exit(130);
+    process.stdout.write("\n");
+    ui.displaySummary(state, () => {
+      process.exit(130);
+    });
   };
 
   process.on("SIGINT", onSigint);
-  process.stdin.resume();
 
   try {
+    process.stdin.resume();
+
     displayLogoAndCredits();
 
     program
@@ -84,9 +86,8 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
     }
 
     if (validSearchPaths.length === 0) {
-      console.error(chalk.red("Error: No valid directories to scan."));
-      console.error(`\n${program.helpInformation()}`);
-      process.exit(1);
+      console.log(chalk.yellow("No valid directories to scan. Exiting."));
+      return;
     }
     searchPaths = validSearchPaths;
 
@@ -105,7 +106,7 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
 
     if (!targets || targets.length === 0) {
       console.log(chalk.green("No reclaimable space found. Your workspace is clean!"));
-      console.log(chalk.bold.white("Thank you for using ReclaimSpace!\n\n"));
+      ui.displaySummary(state);
       return;
     }
 

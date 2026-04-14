@@ -70,7 +70,7 @@ async function checkboxPrompt(q) {
     return answer;
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let cursor = 0;
     const selected = new Set();
     const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
@@ -166,9 +166,14 @@ async function checkboxPrompt(q) {
       if (key === "\u0003") {
         cleanup();
         process.emit("SIGINT");
+        const error = new Error("User interrupted");
+        error.isTtyError = true;
+        reject(error);
+        return;
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(Array.from(selected).map((i) => choices[i].value));
+        return;
       } else if (key === " ") {
         if (selected.has(cursor)) {
           selected.delete(cursor);
@@ -235,7 +240,7 @@ async function listPrompt(q) {
     return choices[0].value;
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let cursor = 0;
 
     /**
@@ -288,9 +293,14 @@ async function listPrompt(q) {
       if (key === "\u0003") {
         cleanup();
         process.emit("SIGINT");
+        const error = new Error("User interrupted");
+        error.isTtyError = true;
+        reject(error);
+        return;
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(choices[cursor].value);
+        return;
       } else if (key === "\u001b[A") {
         // Up
         cursor = (cursor - 1 + choices.length) % choices.length;
