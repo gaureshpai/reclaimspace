@@ -229,6 +229,14 @@ describe("constants", () => {
       expect(buildCategory.names).toContain(".gatsby-cache");
       expect(buildCategory.names).toContain(".eleventy-cache");
       expect(buildCategory.names).toContain(".docusaurus");
+      expect(buildCategory.names).toContain(".eslintcache");
+      expect(buildCategory.names).toContain(".stylelintcache");
+      expect(buildCategory.names).toContain(".prettiercache");
+      expect(buildCategory.names).toContain(".tsbuildinfo");
+      expect(buildCategory.names).toContain(".swc");
+      expect(buildCategory.names).toContain(".nx");
+      expect(buildCategory.names).toContain(".wwebjs_cache");
+      expect(buildCategory.names).toContain(".wwebjs_auth");
     });
   });
 
