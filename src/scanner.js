@@ -125,10 +125,12 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
   spinner.stop();
 
   /**
-   * Processes a single matched directory candidate from the queue.
-   * @param {string} fullPath - Full path of the directory candidate to process.
-   * @param {import("node:fs").Dirent} entry - Directory entry object for the candidate.
-   * @returns {Promise<void>}
+   * Process a queued directory candidate and, if it matches a configured category, collect its metadata and size.
+   *
+   * Updates the spinner text, skips already visited or ignored paths, determines the folder category, optionally detects build artifact patterns for the "build" category, computes the folder size, and — when size is greater than zero — records the target (path, size, category, name, lastModified, buildPatterns) and accumulates totalSize. Errors during size/stat retrieval are logged except when the error code is "EPERM".
+   *
+   * @param {string} fullPath - Full filesystem path of the directory candidate.
+   * @param {import("node:fs").Dirent} entry - Directory entry object corresponding to the candidate.
    */
   async function processDir(fullPath, entry) {
     spinner.text = chalk.bold.blue(`Scanning: ${fullPath}`);
