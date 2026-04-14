@@ -91,10 +91,10 @@ npx reclaimspace --ignore "node_modules,dist"
 
 **To ignore certain folders permanently:**
 
-You can permanently exclude folders from the scan by providing a comma-separated list of patterns. This will update or create a `.reclaimspacerc` file in the current directory.
+You can permanently exclude folders from the scan by providing a comma-separated list of patterns. This will update or create a `.reclaimspacerc` file in the current directory using the `--save` or `-s` flag.
 
 ```bash
-npx reclaimspace --save-ignore "node_modules,dist"
+npx reclaimspace --ignore "node_modules,dist" --save
 ```
 
 **To include only specific folders:**
