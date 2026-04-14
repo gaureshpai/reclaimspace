@@ -8,11 +8,11 @@ import { deleteTarget } from "./deleter.js";
 import * as scanner from "./scanner.js";
 
 /**
- * Runs the directory scanner with a progress bar and spinner.
+ * Run the directory scanner and display a progress bar and spinner while scanning.
  * @param {Array<string>} searchPaths - Directories to scan.
  * @param {Array<string>} ignorePatterns - Glob patterns to ignore.
- * @param {Array<string>} includePatterns - Glob patterns to include (overrides default).
- * @returns {Promise<Object>} Scanner results containing targets, total size, and duration.
+ * @param {Array<string>} includePatterns - Glob patterns to include (overrides default include rules).
+ * @returns {Object} Scanner results with `targets`, `totalSize`, and `duration`.
  */
 async function runScannerWithProgress(searchPaths, ignorePatterns, includePatterns) {
   const spinner = ora(chalk.bold.blue("Collecting directories...")).start();
@@ -127,9 +127,13 @@ function displaySummary(state, callback) {
 }
 
 /**
- * Displays a list of targets in a formatted table.
- * @param {Array<Object>} targets - List of targets to display.
- * @param {string} baseDir - Base directory for relative path calculation.
+ * Print a table of targets showing size, last modified date, and path relative to a base directory.
+ *
+ * Each row displays a formatted size, the last modified timestamp, and the target path relative to
+ * `baseDir`.
+ *
+ * @param {Array<Object>} targets - Array of target objects. Each object must include `path` (string), `size` (number of bytes), and `lastModified` (Date or timestamp).
+ * @param {string} baseDir - Directory used to compute the relative path shown in the table.
  */
 function displayTargets(targets, baseDir) {
   console.log(chalk.bold.gray("  Size      Last Modified  Path"));
@@ -145,15 +149,15 @@ function displayTargets(targets, baseDir) {
 }
 
 /**
- * Present an interactive checkbox prompt to select reclaimable targets and delete the selected items.
+ * Prompt the user to select reclaimable targets and delete the selected items.
  *
- * Prints selection instructions and a table header, prompts the user to choose items, displays the chosen items,
- * deletes each selected target while updating state.totalReclaimed, and prints the final reclaimed total.
+ * Displays selection instructions and a table of targets, prompts with a checkbox list,
+ * deletes each chosen target while updating `state.totalReclaimed`, and then prints the final summary.
  *
- * @param {Array<Object>} targets - Array of reclaimable target objects (each should include `path`, `size`, and `lastModified`).
- * @param {number} _totalSize - Unused placeholder for total size; kept for signature compatibility.
- * @param {string} baseDir - Base directory used to compute and display relative target paths.
- * @param {Object} state - Mutable application state object; `state.totalReclaimed` will be incremented as deletions succeed.
+ * @param {Array<Object>} targets - Reclaimable target objects; each should include `path`, `size`, and `lastModified`.
+ * @param {number} _totalSize - Unused placeholder retained for signature compatibility.
+ * @param {string} baseDir - Base directory used to compute relative paths for display.
+ * @param {Object} state - Mutable application state; `state.totalReclaimed` is incremented for each successful deletion.
  */
 async function interactiveUI(targets, _totalSize, baseDir, state) {
   console.log("");
@@ -199,10 +203,14 @@ async function interactiveUI(targets, _totalSize, baseDir, state) {
 }
 
 /**
- * Handles the deletion of a single target and updates the shared state.
- * @param {Object} target - Target to delete.
- * @param {Object} state - Application state to update.
- * @returns {Promise<boolean>} Success status.
+ * Delete the given target and update the application's reclaimed-space tally.
+ *
+ * Attempts to remove the filesystem entry identified by `target.path`. On success,
+ * increments `state.totalReclaimed` by `target.size`.
+ *
+ * @param {{path: string, size: number}} target - The target to delete; must include `path` and `size`.
+ * @param {{totalReclaimed: number}} state - Mutable application state whose `totalReclaimed` will be updated on success.
+ * @returns {Promise<boolean>} `true` if the target was deleted, `false` otherwise.
  */
 async function handleDelete(target, state) {
   process.stdout.write(`Deleting ${target.path}... `);

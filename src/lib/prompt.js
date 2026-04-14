@@ -36,17 +36,15 @@ export async function prompt(questions) {
 }
 
 /**
- * Prompt the user to select one or more choices from a checkbox-style list.
+ * Present a checkbox-style prompt and return the user's selected choice values.
  *
- * In non-TTY environments, prints the message and numbered choices, reads a single line
- * of numbers (space-separated), and treats an empty input as selecting all choices.
- * The optional `header` is displayed above the prompt and may contain newlines.
+ * In non-TTY environments, prints the message and numbered choices, reads a single line of space-separated numbers, and treats an empty input as selecting all choices. When provided, `q.header` is displayed above the prompt and may contain newlines. In TTY environments, runs an interactive UI that supports navigation, multi-select, and keyboard shortcuts.
  *
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
  * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
  * @param {string} [q.header] - Optional header text shown above the prompt.
- * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value.
+ * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value. In non-TTY mode, an empty input returns all choices' values.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
@@ -221,11 +219,11 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Show a single-choice list prompt and return the chosen option's value.
+ * Display a single-choice list prompt and return the selected choice's value.
  *
- * Presents `q.choices` as either strings (used as both label and value) or objects
- * of shape `{ name, value }`. In a non-TTY environment the first choice is returned
- * immediately; in a TTY environment an interactive arrow-key UI is presented.
+ * If `q.choices` is empty, returns `null`. In non-TTY environments the first choice's
+ * value is returned without interactive input. Choices may be strings (used as both
+ * label and value) or objects with `name` and `value`.
  *
  * @param {Object} q - Question object.
  * @param {string} q.message - Prompt message displayed above the list.
