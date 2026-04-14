@@ -21,12 +21,11 @@ function displayLogoAndCredits() {
 }
 
 /**
- * Start the ReclaimSpace CLI, perform a scan of target directories, and launch the UI.
+ * Initialize and run the ReclaimSpace CLI: parse arguments, scan directories, and start the UI.
  *
- * Parses command-line arguments and options, validates and resolves search paths, combines ignore
- * and include patterns, runs a scan with progress reporting, optionally performs build analysis,
- * and starts either the interactive or non-interactive UI. Registers a SIGINT handler that prints
- * the total reclaimed space and exits the process.
+ * Validates and resolves search paths, merges ignore/include patterns, runs a scan with progress,
+ * optionally performs build analysis, and launches the interactive or non-interactive UI. Registers
+ * a SIGINT handler that displays the reclaim summary and exits the process.
  *
  * @param {string} baseDir - Project root used as the default directory to scan when no paths are provided.
  */
