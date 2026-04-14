@@ -59,7 +59,7 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
   let totalSize = 0;
   const visited = new Set();
 
-  const allPotentialDirs = [];
+  const allPotentialTargets = [];
 
   const currentFolderCategories =
     includePatterns && includePatterns.length > 0
@@ -67,9 +67,9 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       : FOLDER_CATEGORIES;
 
   /**
-   * Collects candidate directories beneath a starting path that match the configured folder categories and appends them to the shared collection.
+   * Collects candidate paths beneath a starting path that match the configured categories and appends them to the shared collection.
    *
-   * Skips paths already visited and those matching ignorePatterns; when a subdirectory's name matches any name in currentFolderCategories it is added to allPotentialDirs, otherwise recursion continues into that subdirectory except for directories named "node_modules". Permission errors (EPERM) are ignored; other errors are logged to stderr.
+   * Skips paths already visited and those matching ignorePatterns; when an entry's name matches any name in currentFolderCategories it is added to allPotentialTargets, otherwise recursion continues into subdirectories (except for directories named "node_modules"). Permission errors (EPERM) are ignored; other errors are logged to stderr.
    * @param {string} currentPath - Filesystem path to start scanning from.
    */
   async function collectDirs(currentPath) {
@@ -93,27 +93,26 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       const entries = await fs.readdir(currentPath, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = path.join(currentPath, entry.name);
-        if (entry.isDirectory()) {
-          let isMatch = false;
-          for (const cat of currentFolderCategories) {
-            if (cat.names.some((name) => minimatch(entry.name, name))) {
-              isMatch = true;
-              break;
-            }
-          }
 
-          if (isMatch) {
-            allPotentialDirs.push({ path: fullPath, entry });
-          } else {
-            if (entry.name !== "node_modules") {
-              await collectDirs(fullPath);
-            }
+        let isMatch = false;
+        for (const cat of currentFolderCategories) {
+          if (cat.names.some((name) => minimatch(entry.name, name))) {
+            isMatch = true;
+            break;
+          }
+        }
+
+        if (isMatch) {
+          allPotentialTargets.push({ path: fullPath, entry });
+        } else if (entry.isDirectory()) {
+          if (entry.name !== "node_modules") {
+            await collectDirs(fullPath);
           }
         }
       }
     } catch (err) {
       if (err.code !== "EPERM") {
-        console.error(chalk.red(`Error collecting directories in ${currentPath}: ${err.message}`));
+        console.error(chalk.red(`Error collecting paths in ${currentPath}: ${err.message}`));
       }
     }
   }
@@ -145,50 +144,48 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       return;
     }
 
-    if (entry.isDirectory()) {
-      let category = null;
-      for (const cat of currentFolderCategories) {
-        if (cat.names.some((name) => minimatch(entry.name, name))) {
-          category = cat.id;
-          break;
-        }
+    let category = null;
+    for (const cat of currentFolderCategories) {
+      if (cat.names.some((name) => minimatch(entry.name, name))) {
+        category = cat.id;
+        break;
+      }
+    }
+
+    if (category) {
+      let detectedBuildPatterns = [];
+      if (category === "build" && entry.isDirectory()) {
+        detectedBuildPatterns = await getBuildPatterns(fullPath);
       }
 
-      if (category) {
-        let detectedBuildPatterns = [];
-        if (category === "build") {
-          detectedBuildPatterns = await getBuildPatterns(fullPath);
+      try {
+        const size = await fastFolderSizeAsync(fullPath);
+        if (size > 0) {
+          const stats = await fs.stat(fullPath);
+          targets.push({
+            path: fullPath,
+            size,
+            category,
+            name: entry.name,
+            lastModified: stats.mtime,
+            buildPatterns: detectedBuildPatterns,
+          });
+          totalSize += size;
         }
-
-        try {
-          const size = await fastFolderSizeAsync(fullPath);
-          if (size > 0) {
-            const stats = await fs.stat(fullPath);
-            targets.push({
-              path: fullPath,
-              size,
-              category,
-              name: entry.name,
-              lastModified: stats.mtime,
-              buildPatterns: detectedBuildPatterns,
-            });
-            totalSize += size;
-          }
-        } catch (err) {
-          if (err.code !== "EPERM") {
-            console.error(chalk.red(`Error calculating size for ${fullPath}: ${err.message}`));
-          }
+      } catch (err) {
+        if (err.code !== "EPERM") {
+          console.error(chalk.red(`Error calculating size for ${fullPath}: ${err.message}`));
         }
       }
     }
   }
 
-  const queue = [...allPotentialDirs];
+  const queue = [...allPotentialTargets];
   const activePromises = new Set();
 
   visited.clear();
 
-  onProgress.start(allPotentialDirs.length, 0);
+  onProgress.start(allPotentialTargets.length, 0);
 
   while (queue.length > 0 || activePromises.size > 0) {
     while (queue.length > 0 && activePromises.size < CONCURRENCY_LIMIT) {

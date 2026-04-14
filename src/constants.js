@@ -38,13 +38,11 @@ const FOLDER_CATEGORIES = [
       ".eleventy-cache",
       ".gatsby-cache",
       ".wwebjs_cache",
-      ".wwebjs_auth",
       ".eslintcache",
       ".stylelintcache",
       ".tsbuildinfo",
       ".swc",
       ".sass-cache",
-      "public/build",
     ],
   },
   {
@@ -60,6 +58,7 @@ const FOLDER_CATEGORIES = [
   {
     id: "misc",
     names: [
+      ".wwebjs_auth",
       ".venv",
       "venv", // Common Python venv name
       "env", // Another common Python env name

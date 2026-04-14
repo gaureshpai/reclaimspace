@@ -2,30 +2,36 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 /**
- * Recursively get the size of a folder
+ * Recursively get the size of a path (file or folder)
  */
-export async function getFolderSize(directory) {
+export async function getPathSize(targetPath) {
   let totalSize = 0;
   try {
-    const files = await fs.readdir(directory, { withFileTypes: true });
-    for (const file of files) {
-      const fullPath = path.join(directory, file.name);
-      if (file.isDirectory()) {
-        totalSize += await getFolderSize(fullPath);
-      } else if (file.isFile()) {
-        const stats = await fs.stat(fullPath);
-        totalSize += stats.size;
+    const stats = await fs.stat(targetPath);
+    if (stats.isDirectory()) {
+      const files = await fs.readdir(targetPath, { withFileTypes: true });
+      for (const file of files) {
+        const fullPath = path.join(targetPath, file.name);
+        totalSize += await getPathSize(fullPath);
       }
+    } else {
+      totalSize += stats.size;
     }
   } catch (err) {
     if (err.code === "ENOENT" || err.code === "EACCES") {
       // Expected errors, ignore silently
     } else {
-      console.debug(`Unexpected error processing ${directory}: ${err.message}`);
+      console.debug(`Unexpected error processing ${targetPath}: ${err.message}`);
     }
   }
   return totalSize;
 }
+
+/**
+ * Legacy alias for getPathSize
+ * @deprecated Use getPathSize instead
+ */
+export const getFolderSize = getPathSize;
 
 /**
  * Remove a file or directory recursively with retry logic for Windows (EBUSY/EPERM)
