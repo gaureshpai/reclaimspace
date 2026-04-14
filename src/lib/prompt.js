@@ -36,16 +36,15 @@ export async function prompt(questions) {
 }
 
 /**
- * Display a checkbox-style prompt to let the user select one or more choices.
+ * Present a checkbox-style prompt and return the user's selected choice values.
  *
- * In non-TTY environments, prints the message `and choices, reads a single line of numbers,
- * and treats an empty input as selecting all choices. The optional `header` may contain newlines
- * and is shown above the prompt.
+ * In non-TTY environments, prints the message and numbered choices, reads a single line of space-separated numbers, and treats an empty input as selecting all choices. When provided, `q.header` is displayed above the prompt and may contain newlines. In TTY environments, runs an interactive UI that supports navigation, multi-select, and keyboard shortcuts.
+ *
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
  * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
- * @param {string} [q.header] - Optional header text shown above the prompt; may contain newlines.
- * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value.
+ * @param {string} [q.header] - Optional header text shown above the prompt.
+ * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value. In non-TTY mode, an empty input returns all choices' values.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
@@ -69,7 +68,7 @@ async function checkboxPrompt(q) {
     return answer;
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let cursor = 0;
     const selected = new Set();
     const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
@@ -122,12 +121,16 @@ async function checkboxPrompt(q) {
       );
     };
 
+    /**
+     * Clean up after the user has finished interacting with the checkbox prompt.
+     *
+     * Restores the terminal to its original state.
+     */
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
-      process.stdin.pause();
       process.stdout.write("\x1B[?25h");
 
       const visibleLines = Math.min(pageSize, choices.length);
@@ -144,14 +147,31 @@ async function checkboxPrompt(q) {
       }
     };
 
+    /**
+     * Handles data input from the user.
+     *
+     * @param {string} data - A single character of user input.
+     *
+     * Handles the following keys:
+     *   - Ctrl+C: Exits the program.
+     *   - Enter: Submits the current selection.
+     *   - Space: Toggles the selected state of the current item.
+     *   - A: Toggles the selected state of all items.
+     *   - Up/Down arrow: Moves the cursor up/down.
+     */
     const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {
         cleanup();
-        process.exit();
+        process.emit("SIGINT");
+        const error = new Error("User interrupted");
+        error.isTtyError = true;
+        reject(error);
+        return;
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(Array.from(selected).map((i) => choices[i].value));
+        return;
       } else if (key === " ") {
         if (selected.has(cursor)) {
           selected.delete(cursor);
@@ -199,7 +219,11 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Display a single-choice list prompt and let the user choose one option.
+ * Display a single-choice list prompt and return the selected choice's value.
+ *
+ * If `q.choices` is empty, returns `null`. In non-TTY environments the first choice's
+ * value is returned without interactive input. Choices may be strings (used as both
+ * label and value) or objects with `name` and `value`.
  *
  * @param {Object} q - Question object.
  * @param {string} q.message - Prompt message displayed above the list.
@@ -214,9 +238,13 @@ async function listPrompt(q) {
     return choices[0].value;
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let cursor = 0;
 
+    /**
+     * Render the single-choice list prompt.
+     * This function is responsible for drawing the prompt in the terminal.
+     */
     const render = () => {
       process.stdout.write("\x1B[?25l"); // Hide cursor
       process.stdout.write(`${chalk.green("?")} ${chalk.bold(q.message)}\n`);
@@ -230,12 +258,16 @@ async function listPrompt(q) {
       process.stdout.write(chalk.dim("\n(Use arrow keys to move, enter to select)"));
     };
 
+    /**
+     * Clean up after the user has finished interacting with the single-choice list prompt.
+     *
+     * Restores the terminal to its original state.
+     */
     const cleanup = () => {
       process.stdin.removeListener("data", onData);
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
-      process.stdin.pause();
       process.stdout.write("\x1B[?25h"); // Show cursor
       for (let i = 0; i < choices.length + 3; i++) {
         process.stdout.moveCursor(0, -1);
@@ -243,14 +275,30 @@ async function listPrompt(q) {
       }
     };
 
+    /**
+     * Handles data input from the user.
+     *
+     * @param {string} data - A single character of user input.
+     *
+     * Handles the following keys:
+     *   - Ctrl+C: Exits the program.
+     *   - Enter: Submits the current selection.
+     *   - Up arrow: Moves the cursor up.
+     *   - Down arrow: Moves the cursor down.
+     */
     const onData = (data) => {
       const key = data.toString();
       if (key === "\u0003") {
         cleanup();
-        process.exit();
+        process.emit("SIGINT");
+        const error = new Error("User interrupted");
+        error.isTtyError = true;
+        reject(error);
+        return;
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(choices[cursor].value);
+        return;
       } else if (key === "\u001b[A") {
         // Up
         cursor = (cursor - 1 + choices.length) % choices.length;

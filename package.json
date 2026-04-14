@@ -15,6 +15,7 @@
     "test": "jest",
     "lint": "biome lint . --write",
     "format": "biome format . --write",
+    "check": "biome check . --write",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -52,7 +53,7 @@
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.28.6",
     "@babel/preset-env": "^7.29.0",
-    "@biomejs/biome": "^2.3.14",
+    "@biomejs/biome": "^2.4.11",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
     "lint-staged": "^16.2.7"
