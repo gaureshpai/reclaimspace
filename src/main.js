@@ -47,6 +47,7 @@ Total space reclaimed: ${formatSize(state.totalReclaimed)}
   });
 
   process.stdin.resume();
+  process.stdin.unref();
 
   displayLogoAndCredits();
 
