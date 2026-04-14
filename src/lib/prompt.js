@@ -36,15 +36,15 @@ export async function prompt(questions) {
 }
 
 /**
- * Present a checkbox-style prompt and collect the selected choice values.
+ * Present a checkbox-style prompt and return the user's selected choice values.
  *
- * In a TTY, displays an interactive multi-select UI (arrow keys to move, space to toggle, "a" to toggle all, Enter to confirm).
- * In a non-TTY environment, prints a numbered list and accepts space-separated numbers (empty input selects all).
+ * In non-TTY environments, prints the message and numbered choices, reads a single line of space-separated numbers, and treats an empty input as selecting all choices. When provided, `q.header` is displayed above the prompt and may contain newlines. In TTY environments, runs an interactive UI that supports navigation, multi-select, and keyboard shortcuts.
+ *
  * @param {Object} q - Question configuration.
  * @param {string} q.message - Prompt message displayed to the user.
- * @param {Array<string|Object>} q.choices - Choices to present; each item may be a string (used as both label and value) or an object `{ name, value }`.
- * @param {string} [q.header] - Optional header text shown above the prompt; may contain newlines.
- * @returns {Array<any>} The selected choices' `value`s; for string choices the string itself is used as the value.
+ * @param {Array<string|Object>} q.choices - Choices to present. Each item may be a string (used as both label and value) or an object with `name` (label) and `value`.
+ * @param {string} [q.header] - Optional header text shown above the prompt.
+ * @returns {Array<any>} An array of the selected choice `value`s; for string choices the string is used as both label and value. In non-TTY mode, an empty input returns all choices' values.
  */
 async function checkboxPrompt(q) {
   if (!isRaw) {
@@ -68,7 +68,7 @@ async function checkboxPrompt(q) {
     return answer;
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let cursor = 0;
     const selected = new Set();
     const choices = q.choices.map((c) => (typeof c === "string" ? { name: c, value: c } : c));
@@ -131,7 +131,6 @@ async function checkboxPrompt(q) {
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
-      process.stdin.pause();
       process.stdout.write("\x1B[?25h");
 
       const visibleLines = Math.min(pageSize, choices.length);
@@ -164,10 +163,15 @@ async function checkboxPrompt(q) {
       const key = data.toString();
       if (key === "\u0003") {
         cleanup();
-        process.exit();
+        process.emit("SIGINT");
+        const error = new Error("User interrupted");
+        error.isTtyError = true;
+        reject(error);
+        return;
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(Array.from(selected).map((i) => choices[i].value));
+        return;
       } else if (key === " ") {
         if (selected.has(cursor)) {
           selected.delete(cursor);
@@ -215,11 +219,11 @@ async function checkboxPrompt(q) {
 }
 
 /**
- * Show a single-choice list prompt and return the chosen option's value.
+ * Display a single-choice list prompt and return the selected choice's value.
  *
- * Presents `q.choices` as either strings (used as both label and value) or objects
- * of shape `{ name, value }`. In a non-TTY environment the first choice is returned
- * immediately; in a TTY environment an interactive arrow-key UI is presented.
+ * If `q.choices` is empty, returns `null`. In non-TTY environments the first choice's
+ * value is returned without interactive input. Choices may be strings (used as both
+ * label and value) or objects with `name` and `value`.
  *
  * @param {Object} q - Question object.
  * @param {string} q.message - Prompt message displayed above the list.
@@ -234,7 +238,7 @@ async function listPrompt(q) {
     return choices[0].value;
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let cursor = 0;
 
     /**
@@ -264,7 +268,6 @@ async function listPrompt(q) {
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
-      process.stdin.pause();
       process.stdout.write("\x1B[?25h"); // Show cursor
       for (let i = 0; i < choices.length + 3; i++) {
         process.stdout.moveCursor(0, -1);
@@ -287,10 +290,15 @@ async function listPrompt(q) {
       const key = data.toString();
       if (key === "\u0003") {
         cleanup();
-        process.exit();
+        process.emit("SIGINT");
+        const error = new Error("User interrupted");
+        error.isTtyError = true;
+        reject(error);
+        return;
       } else if (key === "\r" || key === "\n") {
         cleanup();
         resolve(choices[cursor].value);
+        return;
       } else if (key === "\u001b[A") {
         // Up
         cursor = (cursor - 1 + choices.length) % choices.length;
