@@ -2,28 +2,54 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 /**
- * Recursively get the size of a folder
+ * Recursively get the size of a folder with concurrency limit.
  */
 export async function getFolderSize(directory) {
   let totalSize = 0;
-  try {
-    const files = await fs.readdir(directory, { withFileTypes: true });
-    for (const file of files) {
-      const fullPath = path.join(directory, file.name);
-      if (file.isDirectory()) {
-        totalSize += await getFolderSize(fullPath);
-      } else if (file.isFile()) {
-        const stats = await fs.stat(fullPath);
-        totalSize += stats.size;
+  const CONCURRENCY_LIMIT = 20;
+
+  async function calculate(dir) {
+    let size = 0;
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      const tasks = [];
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          tasks.push(calculate(fullPath));
+        } else if (entry.isFile()) {
+          tasks.push(
+            fs.stat(fullPath).then((stats) => {
+              size += stats.size;
+            }),
+          );
+        }
+
+        if (tasks.length >= CONCURRENCY_LIMIT) {
+          const results = await Promise.all(tasks);
+          for (const res of results) {
+            if (typeof res === "number") size += res;
+          }
+          tasks.length = 0;
+        }
+      }
+
+      if (tasks.length > 0) {
+        const results = await Promise.all(tasks);
+        for (const res of results) {
+          if (typeof res === "number") size += res;
+        }
+      }
+    } catch (err) {
+      if (err.code !== "ENOENT" && err.code !== "EACCES" && err.code !== "EPERM") {
+        console.debug(`Unexpected error processing ${dir}: ${err.message}`);
       }
     }
-  } catch (err) {
-    if (err.code === "ENOENT" || err.code === "EACCES") {
-      // Expected errors, ignore silently
-    } else {
-      console.debug(`Unexpected error processing ${directory}: ${err.message}`);
-    }
+    return size;
   }
+
+  totalSize = await calculate(directory);
   return totalSize;
 }
 

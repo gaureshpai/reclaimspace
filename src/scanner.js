@@ -10,6 +10,8 @@ const fastFolderSizeAsync = promisify(fastFolderSize);
 
 const CONCURRENCY_LIMIT = 5;
 
+const regexCache = new Map();
+
 /**
  * Detects build artifact filename patterns present in a folder.
  * @param {string} folderPath - Path of the folder to inspect.
@@ -21,8 +23,12 @@ async function getBuildPatterns(folderPath) {
     const entries = await fs.readdir(folderPath, { withFileTypes: true });
     for (const pattern of BUILD_ARTIFACT_PATTERNS) {
       if (pattern.includes("*")) {
-        const regexStr = pattern.replace(/\./g, "\\.").replace(/\*/g, ".*");
-        const regex = new RegExp(`^${regexStr}$`);
+        let regex = regexCache.get(pattern);
+        if (!regex) {
+          const regexStr = pattern.replace(/\./g, "\\.").replace(/\*/g, ".*");
+          regex = new RegExp(`^${regexStr}$`, "i");
+          regexCache.set(pattern, regex);
+        }
         if (entries.some((entry) => regex.test(entry.name))) {
           detectedPatterns.push(pattern);
         }
@@ -95,16 +101,16 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
       for (const entry of entries) {
         const fullPath = path.join(currentPath, entry.name);
         if (entry.isDirectory()) {
-          let isMatch = false;
+          let category = null;
           for (const cat of currentFolderCategories) {
             if (cat.names.some((name) => minimatch(entry.name, name))) {
-              isMatch = true;
+              category = cat.id;
               break;
             }
           }
 
-          if (isMatch) {
-            allPotentialDirs.push({ path: fullPath, entry });
+          if (category) {
+            allPotentialDirs.push({ path: fullPath, entry, category });
           } else {
             if (entry.name !== "node_modules") {
               await collectDirs(fullPath);
@@ -128,69 +134,38 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
   /**
    * Collect metadata and disk usage for a directory candidate when it matches a configured folder category.
    *
-   * If the candidate's name matches a configured category, records a target entry with path, size, category id,
-   * directory name, last modified time, and any detected build artifact patterns (for the "build" category), and
-   * adds the folder size to the running total. Skips already visited or ignored paths and ignores directories with
-   * zero size.
+   * Records a target entry with path, size, category id, directory name, last modified time, and any detected
+   * build artifact patterns (for the "build" category), and adds the folder size to the running total.
    *
    * @param {string} fullPath - Full filesystem path of the directory candidate.
    * @param {import("node:fs").Dirent} entry - Directory entry corresponding to the candidate.
+   * @param {string} category - The matched category id.
    */
-  async function processDir(fullPath, entry) {
+  async function processDir(fullPath, entry, category) {
     spinner.text = chalk.bold.blue(`Scanning: ${fullPath}`);
 
-    if (visited.has(fullPath)) {
-      return;
-    }
-    visited.add(fullPath);
-
-    if (
-      ignorePatterns.some((pattern) => {
-        try {
-          const normalizedPath = fullPath.replace(/\\/g, "/");
-          return minimatch(normalizedPath, pattern, { matchBase: true });
-        } catch (_e) {
-          return false;
-        }
-      })
-    ) {
-      return;
+    let detectedBuildPatterns = [];
+    if (category === "build") {
+      detectedBuildPatterns = await getBuildPatterns(fullPath);
     }
 
-    if (entry.isDirectory()) {
-      let category = null;
-      for (const cat of currentFolderCategories) {
-        if (cat.names.some((name) => minimatch(entry.name, name))) {
-          category = cat.id;
-          break;
-        }
+    try {
+      const size = await fastFolderSizeAsync(fullPath);
+      if (size > 0) {
+        const stats = await fs.stat(fullPath);
+        targets.push({
+          path: fullPath,
+          size,
+          category,
+          name: entry.name,
+          lastModified: stats.mtime,
+          buildPatterns: detectedBuildPatterns,
+        });
+        totalSize += size;
       }
-
-      if (category) {
-        let detectedBuildPatterns = [];
-        if (category === "build") {
-          detectedBuildPatterns = await getBuildPatterns(fullPath);
-        }
-
-        try {
-          const size = await fastFolderSizeAsync(fullPath);
-          if (size > 0) {
-            const stats = await fs.stat(fullPath);
-            targets.push({
-              path: fullPath,
-              size,
-              category,
-              name: entry.name,
-              lastModified: stats.mtime,
-              buildPatterns: detectedBuildPatterns,
-            });
-            totalSize += size;
-          }
-        } catch (err) {
-          if (err.code !== "EPERM") {
-            console.error(chalk.red(`Error calculating size for ${fullPath}: ${err.message}`));
-          }
-        }
+    } catch (err) {
+      if (err.code !== "EPERM") {
+        console.error(chalk.red(`Error calculating size for ${fullPath}: ${err.message}`));
       }
     }
   }
@@ -198,14 +173,12 @@ async function find(searchPaths, ignorePatterns, onProgress, spinner, includePat
   const queue = [...allPotentialDirs];
   const activePromises = new Set();
 
-  visited.clear();
-
   onProgress.start(allPotentialDirs.length, 0);
 
   while (queue.length > 0 || activePromises.size > 0) {
     while (queue.length > 0 && activePromises.size < CONCURRENCY_LIMIT) {
       const dirInfo = queue.shift();
-      const promise = processDir(dirInfo.path, dirInfo.entry).finally(() => {
+      const promise = processDir(dirInfo.path, dirInfo.entry, dirInfo.category).finally(() => {
         activePromises.delete(promise);
         onProgress.increment();
       });
