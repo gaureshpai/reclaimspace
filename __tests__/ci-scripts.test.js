@@ -161,12 +161,13 @@ function computeReporterBody(existingCommentBody, workflowName, newRow) {
   if (existingCommentBody) {
     const lines = existingCommentBody.split("\n");
     const headerEnd = lines.findIndex((l) => l.startsWith("|--------|"));
-    const existingRows = lines.slice(headerEnd + 1).filter((l) => l.startsWith("|"));
-
-    const rowKey = `**${workflowName}**`;
-    const keptRows = existingRows.filter((l) => !l.includes(rowKey));
-    const allRows = [...keptRows, newRow].sort();
-    return header + allRows.join("\n");
+    if (headerEnd !== -1) {
+      const existingRows = lines.slice(headerEnd + 1).filter((l) => l.startsWith("|"));
+      const rowKey = `**${workflowName}**`;
+      const keptRows = existingRows.filter((l) => !l.includes(rowKey));
+      const allRows = [...keptRows, newRow].sort();
+      return header + allRows.join("\n");
+    }
   }
 
   return header + newRow;
