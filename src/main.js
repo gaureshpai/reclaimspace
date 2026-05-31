@@ -142,9 +142,7 @@ async function run(baseDir) {
 
     if (!targets || targets.length === 0) {
       console.log(chalk.green("No reclaimable space found. Your workspace is clean!"));
-      if (!options.deepClean) {
-        ui.displaySummary(state);
-      }
+      ui.displaySummary(state);
       return;
     }
 

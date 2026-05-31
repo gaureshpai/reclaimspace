@@ -246,7 +246,7 @@ async function handleDelete(target, state) {
  * Run the deep-clean process with spinner and user confirmation.
  * @param {Object} options - CLI options object.
  */
-async function runDeepCleanWithUI(options) {
+async function runDeepCleanWithUI(options, state) {
   if (options.dry) {
     console.log(chalk.yellow("  --dry run: No caches will be cleared.\n"));
   }
@@ -255,6 +255,11 @@ async function runDeepCleanWithUI(options) {
     dry: !!options.dry,
     onMessage: (msg) => process.stdout.write(msg),
   });
+
+  // Accumulate reclaimed space into global state
+  if (!options.dry && deepCleanResults.totalCleaned > 0 && state) {
+    state.totalReclaimed += deepCleanResults.totalCleaned;
+  }
 
   if (options.dry) {
     console.log(

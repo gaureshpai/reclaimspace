@@ -21,23 +21,72 @@ const execAsync = promisify(exec);
  * @returns {Promise<Array<{name: string, command: string, cacheDir?: string, available: boolean}>>}
  */
 async function detectPackageManagers() {
+  const home = os.homedir();
+  const platform = process.platform;
+  const localAppData =
+    process.env.LOCALAPPDATA || (platform === "win32" ? path.join(home, "AppData", "Local") : "");
+
+  /**
+   * Get the platform-specific cache directory for a package manager.
+   * @param {string} name - Package manager name.
+   * @returns {string|null}
+   */
+  const getCacheDir = (name) => {
+    switch (name) {
+      case "npm":
+        return platform === "win32"
+          ? path.join(localAppData, "npm-cache")
+          : path.join(home, ".npm");
+      case "pnpm":
+        if (platform === "win32") {
+          return path.join(localAppData, "pnpm", "store");
+        }
+        if (platform === "darwin") {
+          return path.join(home, "Library", "Caches", "pnpm");
+        }
+        return path.join(home, ".local", "share", "pnpm", "store");
+      case "yarn":
+        if (platform === "win32") {
+          return path.join(localAppData, "Yarn", "Cache");
+        }
+        if (platform === "darwin") {
+          return path.join(home, "Library", "Caches", "yarn");
+        }
+        return path.join(home, ".cache", "yarn");
+      case "pip":
+        if (platform === "win32") {
+          return path.join(localAppData, "pip", "Cache");
+        }
+        if (platform === "darwin") {
+          return path.join(home, "Library", "Caches", "pip");
+        }
+        return path.join(home, ".cache", "pip");
+      default:
+        return null;
+    }
+  };
+
   const managers = [
     {
       name: "npm",
       command: "npm cache clean --force",
-      cacheDir: path.join(os.homedir(), ".npm", "_cacache"),
+      cacheDir: getCacheDir("npm"),
     },
     {
       name: "pnpm",
-      command: "pnpm cache delete",
-      cacheDir: path.join(os.homedir(), ".pnpm-store"),
+      command: "pnpm store prune",
+      cacheDir: getCacheDir("pnpm"),
     },
     {
       name: "yarn",
       command: "yarn cache clean",
-      cacheDir: path.join(os.homedir(), ".yarn", "berry", "cache"),
+      cacheDir: getCacheDir("yarn"),
     },
-    { name: "pip", command: "pip cache purge", cacheDir: path.join(os.homedir(), ".cache", "pip") },
+    {
+      name: "pip",
+      command: "pip cache purge",
+      cacheDir: getCacheDir("pip"),
+    },
   ];
 
   const results = await Promise.all(
@@ -72,20 +121,19 @@ async function estimateCacheSize(dirPath) {
     async function calculate(dir) {
       try {
         const entries = await fs.readdir(dir, { withFileTypes: true });
-        const tasks = [];
         for (const entry of entries) {
           const fullPath = path.join(dir, entry.name);
           if (entry.isDirectory()) {
-            tasks.push(calculate(fullPath));
+            await calculate(fullPath);
           } else if (entry.isFile()) {
-            tasks.push(
-              fs.stat(fullPath).then((stats) => {
-                totalSize += stats.size;
-              }),
-            );
+            try {
+              const stats = await fs.stat(fullPath);
+              totalSize += stats.size;
+            } catch {
+              // Ignore individual file stat errors
+            }
           }
         }
-        await Promise.all(tasks);
       } catch {
         // Skip inaccessible directories
       }
