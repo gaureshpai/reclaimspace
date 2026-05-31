@@ -193,7 +193,7 @@ async function runDeepClean(options = {}) {
       results.push({
         name: mgr.name,
         beforeSize,
-        afterSize: beforeSize,
+        afterSize: 0, // In dry mode, assume full cleanup for estimation
         success: true,
         output: "(dry run, no action taken)",
       });
