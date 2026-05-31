@@ -6,6 +6,7 @@ import ora from "./lib/spinner.js";
 import { formatSize, formatDate } from "./utils.js";
 import { deleteTarget } from "./deleter.js";
 import * as scanner from "./scanner.js";
+import { runDeepClean } from "./deep-cleaner.js";
 
 /**
  * Run the directory scanner and display a progress bar and spinner while scanning.
@@ -241,5 +242,46 @@ async function handleDelete(target, state) {
     return false;
   }
 }
+/**
+ * Run the deep-clean process with spinner and user confirmation.
+ * @param {Object} options - CLI options object.
+ */
+async function runDeepCleanWithUI(options) {
+  if (options.dry) {
+    console.log(chalk.yellow("  --dry run: No caches will be cleared.\n"));
+  }
 
-export { start, runScannerWithProgress, displaySummary };
+  const deepCleanResults = await runDeepClean({
+    dry: !!options.dry,
+    onMessage: (msg) => process.stdout.write(msg),
+  });
+
+  if (options.dry) {
+    console.log(
+      chalk.cyan(
+        `\n  Total cache space that could be reclaimed: ${formatSize(deepCleanResults.totalCleaned)}`,
+      ),
+    );
+    console.log("");
+    return;
+  }
+
+  const successCount = deepCleanResults.cleaned.filter((r) => r.success).length;
+  const failCount = deepCleanResults.cleaned.filter((r) => !r.success).length;
+
+  console.log("");
+  if (successCount > 0) {
+    console.log(chalk.green(`  ✔ Caches cleared: ${successCount} package manager(s)`));
+  }
+  if (failCount > 0) {
+    console.log(chalk.red(`  ✖ Failed: ${failCount} package manager(s)`));
+  }
+  if (deepCleanResults.totalCleaned > 0) {
+    console.log(
+      chalk.cyan(`  Total cache reclaimed: ${formatSize(deepCleanResults.totalCleaned)}`),
+    );
+  }
+  console.log("");
+}
+
+export { start, runScannerWithProgress, displaySummary, runDeepCleanWithUI };
