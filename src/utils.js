@@ -23,24 +23,30 @@ function formatSize(bytes) {
  *
  * On Windows, returns `%APPDATA%\reclaimspace` or `~\AppData\Roaming\reclaimspace` if APPDATA is unset.
  * On Linux/macOS, returns `$XDG_CONFIG_HOME/reclaimspace` when XDG_CONFIG_HOME is set, otherwise `~/.config/reclaimspace`.
+ *
+ * @param {Object} [overrides] - Optional overrides (primarily for testing).
+ * @param {string} [overrides.platform] - Platform string (win32, darwin, linux, etc.).
+ * @param {Object} [overrides.env] - Environment variable overrides.
  * @returns {string} Path to the global configuration directory for reclaimspace.
  */
-function getGlobalConfigDir() {
-  if (process.platform === "win32") {
+function getGlobalConfigDir(overrides = {}) {
+  const platform = overrides.platform || process.platform;
+  const env = { ...process.env, ...overrides.env };
+
+  if (platform === "win32") {
     const appData =
-      process.env.APPDATA ||
-      path.win32.join(process.env.USERPROFILE || os.homedir(), "AppData", "Roaming");
+      env.APPDATA || path.win32.join(env.USERPROFILE || os.homedir(), "AppData", "Roaming");
     return path.win32.join(appData, "reclaimspace");
   }
-  if (process.platform === "darwin") {
-    const homeDir = process.env.HOME || os.homedir();
+  if (platform === "darwin") {
+    const homeDir = env.HOME || os.homedir();
     return path.posix.join(homeDir, "Library", "Application Support", "reclaimspace");
   }
-  const xdgConfig = process.env.XDG_CONFIG_HOME;
+  const xdgConfig = env.XDG_CONFIG_HOME;
   if (xdgConfig) {
     return path.posix.join(xdgConfig, "reclaimspace");
   }
-  const homeDir = process.env.HOME || os.homedir();
+  const homeDir = env.HOME || os.homedir();
   return path.posix.join(homeDir, ".config", "reclaimspace");
 }
 
