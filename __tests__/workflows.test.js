@@ -89,7 +89,7 @@ describe("GitHub Actions Workflows", () => {
 
     it("report-status job should pass conclusion from build result", () => {
       const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain("conclusion: ${{ needs.build.result }}");
+      expect(reportBlock).toContain("conclusion: $" + "{{ needs.build.result }}");
     });
 
     it("report-status job should have pull-requests write permission", () => {
@@ -185,7 +185,7 @@ describe("GitHub Actions Workflows", () => {
 
     it("report-status job should pass conclusion from lint result", () => {
       const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain("conclusion: ${{ needs.lint.result }}");
+      expect(reportBlock).toContain("conclusion: $" + "{{ needs.lint.result }}");
     });
 
     it("report-status job should have pull-requests write permission", () => {

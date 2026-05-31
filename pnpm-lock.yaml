@@ -29,6 +29,9 @@ importers:
       lint-staged:
         specifier: ^16.2.7
         version: 16.2.7
+      reclaimspace:
+        specifier: ^0.2.2
+        version: 0.2.2
 
 packages:
 
@@ -1668,6 +1671,11 @@ packages:
 
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+
+  reclaimspace@0.2.2:
+    resolution: {integrity: sha512-jcb4kfplebNwDgT8qn4HpjF+FPC2hHZeJ1+xSWTnTT96QPRn9PdNGSJBZhqOg1S91/fz88aYH7tT0ic2Km6YIA==}
+    engines: {node: '>=18.12.0'}
+    hasBin: true
 
   regenerate-unicode-properties@10.2.2:
     resolution: {integrity: sha512-m03P+zhBeQd1RGnYxrGyDAPpWX/epKirLrp8e3qevZdVkKtnCrjjWczIbYc8+xd6vcTStVlqfycTx1KR4LOr0g==}
@@ -3914,6 +3922,8 @@ snapshots:
   pure-rand@7.0.1: {}
 
   react-is@18.3.1: {}
+
+  reclaimspace@0.2.2: {}
 
   regenerate-unicode-properties@10.2.2:
     dependencies:
