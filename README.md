@@ -7,7 +7,7 @@
     <a href="https://www.npmjs.com/package/reclaimspace"><img src="https://img.shields.io/npm/dt/reclaimspace.svg" alt="npm downloads"></a>
     <a href="https://gaureshpai.github.io/reclaimspace/"><img src="https://img.shields.io/badge/documentation-site-green.svg" alt="documentation site"></a>
     <a href="https://www.npmjs.com/package/reclaimspace"><img src="https://img.shields.io/badge/npm-reclaimspace-cb3837.svg" alt="npm package"></a>
-    <a href="https://github.com/gaureshpai/reclaimspace"><img src="https://img.shields.io/github/stars/gaureshpai/reclaimspace?style=social" alt="github stars"></a>
+    <a href="https://github.com/gaureshpai/reclaimspace"><img src="https://img.shields.io/github/stars/gaureshpai/reclaimspace.svg?style=social" alt="github stars"></a>
   </p>
 </div>
 
