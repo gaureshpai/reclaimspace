@@ -6,6 +6,7 @@ import ora from "./lib/spinner.js";
 import { formatSize, formatDate } from "./utils.js";
 import { deleteTarget } from "./deleter.js";
 import * as scanner from "./scanner.js";
+import { runDeepClean } from "./deep-cleaner.js";
 
 /**
  * Run the directory scanner and display a progress bar and spinner while scanning.
@@ -241,5 +242,60 @@ async function handleDelete(target, state) {
     return false;
   }
 }
+/**
+ * Run the deep-clean workflow and present progress and results to the user.
+ *
+ * Runs the deep-clean operation while streaming progress messages to stdout.
+ * If `options.dry` is true, prints a dry-run notice and the total cache space
+ * that could be reclaimed. Otherwise, prints counts of successfully cleared and
+ * failed package managers and the total reclaimed cache size. When not a dry run
+ * and a `state` object is provided, increments `state.totalReclaimed` by the
+ * total cleaned amount.
+ *
+ * @param {Object} options - CLI options; recognizes `options.dry` to perform a dry run.
+ * @param {Object} [state] - Optional accumulator object whose `totalReclaimed` (number of bytes) will be incremented when caches are actually cleared.
+ */
+async function runDeepCleanWithUI(options, state) {
+  if (options.dry) {
+    console.log(chalk.yellow("  --dry run: No caches will be cleared.\n"));
+  }
 
-export { start, runScannerWithProgress, displaySummary };
+  const deepCleanResults = await runDeepClean({
+    dry: !!options.dry,
+    onMessage: (msg) => process.stdout.write(msg),
+  });
+
+  // Accumulate reclaimed space into global state
+  if (!options.dry && deepCleanResults.totalCleaned > 0 && state) {
+    state.totalReclaimed += deepCleanResults.totalCleaned;
+  }
+
+  if (options.dry) {
+    console.log(
+      chalk.cyan(
+        `\n  Total cache space that could be reclaimed: ${formatSize(deepCleanResults.totalCleaned)}`,
+      ),
+    );
+    console.log("");
+    return;
+  }
+
+  const successCount = deepCleanResults.cleaned.filter((r) => r.success).length;
+  const failCount = deepCleanResults.cleaned.filter((r) => !r.success).length;
+
+  console.log("");
+  if (successCount > 0) {
+    console.log(chalk.green(`  ✔ Caches cleared: ${successCount} package manager(s)`));
+  }
+  if (failCount > 0) {
+    console.log(chalk.red(`  ✖ Failed: ${failCount} package manager(s)`));
+  }
+  if (deepCleanResults.totalCleaned > 0) {
+    console.log(
+      chalk.cyan(`  Total cache reclaimed: ${formatSize(deepCleanResults.totalCleaned)}`),
+    );
+  }
+  console.log("");
+}
+
+export { start, runScannerWithProgress, displaySummary, runDeepCleanWithUI };

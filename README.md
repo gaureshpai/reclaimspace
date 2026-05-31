@@ -105,6 +105,20 @@ You can specify a comma-separated list of patterns to include in the scan. When 
 npx reclaimspace --include "my-custom-build,temp-files"
 ```
 
+**To deep clean package manager caches:**
+
+This will clear caches for npm, pnpm, yarn, pip, and other detected package managers. Can be combined with other flags.
+
+```bash
+npx reclaimspace --deep-clean
+```
+
+You can also combine it with a scan:
+
+```bash
+npx reclaimspace --yes --deep-clean
+```
+
 ## Configuration
 
 You can create a `.reclaimspacerc` file in the root of your project to specify folders and patterns to ignore. This is useful for excluding project-specific build folders or other directories that you don't want to be scanned.
@@ -147,6 +161,7 @@ my-project/dist
 - **Build Analysis:** Use the `--build-analysis` flag to see inferred project types and common build patterns.
 - **Include Patterns:** Use the `--include` flag to scan only folders matching specific patterns.
 - **Global Config:** Ignore patterns can be saved globally via `--save`, applying across all projects.
+- **Deep Clean Mode:** Use the `--deep-clean` flag to clear package manager caches (npm, pnpm, yarn, pip) for even more reclaimed space.
 - **Cool Logo:** Displays a cool logo when you run the tool.
 
 ## Detected Items

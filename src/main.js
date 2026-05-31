@@ -66,6 +66,7 @@ async function run(baseDir) {
       .option("-c, --include <patterns>", "Comma-separated list of patterns to include")
       .option("-s, --save [patterns]", "Save ignore patterns to .reclaimspacerc")
       .option("-b, --build-analysis", "Enable build analysis logs")
+      .option("--deep-clean", "Also clear package manager caches (npm, pnpm, yarn, pip)")
       .parse(process.argv);
 
     const options = program.opts();
@@ -88,7 +89,13 @@ async function run(baseDir) {
 
     let searchPaths = program.args.length ? program.args : [baseDir];
 
-    if (!options.ui && !options.dry && !options.yes && program.args.length === 0) {
+    if (
+      !options.ui &&
+      !options.dry &&
+      !options.yes &&
+      !options.deepClean &&
+      program.args.length === 0
+    ) {
       options.ui = true;
     }
 
@@ -108,6 +115,18 @@ async function run(baseDir) {
     }
     searchPaths = validSearchPaths;
 
+    // If --deep-clean is used alone (no path args, or with --dry/--yes), we can skip the scan entirely.
+    // If combined with other modes, the scan still runs and deep-clean happens after.
+    const deepCleanOnly =
+      options.deepClean && program.args.length === 0 && !options.ui && !options.dry && !options.yes;
+
+    if (deepCleanOnly) {
+      console.log(chalk.bold.cyan("\n🧹 Deep Clean Mode — Clearing Package Manager Caches\n"));
+      await ui.runDeepCleanWithUI(options, state);
+      ui.displaySummary(state);
+      return;
+    }
+
     const configIgnores = await readIgnoreFile(baseDir);
     const cliIgnores =
       typeof options.ignore === "string" ? options.ignore.split(",").filter(Boolean) : [];
@@ -120,6 +139,12 @@ async function run(baseDir) {
       ignorePatterns,
       includePatterns,
     );
+
+    // If deep-clean is combined with other flags, show deep-clean results after scan
+    if (options.deepClean) {
+      console.log(chalk.bold.cyan("\n🧹 Deep Clean — Clearing Package Manager Caches\n"));
+      await ui.runDeepCleanWithUI(options, state);
+    }
 
     if (!targets || targets.length === 0) {
       console.log(chalk.green("No reclaimable space found. Your workspace is clean!"));

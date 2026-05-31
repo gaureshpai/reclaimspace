@@ -261,6 +261,20 @@
         <pre
           class="position-relative"
         ><button class="copy-btn">Copy</button><code>npx reclaimspace --include "my-custom-build,temp-files"</code></pre>
+
+        <h3>Deep Clean Package Manager Caches</h3>
+        <p>
+          This will clear caches for npm, pnpm, yarn, pip, and other detected
+          package managers. Can be combined with other flags.
+        </p>
+        <pre
+          class="position-relative"
+        ><button class="copy-btn">Copy</button><code>npx reclaimspace --deep-clean</code></pre>
+
+        <p>Combine with a full scan and auto-delete:</p>
+        <pre
+          class="position-relative"
+        ><button class="copy-btn">Copy</button><code>npx reclaimspace --yes --deep-clean</code></pre>
       </section>
 
       <section id="features" class="mb-5">
@@ -327,6 +341,11 @@
             <strong>Global Config:</strong> Ignore patterns can be saved
             globally via <code>--save</code>, applying across all projects
             without per-project <code>.reclaimspacerc</code> files.
+          </li>
+          <li>
+            <strong>Deep Clean Mode:</strong> Use the <code>--deep-clean</code>
+            flag to clear package manager caches (npm, pnpm, yarn, pip) for
+            even more reclaimed space.
           </li>
           <li>
             <strong>Windows Stability:</strong> Includes built-in retry logic
