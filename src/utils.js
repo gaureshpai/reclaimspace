@@ -3,9 +3,12 @@ import path from "node:path";
 import os from "node:os";
 
 /**
- * Formats bytes into a human-readable string (e.g., "1.23 MB").
- * @param {number} bytes - The number of bytes to format.
- * @returns {string} Human-readable size string.
+ * Convert a byte count into a human-readable string using 1024-based units.
+ *
+ * The result is rounded to two decimal places and uses the units: Bytes, KB, MB, GB, TB.
+ * For an input of 0 the function returns "0 Bytes".
+ * @param {number} bytes - Number of bytes to format.
+ * @returns {string} Formatted size string (e.g., "1.23 MB").
  */
 function formatSize(bytes) {
   if (bytes === 0) return "0 Bytes";
@@ -16,10 +19,11 @@ function formatSize(bytes) {
 }
 
 /**
- * Returns the platform-appropriate global config directory for reclaimspace.
- * On Windows: %APPDATA%\reclaimspace
- * On Linux/Mac: $XDG_CONFIG_HOME/reclaimspace or ~/.config/reclaimspace
- * @returns {string} Path to the global config directory.
+ * Compute the platform-specific global configuration directory for reclaimspace.
+ *
+ * On Windows, returns `%APPDATA%\reclaimspace` or `~\AppData\Roaming\reclaimspace` if APPDATA is unset.
+ * On Linux/macOS, returns `$XDG_CONFIG_HOME/reclaimspace` when XDG_CONFIG_HOME is set, otherwise `~/.config/reclaimspace`.
+ * @returns {string} Path to the global configuration directory for reclaimspace.
  */
 function getGlobalConfigDir() {
   if (process.platform === "win32") {
@@ -36,9 +40,13 @@ function getGlobalConfigDir() {
 }
 
 /**
- * Reads patterns from a .reclaimspacerc file at the given path.
+ * Read ignore patterns from a .reclaimspacerc file.
+ *
+ * Lines are trimmed, empty lines and lines starting with `#` are ignored,
+ * and leading `/` characters are removed from each entry. If the file does not
+ * exist, an empty array is returned; other I/O errors are propagated.
  * @param {string} filePath - Path to the .reclaimspacerc file.
- * @returns {Promise<Array<string>>} List of patterns read from the file.
+ * @returns {Array<string>} Array of normalized pattern strings.
  */
 async function readPatternsFromFile(filePath) {
   try {
@@ -109,9 +117,13 @@ async function readIgnoreFile(baseDir = process.cwd()) {
 }
 
 /**
- * Saves ignore patterns to the global .reclaimspacerc config.
- * @param {Array<string>} patterns - List of glob patterns to ignore.
- * @returns {Promise<string>} The path to the saved config file.
+ * Add new ignore patterns to the global .reclaimspacerc file.
+ *
+ * Normalizes each entry by trimming and removing leading slashes, ignores empty or commented lines,
+ * and appends only patterns not already present in the global file. If no new patterns are added,
+ * the function returns the target file path without modifying the file.
+ * @param {Array<string>} patterns - Patterns to add to the global ignore file.
+ * @returns {Promise<string>} The path to the global .reclaimspacerc file (written if new patterns were added).
  */
 async function saveIgnorePatterns(patterns) {
   const globalDir = getGlobalConfigDir();
@@ -151,9 +163,9 @@ async function saveIgnorePatterns(patterns) {
 }
 
 /**
- * Formats a Date object or timestamp into YYYY-MM-DD.
- * @param {Date|number|string} date - The date to format.
- * @returns {string} Formatted date string.
+ * Format a date into YYYY-MM-DD.
+ * @param {Date|number|string} date - A Date object, a millisecond timestamp, or a date-string parseable by Date.
+ * @returns {string} The date formatted as `YYYY-MM-DD`.
  */
 function formatDate(date) {
   const d = new Date(date);
