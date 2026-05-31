@@ -36,8 +36,8 @@ describe("GitHub Issue Templates", () => {
       expect(bugTemplate).toMatch(/name:\s*Bug Report/);
     });
 
-    it("should have 'bug' label", () => {
-      expect(bugTemplate).toMatch(/labels:\s*\[["']bug["']\]/);
+    it("should have 'type: bug' label", () => {
+      expect(bugTemplate).toMatch(/labels:\s*\[["']type: bug["']\]/);
     });
 
     it("should have '[Bug]: ' as title prefix", () => {
@@ -153,8 +153,8 @@ describe("GitHub Issue Templates", () => {
       expect(featureTemplate).toMatch(/name:\s*Feature Request/);
     });
 
-    it("should have 'feature' label", () => {
-      expect(featureTemplate).toMatch(/labels:\s*\[["']feature["']\]/);
+    it("should have 'type: feature' label", () => {
+      expect(featureTemplate).toMatch(/labels:\s*\[["']type: feature["']\]/);
     });
 
     it("should have '[Feature]: ' as title prefix", () => {
@@ -220,6 +220,67 @@ describe("GitHub Issue Templates", () => {
 
     it("should have description field in Suggest an idea format", () => {
       expect(featureTemplate).toMatch(/description:\s*Suggest an idea for this project/);
+    });
+
+    describe("new dropdown fields (PR changes)", () => {
+      it("should have an Issue Type dropdown field", () => {
+        expect(featureTemplate).toContain("Issue Type");
+        expect(featureTemplate).toMatch(/label:\s*Issue Type/);
+      });
+
+      it("Issue Type dropdown should have id 'type'", () => {
+        expect(featureTemplate).toMatch(/id:\s*type/);
+      });
+
+      it("Issue Type dropdown should be required", () => {
+        const typeBlock = featureTemplate.substring(
+          featureTemplate.indexOf("id: type"),
+          featureTemplate.indexOf("id: priority"),
+        );
+        expect(typeBlock).toContain("required: true");
+      });
+
+      it("Issue Type dropdown in feature template should list 'feature' as first option", () => {
+        const typeBlock = featureTemplate.substring(
+          featureTemplate.indexOf("id: type"),
+          featureTemplate.indexOf("id: priority"),
+        );
+        const options = typeBlock.match(/options:\n((?:\s+- \S+\n?)+)/);
+        expect(options).not.toBeNull();
+        // The first option listed should be 'feature'
+        expect(typeBlock).toMatch(/options:\s*\n\s*- feature/);
+      });
+
+      it("Issue Type dropdown should include 'feature', 'bug', and 'task' options", () => {
+        expect(featureTemplate).toContain("- feature");
+        expect(featureTemplate).toContain("- bug");
+        expect(featureTemplate).toContain("- task");
+      });
+
+      it("should have a Priority dropdown field", () => {
+        expect(featureTemplate).toContain("Priority");
+        expect(featureTemplate).toMatch(/label:\s*Priority/);
+      });
+
+      it("Priority dropdown should include Urgent, High, Normal, Low options", () => {
+        const priorityBlock = featureTemplate.substring(featureTemplate.indexOf("id: priority"));
+        expect(priorityBlock).toContain("- Urgent");
+        expect(priorityBlock).toContain("- High");
+        expect(priorityBlock).toContain("- Normal");
+        expect(priorityBlock).toContain("- Low");
+      });
+
+      it("should have dropdown type fields", () => {
+        const dropdownMatches = featureTemplate.match(/type:\s*dropdown/g);
+        expect(dropdownMatches).not.toBeNull();
+        expect(dropdownMatches.length).toBeGreaterThanOrEqual(2);
+      });
+
+      it("dropdown fields should appear before textarea fields in body", () => {
+        const firstDropdownIndex = featureTemplate.indexOf("type: dropdown");
+        const firstTextareaIndex = featureTemplate.indexOf("type: textarea");
+        expect(firstDropdownIndex).toBeLessThan(firstTextareaIndex);
+      });
     });
   });
 
@@ -442,6 +503,84 @@ describe("GitHub Issue Templates", () => {
     });
   });
 
+  describe("bug.yml new dropdown fields (PR changes)", () => {
+    const bugTemplatePath = path.join(templatesDir, "bug.yml");
+    let bugContent;
+
+    beforeAll(() => {
+      bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+    });
+
+    it("should have an Issue Type dropdown field", () => {
+      expect(bugContent).toContain("Issue Type");
+      expect(bugContent).toMatch(/label:\s*Issue Type/);
+    });
+
+    it("Issue Type dropdown should have id 'type'", () => {
+      expect(bugContent).toMatch(/id:\s*type/);
+    });
+
+    it("Issue Type dropdown should be required", () => {
+      // The required: true should appear in the dropdown's validations block
+      const typeBlock = bugContent.substring(
+        bugContent.indexOf("id: type"),
+        bugContent.indexOf("id: priority"),
+      );
+      expect(typeBlock).toContain("required: true");
+    });
+
+    it("Issue Type dropdown should include 'bug', 'feature', and 'task' options", () => {
+      expect(bugContent).toContain("- bug");
+      expect(bugContent).toContain("- feature");
+      expect(bugContent).toContain("- task");
+    });
+
+    it("Issue Type dropdown default should be 0 (first option)", () => {
+      const typeBlock = bugContent.substring(
+        bugContent.indexOf("id: type"),
+        bugContent.indexOf("id: priority"),
+      );
+      expect(typeBlock).toMatch(/default:\s*0/);
+    });
+
+    it("should have a Priority dropdown field", () => {
+      expect(bugContent).toContain("Priority");
+      expect(bugContent).toMatch(/label:\s*Priority/);
+    });
+
+    it("Priority dropdown should have id 'priority'", () => {
+      expect(bugContent).toMatch(/id:\s*priority/);
+    });
+
+    it("Priority dropdown should include Urgent, High, Normal, Low options", () => {
+      const priorityBlock = bugContent.substring(bugContent.indexOf("id: priority"));
+      expect(priorityBlock).toContain("- Urgent");
+      expect(priorityBlock).toContain("- High");
+      expect(priorityBlock).toContain("- Normal");
+      expect(priorityBlock).toContain("- Low");
+    });
+
+    it("Priority dropdown should not be required (maintainer-only)", () => {
+      const priorityBlock = bugContent.substring(
+        bugContent.indexOf("id: priority"),
+        bugContent.indexOf("id: description"),
+      );
+      expect(priorityBlock).not.toContain("required: true");
+    });
+
+    it("should have dropdown type fields", () => {
+      const dropdownMatches = bugContent.match(/type:\s*dropdown/g);
+      expect(dropdownMatches).not.toBeNull();
+      expect(dropdownMatches.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("dropdown fields should appear before textarea fields in body", () => {
+      const firstDropdownIndex = bugContent.indexOf("type: dropdown");
+      const firstTextareaIndex = bugContent.indexOf("type: textarea");
+      expect(firstDropdownIndex).toBeLessThan(firstTextareaIndex);
+    });
+  });
+
   describe("GitHub specific requirements", () => {
     it("should use GitHub Form schema compatible structure", () => {
       const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
@@ -459,9 +598,9 @@ describe("GitHub Issue Templates", () => {
         "utf8",
       );
 
-      // Labels should be in array format
-      expect(bugContent).toMatch(/labels:\s*\[['"]bug['"]\]/);
-      expect(featureContent).toMatch(/labels:\s*\[['"]feature['"]\]/);
+      // Labels should be in array format with namespaced values
+      expect(bugContent).toMatch(/labels:\s*\[['"]type: bug['"]\]/);
+      expect(featureContent).toMatch(/labels:\s*\[['"]type: feature['"]\]/);
     });
 
     it("should have empty string for assignees by default", () => {
@@ -474,6 +613,122 @@ describe("GitHub Issue Templates", () => {
       // Match empty array [] or empty string
       expect(bugContent).toMatch(/assignees:\s*(\[\]|['"]['"]?)/);
       expect(featureContent).toMatch(/assignees:\s*(\[\]|['"]['"]?)/);
+    });
+  });
+
+  describe("config.yml", () => {
+    const configPath = path.join(templatesDir, "config.yml");
+    let configContent;
+
+    beforeAll(() => {
+      configContent = fs.readFileSync(configPath, "utf8");
+    });
+
+    it("should exist", () => {
+      expect(fs.existsSync(configPath)).toBe(true);
+    });
+
+    it("should have blank_issues_enabled set to true", () => {
+      expect(configContent).toMatch(/blank_issues_enabled:\s*true/);
+    });
+
+    it("should not have blank_issues_enabled set to false", () => {
+      expect(configContent).not.toMatch(/blank_issues_enabled:\s*false/);
+    });
+
+    it("should have contact_links section", () => {
+      expect(configContent).toContain("contact_links:");
+    });
+
+    it("should have a link to discussions", () => {
+      expect(configContent).toContain("discussions");
+    });
+
+    it("should not contain syntax errors (no tabs)", () => {
+      expect(configContent).not.toMatch(/\t/);
+    });
+  });
+
+  describe("cross-template dropdown consistency (PR changes)", () => {
+    const bugTemplatePath = path.join(templatesDir, "bug.yml");
+    const featureTemplatePath = path.join(templatesDir, "feature_request.yml");
+
+    it("both templates should have an Issue Type dropdown with id 'type'", () => {
+      const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+      const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
+
+      expect(bugContent).toMatch(/id:\s*type/);
+      expect(featureContent).toMatch(/id:\s*type/);
+    });
+
+    it("both templates should have a Priority dropdown with id 'priority'", () => {
+      const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+      const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
+
+      expect(bugContent).toMatch(/id:\s*priority/);
+      expect(featureContent).toMatch(/id:\s*priority/);
+    });
+
+    it("both templates should share the same priority levels", () => {
+      const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+      const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
+
+      const priorityOptions = ["Urgent", "High", "Normal", "Low"];
+      priorityOptions.forEach((option) => {
+        expect(bugContent).toContain(option);
+        expect(featureContent).toContain(option);
+      });
+    });
+
+    it("Issue Type dropdown default should be 0 in both templates", () => {
+      const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+      const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
+
+      const bugTypeBlock = bugContent.substring(
+        bugContent.indexOf("id: type"),
+        bugContent.indexOf("id: priority"),
+      );
+      const featureTypeBlock = featureContent.substring(
+        featureContent.indexOf("id: type"),
+        featureContent.indexOf("id: priority"),
+      );
+
+      expect(bugTypeBlock).toMatch(/default:\s*0/);
+      expect(featureTypeBlock).toMatch(/default:\s*0/);
+    });
+
+    it("bug template Issue Type should list 'bug' as first option", () => {
+      const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+      const typeBlock = bugContent.substring(
+        bugContent.indexOf("id: type"),
+        bugContent.indexOf("id: priority"),
+      );
+      expect(typeBlock).toMatch(/options:\s*\n\s*- bug/);
+    });
+
+    it("feature template Issue Type should list 'feature' as first option", () => {
+      const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
+      const typeBlock = featureContent.substring(
+        featureContent.indexOf("id: type"),
+        featureContent.indexOf("id: priority"),
+      );
+      expect(typeBlock).toMatch(/options:\s*\n\s*- feature/);
+    });
+
+    it("Priority description should mention it is for maintainers in both templates", () => {
+      const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+      const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
+
+      expect(bugContent).toContain("maintainers");
+      expect(featureContent).toContain("maintainers");
+    });
+
+    it("namespaced labels should use 'type: ' prefix format", () => {
+      const bugContent = fs.readFileSync(bugTemplatePath, "utf8");
+      const featureContent = fs.readFileSync(featureTemplatePath, "utf8");
+
+      expect(bugContent).toMatch(/labels:\s*\[["']type: bug["']\]/);
+      expect(featureContent).toMatch(/labels:\s*\[["']type: feature["']\]/);
     });
   });
 });
