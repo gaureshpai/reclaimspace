@@ -45,8 +45,9 @@ describe("GitHub Actions Workflows", () => {
       expect(buildWorkflow).toMatch(/node-version:\s*["']?20["']?/);
     });
 
-    it("should install dependencies with frozen lockfile", () => {
-      expect(buildWorkflow).toContain("pnpm install --frozen-lockfile");
+    it("should install dependencies", () => {
+      expect(buildWorkflow).toContain("pnpm install");
+      expect(buildWorkflow).not.toContain("--frozen-lockfile");
     });
 
     it("should have a 'Verify package' step using pnpm pack --dry-run", () => {
@@ -68,9 +69,10 @@ describe("GitHub Actions Workflows", () => {
       expect(buildWorkflow).toContain("report-status:");
     });
 
-    it("report-status job should always run", () => {
+    it("report-status job should run with gated always() condition", () => {
       const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toMatch(/if:\s*always\(\)/);
+      expect(reportBlock).toMatch(/always\(\)/);
+      expect(reportBlock).toMatch(/safe-to-test/);
     });
 
     it("report-status job should depend on the build job", () => {
@@ -143,8 +145,9 @@ describe("GitHub Actions Workflows", () => {
       expect(lintWorkflow).toMatch(/node-version:\s*["']?20["']?/);
     });
 
-    it("should install dependencies with frozen lockfile", () => {
-      expect(lintWorkflow).toContain("pnpm install --frozen-lockfile");
+    it("should install dependencies", () => {
+      expect(lintWorkflow).toContain("pnpm install");
+      expect(lintWorkflow).not.toContain("--frozen-lockfile");
     });
 
     it("should run Biome lint via pnpm lint", () => {
@@ -164,9 +167,10 @@ describe("GitHub Actions Workflows", () => {
       expect(lintWorkflow).toContain("report-status:");
     });
 
-    it("report-status job should always run", () => {
+    it("report-status job should run with gated always() condition", () => {
       const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toMatch(/if:\s*always\(\)/);
+      expect(reportBlock).toMatch(/always\(\)/);
+      expect(reportBlock).toMatch(/safe-to-test/);
     });
 
     it("report-status job should depend on the lint job", () => {
@@ -501,15 +505,17 @@ describe("GitHub Actions Workflows", () => {
       expect(lintContent).toContain("uses: ./.github/workflows/reporter.yml");
     });
 
-    it("both report-status jobs should run on if: always()", () => {
+    it("both report-status jobs should include always() and safe-to-test gating", () => {
       const buildContent = fs.readFileSync(buildPath, "utf8");
       const lintContent = fs.readFileSync(lintPath, "utf8");
 
       const buildReportBlock = buildContent.substring(buildContent.indexOf("report-status:"));
       const lintReportBlock = lintContent.substring(lintContent.indexOf("report-status:"));
 
-      expect(buildReportBlock).toMatch(/if:\s*always\(\)/);
-      expect(lintReportBlock).toMatch(/if:\s*always\(\)/);
+      expect(buildReportBlock).toMatch(/always\(\)/);
+      expect(buildReportBlock).toMatch(/safe-to-test/);
+      expect(lintReportBlock).toMatch(/always\(\)/);
+      expect(lintReportBlock).toMatch(/safe-to-test/);
     });
   });
 });
