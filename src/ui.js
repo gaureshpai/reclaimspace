@@ -106,10 +106,13 @@ async function start({ targets, totalSize, duration, options, baseDir, state, bu
     console.log(chalk.yellow("--yes: Deleting all found items..."));
     // Suppress stdin during deletion to prevent accidental keystrokes from corrupting output
     process.stdin.pause();
-    for (const target of targets) {
-      await handleDelete(target, state);
+    try {
+      for (const target of targets) {
+        await handleDelete(target, state);
+      }
+    } finally {
+      process.stdin.resume();
     }
-    process.stdin.resume();
     displaySummary(state);
     return;
   }
@@ -193,10 +196,13 @@ async function interactiveUI(targets, _totalSize, baseDir, state) {
 
       // Suppress stdin during deletion to prevent accidental keystrokes from corrupting output
       process.stdin.pause();
-      for (const target of selectedTargets) {
-        await handleDelete(target, state);
+      try {
+        for (const target of selectedTargets) {
+          await handleDelete(target, state);
+        }
+      } finally {
+        process.stdin.resume();
       }
-      process.stdin.resume();
     }
   } catch (error) {
     if (error.message !== "User interrupted") {
