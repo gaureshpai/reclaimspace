@@ -65,6 +65,9 @@ jobs:
               }
             }
 
+            // Map display names to file names for the workflow_id API parameter
+            const workflowFileMap = { 'Lint': 'lint.yml', 'Test': 'test.yml', 'Build': 'build.yml' };
+
             // Also try fetching workflow runs directly as a fallback
             for (const wf of workflows) {
               if (!statuses[wf]) {
@@ -72,7 +75,7 @@ jobs:
                   const { data: runs } = await github.rest.actions.listWorkflowRuns({
                     owner,
                     repo,
-                    workflow_id: wf,
+                    workflow_id: workflowFileMap[wf] || wf,
                     branch: headBranch,
                     event: 'pull_request',
                     per_page: 1

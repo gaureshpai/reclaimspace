@@ -32,7 +32,7 @@ describe("Documentation", () => {
       });
 
       it("should mention reclaimspace in all platform config paths", () => {
-        expect(readme).toContain("%APPDATA%\\\\reclaimspace\\\\");
+        expect(readme).toContain("%APPDATA%\\reclaimspace\\");
         expect(readme).toContain("Application Support/reclaimspace/");
         expect(readme).toContain(".config/reclaimspace/");
       });
@@ -58,9 +58,7 @@ describe("Documentation", () => {
       });
 
       it("should mention common system directories in default patterns", () => {
-        const defaultSection = readme.substring(
-          readme.indexOf("### Default Ignore Patterns"),
-        );
+        const defaultSection = readme.substring(readme.indexOf("### Default Ignore Patterns"));
         expect(defaultSection).toContain("Program Files");
         expect(defaultSection).toContain(".vscode");
         expect(defaultSection).toContain(".pnpm-store");
@@ -247,26 +245,20 @@ describe("Documentation", () => {
       });
 
       it("Default Ignore Patterns should document System directories", () => {
-        const defaultSection = html.substring(
-          html.indexOf("Default Ignore Patterns"),
-        );
+        const defaultSection = html.substring(html.indexOf("Default Ignore Patterns"));
         expect(defaultSection).toContain("Program Files");
         expect(defaultSection).toContain("Applications");
       });
 
       it("Default Ignore Patterns should document Editor/IDE directories", () => {
-        const defaultSection = html.substring(
-          html.indexOf("Default Ignore Patterns"),
-        );
+        const defaultSection = html.substring(html.indexOf("Default Ignore Patterns"));
         expect(defaultSection).toContain(".vscode");
         expect(defaultSection).toContain(".cursor");
         expect(defaultSection).toContain(".idea");
       });
 
       it("Default Ignore Patterns should document Package Manager directories", () => {
-        const defaultSection = html.substring(
-          html.indexOf("Default Ignore Patterns"),
-        );
+        const defaultSection = html.substring(html.indexOf("Default Ignore Patterns"));
         expect(defaultSection).toContain(".pnpm-store");
       });
 

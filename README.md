@@ -91,7 +91,7 @@ npx reclaimspace --ignore "node_modules,dist"
 
 **To ignore certain folders permanently (global):**
 
-You can permanently exclude folders from the scan by providing a comma-separated list of patterns. This will update the global `.reclaimspacerc` file (in `%APPDATA%\\reclaimspace\\` on Windows, `~/Library/Application Support/reclaimspace/` on macOS, or `~/.config/reclaimspace/` on Linux) using the `--save` or `-s` flag.
+You can permanently exclude folders from the scan by providing a comma-separated list of patterns. This will update the global `.reclaimspacerc` file (in `%APPDATA%\reclaimspace\` on Windows, `~/Library/Application Support/reclaimspace/` on macOS, or `~/.config/reclaimspace/` on Linux) using the `--save` or `-s` flag.
 
 ```bash
 npx reclaimspace --ignore "node_modules,dist" --save
