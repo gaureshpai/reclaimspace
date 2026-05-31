@@ -37,7 +37,7 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have 'bug' label", () => {
-      expect(bugTemplate).toMatch(/labels:\s*\[["']bug["']\]/);
+      expect(bugTemplate).toMatch(/labels:\s*\[["']type: bug["']\]/);
     });
 
     it("should have '[Bug]: ' as title prefix", () => {
@@ -154,7 +154,7 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have 'feature' label", () => {
-      expect(featureTemplate).toMatch(/labels:\s*\[["']feature["']\]/);
+      expect(featureTemplate).toMatch(/labels:\s*\[["']type: feature["']\]/);
     });
 
     it("should have '[Feature]: ' as title prefix", () => {
@@ -460,8 +460,8 @@ describe("GitHub Issue Templates", () => {
       );
 
       // Labels should be in array format
-      expect(bugContent).toMatch(/labels:\s*\[['"]bug['"]\]/);
-      expect(featureContent).toMatch(/labels:\s*\[['"]feature['"]\]/);
+      expect(bugContent).toMatch(/labels:\s*\[['"]type: bug['"]\]/);
+      expect(featureContent).toMatch(/labels:\s*\[['"]type: feature['"]\]/);
     });
 
     it("should have empty string for assignees by default", () => {
