@@ -31,7 +31,7 @@ function formatSize(bytes) {
  */
 function getGlobalConfigDir(overrides = {}) {
   const platform = overrides.platform || process.platform;
-  const env = { ...process.env, ...overrides.env };
+  const env = overrides.env || process.env;
 
   if (platform === "win32") {
     const appData =
