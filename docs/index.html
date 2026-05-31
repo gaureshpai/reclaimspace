@@ -314,7 +314,8 @@
             corrupting the output.
           </li>
           <li>
-            <strong>Build Analysis:</strong> Use the <code>--build-analysis</code>
+            <strong>Build Analysis:</strong> Use the
+            <code>--build-analysis</code>
             flag to see inferred project types and common build patterns.
           </li>
           <li>
@@ -371,13 +372,24 @@ my-project/dist</code></pre>
         ><button class="copy-btn">Copy</button><code>npx reclaimspace --ignore "node_modules,dist" --save</code></pre>
         <p>
           Global patterns are stored in a
-          <code>.reclaimspacerc</code> file inside the platform-specific
-          config directory:
+          <code>.reclaimspacerc</code> file inside the platform-specific config
+          directory:
         </p>
         <ul>
-          <li><strong>Windows:</strong> <code>%APPDATA%\reclaimspace\.reclaimspacerc</code></li>
-          <li><strong>macOS:</strong> <code>~/Library/Application Support/reclaimspace/.reclaimspacerc</code></li>
-          <li><strong>Linux:</strong> <code>~/.config/reclaimspace/.reclaimspacerc</code></li>
+          <li>
+            <strong>Windows:</strong>
+            <code>%APPDATA%\reclaimspace\.reclaimspacerc</code>
+          </li>
+          <li>
+            <strong>macOS:</strong>
+            <code
+              >~/Library/Application Support/reclaimspace/.reclaimspacerc</code
+            >
+          </li>
+          <li>
+            <strong>Linux:</strong>
+            <code>~/.config/reclaimspace/.reclaimspacerc</code>
+          </li>
         </ul>
 
         <h3>Default Ignore Patterns</h3>
@@ -391,12 +403,11 @@ my-project/dist</code></pre>
           <code>usr</code>, <code>var</code>, <code>etc</code>, <code>opt</code>
         </p>
         <p>
-          <strong>Editors/IDE:</strong> <code>.vscode</code>, <code>.cursor</code>,
-          <code>.idea</code>, <code>.sublime-project</code>, <code>.atom</code>
+          <strong>Editors/IDE:</strong> <code>.vscode</code>,
+          <code>.cursor</code>, <code>.idea</code>,
+          <code>.sublime-project</code>, <code>.atom</code>
         </p>
-        <p>
-          <strong>Package Managers:</strong> <code>.pnpm-store</code>
-        </p>
+        <p><strong>Package Managers:</strong> <code>.pnpm-store</code></p>
         <p>
           <strong>Other:</strong> <code>.vitest-attachments</code>,
           <code>src</code>, <code>app</code>, <code>lib</code>,
@@ -433,8 +444,8 @@ my-project/dist</code></pre>
                 <code>.eleventy-cache</code>, <code>.gatsby-cache</code>,
                 <code>.eslintcache</code>, <code>.stylelintcache</code>,
                 <code>.prettiercache</code>, <code>.tsbuildinfo</code>,
-                <code>.swc</code>, <code>.nx</code>,
-                <code>.wwebjs_cache</code>, <code>.wwebjs_auth</code>,
+                <code>.swc</code>, <code>.nx</code>, <code>.wwebjs_cache</code>,
+                <code>.wwebjs_auth</code>,
                 <code>public/build</code>
               </li>
             </ul>

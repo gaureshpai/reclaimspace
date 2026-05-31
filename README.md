@@ -112,6 +112,7 @@ You can create a `.reclaimspacerc` file in the root of your project to specify f
 ### Global Ignore Patterns
 
 You can also save ignore patterns globally via the `--save` flag. Global patterns are stored in a `.reclaimspacerc` file inside your platform's config directory:
+
 - **Windows:** `%APPDATA%\reclaimspace\.reclaimspacerc`
 - **macOS:** `~/Library/Application Support/reclaimspace/.reclaimspacerc`
 - **Linux:** `~/.config/reclaimspace/.reclaimspacerc`

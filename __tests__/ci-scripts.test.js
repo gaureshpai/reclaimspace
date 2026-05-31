@@ -701,7 +701,10 @@ describe("reporter.yml script logic", () => {
 
     it("buildStatusTable handles workflow with 'timed_out' conclusion", () => {
       const statuses = {
-        Lint: { conclusion: "timed_out", html_url: "https://example.com/run/99" },
+        Lint: {
+          conclusion: "timed_out",
+          html_url: "https://example.com/run/99",
+        },
         Test: { conclusion: "success", html_url: null },
         Build: { conclusion: "success", html_url: null },
       };
