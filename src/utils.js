@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 
 /**
  * Formats bytes into a human-readable string (e.g., "1.23 MB").
@@ -15,16 +16,34 @@ function formatSize(bytes) {
 }
 
 /**
- * Reads ignore patterns from .reclaimspacerc and appends default system ignores.
- * @param {string} baseDir - The directory to look for .reclaimspacerc in.
- * @returns {Promise<Array<string>>} List of glob patterns to ignore.
+ * Returns the platform-appropriate global config directory for reclaimspace.
+ * On Windows: %APPDATA%\reclaimspace
+ * On Linux/Mac: $XDG_CONFIG_HOME/reclaimspace or ~/.config/reclaimspace
+ * @returns {string} Path to the global config directory.
  */
-async function readIgnoreFile(baseDir) {
-  const ignoreFilePath = path.join(baseDir, ".reclaimspacerc");
-  let patterns = [];
+function getGlobalConfigDir() {
+  if (process.platform === "win32") {
+    return path.join(
+      process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
+      "reclaimspace",
+    );
+  }
+  const xdgConfig = process.env.XDG_CONFIG_HOME;
+  if (xdgConfig) {
+    return path.join(xdgConfig, "reclaimspace");
+  }
+  return path.join(os.homedir(), ".config", "reclaimspace");
+}
+
+/**
+ * Reads patterns from a .reclaimspacerc file at the given path.
+ * @param {string} filePath - Path to the .reclaimspacerc file.
+ * @returns {Promise<Array<string>>} List of patterns read from the file.
+ */
+async function readPatternsFromFile(filePath) {
   try {
-    const content = await fs.readFile(ignoreFilePath, "utf-8");
-    patterns = content
+    const content = await fs.readFile(filePath, "utf-8");
+    return content
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line && !line.startsWith("#"))
@@ -33,7 +52,25 @@ async function readIgnoreFile(baseDir) {
     if (err.code !== "ENOENT") {
       throw err;
     }
+    return [];
   }
+}
+
+/**
+ * Reads ignore patterns from local .reclaimspacerc and global config, then appends default system ignores.
+ * @param {string} baseDir - The directory to look for .reclaimspacerc in.
+ * @returns {Promise<Array<string>>} List of glob patterns to ignore.
+ */
+async function readIgnoreFile(baseDir) {
+  // Read from both local and global config
+  const localPatterns = await readPatternsFromFile(path.join(baseDir, ".reclaimspacerc"));
+  const globalPatterns = await readPatternsFromFile(
+    path.join(getGlobalConfigDir(), ".reclaimspacerc"),
+  );
+
+  // Merge patterns, deduplicating (local overrides take precedence, but we keep global ones too)
+  const patternsSet = new Set([...globalPatterns, ...localPatterns]);
+  const patterns = [...patternsSet];
 
   patterns.push("Program Files");
   patterns.push("Program Files (x86)");
@@ -72,13 +109,16 @@ async function readIgnoreFile(baseDir) {
 }
 
 /**
- * Saves ignore patterns to .reclaimspacerc.
- * @param {string} baseDir - The directory to look for .reclaimspacerc in.
+ * Saves ignore patterns to the global .reclaimspacerc config.
  * @param {Array<string>} patterns - List of glob patterns to ignore.
- * @returns {Promise<void>}
+ * @returns {Promise<string>} The path to the saved config file.
  */
-async function saveIgnorePatterns(baseDir, patterns) {
-  const ignoreFilePath = path.join(baseDir, ".reclaimspacerc");
+async function saveIgnorePatterns(patterns) {
+  const globalDir = getGlobalConfigDir();
+  const ignoreFilePath = path.join(globalDir, ".reclaimspacerc");
+
+  // Ensure the global config directory exists
+  await fs.mkdir(globalDir, { recursive: true });
   let existingContent = "";
   try {
     existingContent = await fs.readFile(ignoreFilePath, "utf-8");
@@ -98,7 +138,7 @@ async function saveIgnorePatterns(baseDir, patterns) {
     .map((p) => p.trim().replace(/^\/+/, ""))
     .filter((p) => p && !existingPatterns.includes(p));
 
-  if (patternsToAdd.length === 0) return;
+  if (patternsToAdd.length === 0) return ignoreFilePath;
 
   let finalContent = existingContent;
   if (finalContent && !finalContent.endsWith("\n")) {
@@ -107,6 +147,7 @@ async function saveIgnorePatterns(baseDir, patterns) {
   finalContent += `${patternsToAdd.join("\n")}\n`;
 
   await fs.writeFile(ignoreFilePath, finalContent, "utf-8");
+  return ignoreFilePath;
 }
 
 /**
@@ -122,4 +163,4 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
-export { formatSize, readIgnoreFile, saveIgnorePatterns, formatDate };
+export { formatSize, readIgnoreFile, saveIgnorePatterns, formatDate, getGlobalConfigDir };

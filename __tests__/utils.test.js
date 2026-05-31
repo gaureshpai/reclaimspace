@@ -1,5 +1,11 @@
 import fs from "node:fs/promises";
-import { formatSize, formatDate, readIgnoreFile, saveIgnorePatterns } from "../src/utils.js";
+import {
+  formatSize,
+  formatDate,
+  readIgnoreFile,
+  saveIgnorePatterns,
+  getGlobalConfigDir,
+} from "../src/utils.js";
 
 jest.mock("node:fs/promises");
 
@@ -26,9 +32,25 @@ describe("utils", () => {
     });
   });
 
+  describe("getGlobalConfigDir", () => {
+    it("should return a platform-appropriate config path", () => {
+      const configDir = getGlobalConfigDir();
+      expect(configDir).toContain("reclaimspace");
+    });
+  });
+
   describe("readIgnoreFile", () => {
+    beforeEach(() => {
+      // By default, mock mkdir to resolve (for global config dir tries)
+      fs.mkdir.mockResolvedValue();
+    });
+
     it("should read patterns from .reclaimspacerc", async () => {
-      fs.readFile.mockResolvedValue("node_modules\n# comment\ndist\n");
+      // First call: local .reclaimspacerc, Second call: global .reclaimspacerc (ENOENT)
+      fs.readFile
+        .mockResolvedValueOnce("node_modules\n# comment\ndist\n")
+        .mockRejectedValueOnce({ code: "ENOENT" });
+
       const patterns = await readIgnoreFile("/mock/dir");
 
       expect(patterns).toContain("node_modules");
@@ -38,10 +60,33 @@ describe("utils", () => {
       expect(patterns).toContain("usr");
     });
 
-    it("should handle missing ignore file", async () => {
-      const error = new Error("File not found");
-      error.code = "ENOENT";
-      fs.readFile.mockRejectedValue(error);
+    it("should read patterns from global config when no local file exists", async () => {
+      // First call: local .reclaimspacerc (ENOENT), Second call: global .reclaimspacerc
+      fs.readFile
+        .mockRejectedValueOnce({ code: "ENOENT" })
+        .mockResolvedValueOnce("global_pattern\n");
+
+      const patterns = await readIgnoreFile("/mock/dir");
+
+      expect(patterns).toContain("global_pattern");
+      expect(patterns).toContain("usr"); // Defaults still present
+    });
+
+    it("should merge local and global patterns", async () => {
+      fs.readFile
+        .mockResolvedValueOnce("local_pattern\n")
+        .mockResolvedValueOnce("global_pattern\n");
+
+      const patterns = await readIgnoreFile("/mock/dir");
+
+      expect(patterns).toContain("local_pattern");
+      expect(patterns).toContain("global_pattern");
+    });
+
+    it("should handle both files missing", async () => {
+      fs.readFile
+        .mockRejectedValueOnce({ code: "ENOENT" })
+        .mockRejectedValueOnce({ code: "ENOENT" });
 
       const patterns = await readIgnoreFile("/mock/dir");
       expect(patterns).toBeDefined();
@@ -49,33 +94,49 @@ describe("utils", () => {
     });
 
     it("should throw other errors", async () => {
-      fs.readFile.mockRejectedValue(new Error("Permission denied"));
+      fs.readFile.mockRejectedValueOnce(new Error("Permission denied"));
+
       await expect(readIgnoreFile("/mock/dir")).rejects.toThrow("Permission denied");
+    });
+
+    it("should local patterns override global (last dedup wins)", async () => {
+      fs.readFile
+        .mockResolvedValueOnce("common_pattern\n")
+        .mockResolvedValueOnce("common_pattern\n");
+
+      const patterns = await readIgnoreFile("/mock/dir");
+
+      // Should only appear once
+      const count = patterns.filter((p) => p === "common_pattern").length;
+      expect(count).toBe(1);
     });
   });
 
   describe("saveIgnorePatterns", () => {
-    it("should save patterns to a new .reclaimspacerc", async () => {
+    beforeEach(() => {
+      fs.mkdir.mockResolvedValue();
+    });
+
+    it("should save patterns to global config directory", async () => {
       fs.readFile.mockRejectedValue({ code: "ENOENT" });
       fs.writeFile.mockResolvedValue();
 
-      await saveIgnorePatterns("/mock/dir", ["node_modules", "dist"]);
+      const configPath = await saveIgnorePatterns(["node_modules", "dist"]);
 
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(".reclaimspacerc"),
-        "node_modules\ndist\n",
-        "utf-8",
-      );
+      expect(configPath).toContain("reclaimspace");
+      expect(configPath).toContain(".reclaimspacerc");
+      expect(fs.mkdir).toHaveBeenCalled();
+      expect(fs.writeFile).toHaveBeenCalledWith(configPath, "node_modules\ndist\n", "utf-8");
     });
 
-    it("should append patterns to an existing .reclaimspacerc", async () => {
+    it("should append patterns to an existing global .reclaimspacerc", async () => {
       fs.readFile.mockResolvedValue("existing_pattern\n");
       fs.writeFile.mockResolvedValue();
 
-      await saveIgnorePatterns("/mock/dir", ["new_pattern"]);
+      const configPath = await saveIgnorePatterns(["new_pattern"]);
 
       expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(".reclaimspacerc"),
+        configPath,
         "existing_pattern\nnew_pattern\n",
         "utf-8",
       );
@@ -85,7 +146,7 @@ describe("utils", () => {
       fs.readFile.mockResolvedValue("existing_pattern\n");
       fs.writeFile.mockResolvedValue();
 
-      await saveIgnorePatterns("/mock/dir", ["existing_pattern", "new_pattern"]);
+      await saveIgnorePatterns(["existing_pattern", "new_pattern"]);
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining(".reclaimspacerc"),
@@ -98,13 +159,24 @@ describe("utils", () => {
       fs.readFile.mockResolvedValue("existing_pattern");
       fs.writeFile.mockResolvedValue();
 
-      await saveIgnorePatterns("/mock/dir", ["new_pattern"]);
+      await saveIgnorePatterns(["new_pattern"]);
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining(".reclaimspacerc"),
         "existing_pattern\nnew_pattern\n",
         "utf-8",
       );
+    });
+
+    it("should create the global config directory if it doesn't exist", async () => {
+      fs.readFile.mockRejectedValue({ code: "ENOENT" });
+      fs.writeFile.mockResolvedValue();
+
+      await saveIgnorePatterns(["test_pattern"]);
+
+      expect(fs.mkdir).toHaveBeenCalledWith(expect.stringContaining("reclaimspace"), {
+        recursive: true,
+      });
     });
   });
 });

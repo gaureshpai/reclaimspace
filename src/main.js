@@ -78,8 +78,8 @@ async function run(baseDir) {
     }
 
     if (patternsToSave.length > 0) {
-      await saveIgnorePatterns(baseDir, patternsToSave);
-      console.log(chalk.green(`✔ Saved ignore patterns to ${baseDir}/.reclaimspacerc`));
+      const configPath = await saveIgnorePatterns(patternsToSave);
+      console.log(chalk.green(`✔ Saved ignore patterns to ${configPath}`));
     }
 
     let searchPaths = program.args.length ? program.args : [baseDir];
