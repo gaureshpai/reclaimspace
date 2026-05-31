@@ -238,11 +238,14 @@
           class="position-relative"
         ><button class="copy-btn">Copy</button><code>npx reclaimspace --build-analysis</code></pre>
 
-        <h3>Ignore Certain Folders Permanently</h3>
+        <h3>Ignore Certain Folders Permanently (Global)</h3>
         <p>
           You can permanently exclude folders from the scan by providing a
-          comma-separated list of patterns. This will update or create a
-          <code>.reclaimspacerc</code> file in the current directory using the
+          comma-separated list of patterns. This will update the global
+          <code>.reclaimspacerc</code> file (in
+          <code>%APPDATA%\reclaimspace\</code> on Windows,
+          <code>~/Library/Application Support/reclaimspace/</code> on macOS, or
+          <code>~/.config/reclaimspace/</code> on Linux) using the
           <code>--save</code> or <code>-s</code> flag.
         </p>
         <pre
@@ -306,6 +309,26 @@
             to invert selection.
           </li>
           <li>
+            <strong>Keyboard Protection:</strong> Terminal input is suppressed
+            during deletion, preventing accidental keystrokes (like Enter) from
+            corrupting the output.
+          </li>
+          <li>
+            <strong>Build Analysis:</strong> Use the
+            <code>--build-analysis</code>
+            flag to see inferred project types and common build patterns.
+          </li>
+          <li>
+            <strong>Include Patterns:</strong> Use the <code>--include</code>
+            flag to scan only folders matching specific patterns, overriding
+            defaults.
+          </li>
+          <li>
+            <strong>Global Config:</strong> Ignore patterns can be saved
+            globally via <code>--save</code>, applying across all projects
+            without per-project <code>.reclaimspacerc</code> files.
+          </li>
+          <li>
             <strong>Windows Stability:</strong> Includes built-in retry logic
             for locked files (EBUSY/EPERM), ensuring smooth cleanup on Windows
             systems.
@@ -324,11 +347,12 @@
 
       <section id="configuration" class="mb-5">
         <h2>Configuration</h2>
+
+        <h3>Per-Project Ignore Patterns</h3>
         <p>
-          You can create a <code>.reclaimspacerc</code> file in the root of your
-          project to specify folders and patterns to ignore.
+          Create a <code>.reclaimspacerc</code> file in the root of your project
+          to specify folders and patterns to ignore:
         </p>
-        <p>Example <code>.reclaimspacerc</code> file:</p>
         <pre
           class="position-relative"
         ><button class="copy-btn">Copy</button><code># Ignore all node_modules folders
@@ -336,6 +360,59 @@ node_modules
 
 # Ignore a specific build folder
 my-project/dist</code></pre>
+
+        <h3>Global Ignore Patterns</h3>
+        <p>
+          You can also save ignore patterns globally so they apply to every
+          project. Use the <code>--ignore</code> flag together with
+          <code>--save</code> (or <code>-s</code>):
+        </p>
+        <pre
+          class="position-relative"
+        ><button class="copy-btn">Copy</button><code>npx reclaimspace --ignore "node_modules,dist" --save</code></pre>
+        <p>
+          Global patterns are stored in a
+          <code>.reclaimspacerc</code> file inside the platform-specific config
+          directory:
+        </p>
+        <ul>
+          <li>
+            <strong>Windows:</strong>
+            <code>%APPDATA%\reclaimspace\.reclaimspacerc</code>
+          </li>
+          <li>
+            <strong>macOS:</strong>
+            <code
+              >~/Library/Application Support/reclaimspace/.reclaimspacerc</code
+            >
+          </li>
+          <li>
+            <strong>Linux:</strong>
+            <code>~/.config/reclaimspace/.reclaimspacerc</code>
+          </li>
+        </ul>
+
+        <h3>Default Ignore Patterns</h3>
+        <p>
+          The tool automatically excludes common system and editor directories
+          from scanning:
+        </p>
+        <p>
+          <strong>System:</strong> <code>Program Files</code>,
+          <code>Applications</code>, <code>System</code>, <code>Library</code>,
+          <code>usr</code>, <code>var</code>, <code>etc</code>, <code>opt</code>
+        </p>
+        <p>
+          <strong>Editors/IDE:</strong> <code>.vscode</code>,
+          <code>.cursor</code>, <code>.idea</code>,
+          <code>.sublime-project</code>, <code>.atom</code>
+        </p>
+        <p><strong>Package Managers:</strong> <code>.pnpm-store</code></p>
+        <p>
+          <strong>Other:</strong> <code>.vitest-attachments</code>,
+          <code>src</code>, <code>app</code>, <code>lib</code>,
+          <code>components</code>, <code>pages</code>, <code>assets</code>
+        </p>
       </section>
 
       <section id="detected-items" class="mb-5">
@@ -367,8 +444,8 @@ my-project/dist</code></pre>
                 <code>.eleventy-cache</code>, <code>.gatsby-cache</code>,
                 <code>.eslintcache</code>, <code>.stylelintcache</code>,
                 <code>.prettiercache</code>, <code>.tsbuildinfo</code>,
-                <code>.swc</code>, <code>.nx</code>, <code>.pnpm-store</code>,
-                <code>.wwebjs_cache</code>, <code>.wwebjs_auth</code>,
+                <code>.swc</code>, <code>.nx</code>, <code>.wwebjs_cache</code>,
+                <code>.wwebjs_auth</code>,
                 <code>public/build</code>
               </li>
             </ul>
