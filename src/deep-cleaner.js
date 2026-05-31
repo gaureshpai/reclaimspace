@@ -43,7 +43,7 @@ async function detectPackageManagers() {
   const results = await Promise.all(
     managers.map(async (mgr) => {
       try {
-        const { stdout } = await execAsync(`${mgr.name === "npm" ? "npm" : mgr.name} --version`, {
+        const { stdout } = await execAsync(`${mgr.name} --version`, {
           timeout: 5000,
         });
         const version = stdout.trim();
