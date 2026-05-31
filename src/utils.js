@@ -119,6 +119,8 @@ async function readIgnoreFile(baseDir = process.cwd()) {
     "components",
     "pages",
     "styles",
+    ".pnpm-store",
+    ".vitest-attachments",
     "assets",
   ]);
 
