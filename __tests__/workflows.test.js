@@ -24,9 +24,8 @@ describe("GitHub Actions Workflows", () => {
       expect(buildWorkflow).not.toMatch(/^name:\s*CI\s*$/m);
     });
 
-    it("should trigger on push to main", () => {
-      expect(buildWorkflow).toContain("push:");
-      expect(buildWorkflow).toContain("- main");
+    it("should not trigger on push to main (only pull_request)", () => {
+      expect(buildWorkflow).not.toContain("push:");
     });
 
     it("should trigger on pull_request to main", () => {
@@ -94,9 +93,8 @@ describe("GitHub Actions Workflows", () => {
       expect(lintWorkflow).toMatch(/^name:\s*Lint\s*$/m);
     });
 
-    it("should trigger on push to main", () => {
-      expect(lintWorkflow).toContain("push:");
-      expect(lintWorkflow).toContain("- main");
+    it("should not trigger on push to main (only pull_request)", () => {
+      expect(lintWorkflow).not.toContain("push:");
     });
 
     it("should trigger on pull_request to main", () => {
@@ -272,14 +270,14 @@ describe("GitHub Actions Workflows", () => {
       expect(lintNodeVersion).toBe("20");
     });
 
-    it("both should trigger on push and pull_request to main", () => {
+    it("both should trigger on pull_request to main only (not push)", () => {
       const buildContent = fs.readFileSync(buildPath, "utf8");
       const lintContent = fs.readFileSync(lintPath, "utf8");
 
-      expect(buildContent).toContain("push:");
       expect(buildContent).toContain("pull_request:");
-      expect(lintContent).toContain("push:");
       expect(lintContent).toContain("pull_request:");
+      expect(buildContent).not.toContain("push:");
+      expect(lintContent).not.toContain("push:");
     });
 
     it("both should use actions/checkout@v4", () => {
