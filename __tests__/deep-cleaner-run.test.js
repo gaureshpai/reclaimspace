@@ -20,6 +20,11 @@ import fs from "node:fs/promises";
  */
 function setupExecMock(responses) {
   exec.mockImplementation((cmd, opts, callback) => {
+    // promisify(exec) calls with (command, options, callback)
+    if (typeof opts === "function") {
+      // If called without options, opts is the callback
+      callback = opts;
+    }
     // Find matching entry
     const match = Object.entries(responses).find(([key]) => cmd.startsWith(key));
     if (!match) {
@@ -125,7 +130,14 @@ describe("runDeepClean", () => {
       // exec is called for --version checks but NOT for cache clean commands
       const execCalls = exec.mock.calls.map(([cmd]) => cmd);
       expect(execCalls.some((cmd) => cmd.includes("cache clean"))).toBe(false);
-      expect(execCalls.some((cmd) => cmd.includes("cache delete"))).toBe(false);
+      expect(
+        execCalls.some(
+          (cmd) =>
+            cmd.includes("store prune") ||
+            cmd.includes("cache delete") ||
+            cmd.includes("cache clean"),
+        ),
+      ).toBe(false);
     });
 
     it("should return totalCleaned of 0 in dry mode (no actual cleaning)", async () => {
@@ -248,7 +260,7 @@ describe("runDeepClean", () => {
         "yarn --version": new Error("not found"),
         "pip --version": new Error("not found"),
         "npm cache clean --force": { stdout: "", stderr: "" },
-        "pnpm cache delete": { stdout: "", stderr: "" },
+        "pnpm store prune": { stdout: "", stderr: "" },
       });
 
       const result = await runDeepClean({ dry: false, onMessage });
@@ -265,7 +277,7 @@ describe("runDeepClean", () => {
         "yarn --version": new Error("not found"),
         "pip --version": new Error("not found"),
         "npm cache clean": new Error("npm clean failed"),
-        "pnpm cache delete": { stdout: "", stderr: "" },
+        "pnpm store prune": { stdout: "", stderr: "" },
       });
 
       const result = await runDeepClean({ dry: false, onMessage });

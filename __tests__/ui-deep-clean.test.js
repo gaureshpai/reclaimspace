@@ -54,9 +54,7 @@ describe("runDeepCleanWithUI", () => {
 
       await runDeepCleanWithUI({ dry: true });
 
-      expect(runDeepClean).toHaveBeenCalledWith(
-        expect.objectContaining({ dry: true }),
-      );
+      expect(runDeepClean).toHaveBeenCalledWith(expect.objectContaining({ dry: true }));
     });
 
     it("should log total cache that could be reclaimed in dry mode", async () => {
@@ -97,9 +95,7 @@ describe("runDeepCleanWithUI", () => {
 
       await runDeepCleanWithUI({ dry: false });
 
-      expect(runDeepClean).toHaveBeenCalledWith(
-        expect.objectContaining({ dry: false }),
-      );
+      expect(runDeepClean).toHaveBeenCalledWith(expect.objectContaining({ dry: false }));
     });
 
     it("should log success count when at least one manager succeeds", async () => {
@@ -119,9 +115,7 @@ describe("runDeepCleanWithUI", () => {
 
     it("should log failure count when at least one manager fails", async () => {
       runDeepClean.mockResolvedValue({
-        cleaned: [
-          { name: "npm", beforeSize: 0, afterSize: 0, success: false },
-        ],
+        cleaned: [{ name: "npm", beforeSize: 0, afterSize: 0, success: false }],
         totalCleaned: 0,
       });
 
@@ -238,9 +232,7 @@ describe("runDeepCleanWithUI", () => {
 
       await runDeepCleanWithUI({});
 
-      expect(runDeepClean).toHaveBeenCalledWith(
-        expect.objectContaining({ dry: false }),
-      );
+      expect(runDeepClean).toHaveBeenCalledWith(expect.objectContaining({ dry: false }));
     });
 
     it("should return undefined (no return value)", async () => {
