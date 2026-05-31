@@ -116,7 +116,7 @@ async function run(baseDir) {
 
     if (deepCleanOnly) {
       console.log(chalk.bold.cyan("\n🧹 Deep Clean Mode — Clearing Package Manager Caches\n"));
-      await ui.runDeepCleanWithUI(options);
+      await ui.runDeepCleanWithUI(options, state);
       ui.displaySummary(state);
       return;
     }
