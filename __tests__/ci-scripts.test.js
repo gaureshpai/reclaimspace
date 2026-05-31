@@ -18,12 +18,13 @@ const WORKFLOWS = ["Lint", "Test", "Build"];
 /**
  * Determines whether all workflows have completed (not pending/queued/in_progress).
  */
-function computeAllCompleted(statuses) {
+function computeAllCompleted(statuses = {}) {
   return WORKFLOWS.every(
     (w) =>
-      statuses[w]?.conclusion !== "pending" &&
-      statuses[w]?.conclusion !== "queued" &&
-      statuses[w]?.conclusion !== "in_progress",
+      statuses[w] &&
+      statuses[w].conclusion !== "pending" &&
+      statuses[w].conclusion !== "queued" &&
+      statuses[w].conclusion !== "in_progress",
   );
 }
 
