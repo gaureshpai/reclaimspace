@@ -61,12 +61,12 @@ async function readPatternsFromFile(filePath) {
  * @param {string} baseDir - The directory to look for .reclaimspacerc in.
  * @returns {Promise<Array<string>>} List of glob patterns to ignore.
  */
-async function readIgnoreFile(baseDir) {
+async function readIgnoreFile(baseDir = process.cwd()) {
   // Read from both local and global config
-  const localPatterns = await readPatternsFromFile(path.join(baseDir, ".reclaimspacerc"));
-  const globalPatterns = await readPatternsFromFile(
-    path.join(getGlobalConfigDir(), ".reclaimspacerc"),
-  );
+  const [localPatterns, globalPatterns] = await Promise.all([
+    readPatternsFromFile(path.join(baseDir, ".reclaimspacerc")),
+    readPatternsFromFile(path.join(getGlobalConfigDir(), ".reclaimspacerc")),
+  ]);
 
   // Merge patterns, deduplicating (local overrides take precedence, but we keep global ones too)
   const patternsSet = new Set([...globalPatterns, ...localPatterns]);
