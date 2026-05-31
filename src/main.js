@@ -137,7 +137,7 @@ async function run(baseDir) {
     // If deep-clean is combined with other flags, show deep-clean results after scan
     if (options.deepClean) {
       console.log(chalk.bold.cyan("\n🧹 Deep Clean — Clearing Package Manager Caches\n"));
-      await ui.runDeepCleanWithUI(options);
+      await ui.runDeepCleanWithUI(options, state);
     }
 
     if (!targets || targets.length === 0) {
