@@ -123,10 +123,10 @@ describe("deep-cleaner", () => {
       expect(npm.command).toBe("npm cache clean --force");
     });
 
-    it("pnpm should have correct store prune command", async () => {
+    it("pnpm should have correct cache delete command", async () => {
       const managers = await detectPackageManagers();
       const pnpm = managers.find((m) => m.name === "pnpm");
-      expect(pnpm.command).toBe("pnpm store prune");
+      expect(pnpm.command).toBe("pnpm cache delete");
     });
   });
 });

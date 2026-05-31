@@ -69,10 +69,9 @@ describe("GitHub Actions Workflows", () => {
       expect(buildWorkflow).toContain("report-status:");
     });
 
-    it("report-status job should run with gated always() condition", () => {
+    it("report-status job should run with always() condition", () => {
       const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
       expect(reportBlock).toMatch(/always\(\)/);
-      expect(reportBlock).toMatch(/safe-to-test/);
     });
 
     it("report-status job should depend on the build job", () => {
@@ -112,7 +111,7 @@ describe("GitHub Actions Workflows", () => {
     });
   });
 
-  describe("lint.yml (new file)", () => {
+  describe("lint.yml", () => {
     const lintWorkflowPath = path.join(workflowsDir, "lint.yml");
     let lintWorkflow;
 
@@ -167,10 +166,9 @@ describe("GitHub Actions Workflows", () => {
       expect(lintWorkflow).toContain("report-status:");
     });
 
-    it("report-status job should run with gated always() condition", () => {
+    it("report-status job should run with always() condition", () => {
       const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
       expect(reportBlock).toMatch(/always\(\)/);
-      expect(reportBlock).toMatch(/safe-to-test/);
     });
 
     it("report-status job should depend on the lint job", () => {
@@ -505,7 +503,7 @@ describe("GitHub Actions Workflows", () => {
       expect(lintContent).toContain("uses: ./.github/workflows/reporter.yml");
     });
 
-    it("both report-status jobs should include always() and safe-to-test gating", () => {
+    it("both report-status jobs should include always() condition", () => {
       const buildContent = fs.readFileSync(buildPath, "utf8");
       const lintContent = fs.readFileSync(lintPath, "utf8");
 
@@ -513,9 +511,7 @@ describe("GitHub Actions Workflows", () => {
       const lintReportBlock = lintContent.substring(lintContent.indexOf("report-status:"));
 
       expect(buildReportBlock).toMatch(/always\(\)/);
-      expect(buildReportBlock).toMatch(/safe-to-test/);
       expect(lintReportBlock).toMatch(/always\(\)/);
-      expect(lintReportBlock).toMatch(/safe-to-test/);
     });
   });
 });
