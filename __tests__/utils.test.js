@@ -34,8 +34,30 @@ describe("utils", () => {
 
   describe("getGlobalConfigDir", () => {
     it("should return a platform-appropriate config path", () => {
-      const configDir = getGlobalConfigDir();
-      expect(configDir).toContain("reclaimspace");
+      const originalPlatform = process.platform;
+      const originalEnv = { ...process.env };
+
+      try {
+        // Test Windows
+        Object.defineProperty(process, "platform", { value: "win32", writable: true });
+        process.env.APPDATA = "C:\\Users\\TestUser\\AppData\\Roaming";
+        expect(getGlobalConfigDir()).toBe("C:\\Users\\TestUser\\AppData\\Roaming\\reclaimspace");
+
+        // Test macOS
+        Object.defineProperty(process, "platform", { value: "darwin", writable: true });
+        process.env.HOME = "/Users/testuser";
+        delete process.env.APPDATA;
+        expect(getGlobalConfigDir()).toBe("/Users/testuser/Library/Application Support/reclaimspace");
+
+        // Test Linux
+        Object.defineProperty(process, "platform", { value: "linux", writable: true });
+        process.env.HOME = "/home/testuser";
+        expect(getGlobalConfigDir()).toBe("/home/testuser/.config/reclaimspace");
+      } finally {
+        // Restore original values
+        Object.defineProperty(process, "platform", { value: originalPlatform, writable: true });
+        process.env = originalEnv;
+      }
     });
   });
 
@@ -109,6 +131,10 @@ describe("utils", () => {
       // Should only appear once
       const count = patterns.filter((p) => p === "common_pattern").length;
       expect(count).toBe(1);
+      // Verify deduplication results in single pattern and it matches the local (second) value
+      const commonPatterns = patterns.filter((p) => p === "common_pattern");
+      expect(commonPatterns.length).toBe(1);
+      expect(commonPatterns[0]).toBe("common_pattern");
     });
   });
 

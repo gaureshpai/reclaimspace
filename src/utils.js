@@ -27,16 +27,20 @@ function formatSize(bytes) {
  */
 function getGlobalConfigDir() {
   if (process.platform === "win32") {
-    return path.join(
-      process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
-      "reclaimspace",
-    );
+    const appData = process.env.APPDATA ||
+      path.win32.join(process.env.USERPROFILE || os.homedir(), "AppData", "Roaming");
+    return path.win32.join(appData, "reclaimspace");
+  }
+  if (process.platform === "darwin") {
+    const homeDir = process.env.HOME || os.homedir();
+    return path.posix.join(homeDir, "Library", "Application Support", "reclaimspace");
   }
   const xdgConfig = process.env.XDG_CONFIG_HOME;
   if (xdgConfig) {
-    return path.join(xdgConfig, "reclaimspace");
+    return path.posix.join(xdgConfig, "reclaimspace");
   }
-  return path.join(os.homedir(), ".config", "reclaimspace");
+  const homeDir = process.env.HOME || os.homedir();
+  return path.posix.join(homeDir, ".config", "reclaimspace");
 }
 
 /**
