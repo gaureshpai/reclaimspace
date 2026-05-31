@@ -32,21 +32,19 @@ jobs:
             const serverUrl = '${{ github.server_url }}';
             const repoFull = '${{ github.repository }}';
 
-            // Find the PR for this commit
-            const ref = context.ref.replace('refs/heads/', '');
-            const { data: prs } = await github.rest.pulls.list({
-              owner,
-              repo,
-              state: 'open',
-              head: `${owner}:${ref}`
-            });
-
-            if (!prs.length) {
-              core.info(`No open PR found for branch ${ref}`);
-              return;
+            // Resolve the PR number from the event payload, falling back to a branch lookup
+            let prNumber = context.payload.pull_request?.number;
+            if (!prNumber) {
+              const ref = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner, repo, state: 'open', head: `${owner}:${ref}`
+              });
+              if (!prs.length) {
+                core.info(`No open PR found for branch ${ref}`);
+                return;
+              }
+              prNumber = prs[0].number;
             }
-
-            const prNumber = prs[0].number;
             const runUrl = `${serverUrl}/${repoFull}/actions/runs/${runId}`;
 
             const emoji =
