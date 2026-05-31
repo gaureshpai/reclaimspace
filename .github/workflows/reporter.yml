@@ -1,0 +1,110 @@
+name: Status Reporter
+
+on:
+  workflow_call:
+    inputs:
+      workflow_name:
+        required: true
+        type: string
+      conclusion:
+        required: true
+        type: string
+      run_id:
+        required: true
+        type: string
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const workflowName = '${{ inputs.workflow_name }}';
+            const conclusion = '${{ inputs.conclusion }}';
+            const runId = '${{ inputs.run_id }}';
+            const serverUrl = '${{ github.server_url }}';
+            const repoFull = '${{ github.repository }}';
+
+            // Find the PR for this commit
+            const ref = context.ref.replace('refs/heads/', '');
+            const { data: prs } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: 'open',
+              head: `${owner}:${ref}`
+            });
+
+            if (!prs.length) {
+              core.info(`No open PR found for branch ${ref}`);
+              return;
+            }
+
+            const prNumber = prs[0].number;
+            const runUrl = `${serverUrl}/${repoFull}/actions/runs/${runId}`;
+
+            const emoji =
+              conclusion === 'success' ? '✅' :
+              conclusion === 'failure' ? '❌' :
+              conclusion === 'cancelled' ? '⏹️' :
+              conclusion === 'skipped' ? '⏭️' : '❔';
+
+            const newRow = `| ${emoji} | **${workflowName}** | \`${conclusion}\` | [View run](${runUrl}) |`;
+
+            // Get existing comments
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: prNumber
+            });
+
+            const marker = '<!-- ci-status-reporter -->';
+            const botComment = comments.find(c =>
+              c.user?.login === 'github-actions[bot]' && c.body?.includes(marker)
+            );
+
+            let header = `### 🔄 CI Status Report ${marker}\n\n` +
+                         `| Status | Workflow | Result | Details |\n` +
+                         `|--------|----------|--------|---------|\n`;
+
+            let body = '';
+
+            if (botComment) {
+              // Existing comment — add/replace this workflow's row
+              const lines = botComment.body.split('\n');
+              const headerEnd = lines.findIndex(l => l.startsWith('|--------|'));
+              const existingRows = lines.slice(headerEnd + 1).filter(l => l.startsWith('|'));
+
+              // Keep rows from other workflows, replace this one
+              const rowKey = `**${workflowName}**`;
+              const keptRows = existingRows.filter(l => !l.includes(rowKey));
+              const allRows = [...keptRows, newRow].sort();
+              body = header + allRows.join('\n');
+            } else {
+              // New comment
+              body = header + newRow;
+            }
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: botComment.id,
+                body
+              });
+              core.info(`Updated comment #${botComment.id} with ${workflowName} status: ${conclusion}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body
+              });
+              core.info(`Created comment with ${workflowName} status: ${conclusion}`);
+            }

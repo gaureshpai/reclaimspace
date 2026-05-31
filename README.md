@@ -89,9 +89,9 @@ You can temporarily exclude folders from the scan by providing a comma-separated
 npx reclaimspace --ignore "node_modules,dist"
 ```
 
-**To ignore certain folders permanently:**
+**To ignore certain folders permanently (global):**
 
-You can permanently exclude folders from the scan by providing a comma-separated list of patterns. This will update or create a `.reclaimspacerc` file in the current directory using the `--save` or `-s` flag.
+You can permanently exclude folders from the scan by providing a comma-separated list of patterns. This will update the global `.reclaimspacerc` file (in `%APPDATA%\reclaimspace\` on Windows or `~/.config/reclaimspace/` on Linux/macOS) using the `--save` or `-s` flag.
 
 ```bash
 npx reclaimspace --ignore "node_modules,dist" --save
@@ -109,7 +109,18 @@ npx reclaimspace --include "my-custom-build,temp-files"
 
 You can create a `.reclaimspacerc` file in the root of your project to specify folders and patterns to ignore. This is useful for excluding project-specific build folders or other directories that you don't want to be scanned.
 
-Example `.reclaimspacerc` file:
+### Global Ignore Patterns
+
+You can also save ignore patterns globally via the `--save` flag. Global patterns are stored in a `.reclaimspacerc` file inside your platform's config directory:
+- **Windows:** `%APPDATA%\reclaimspace\.reclaimspacerc`
+- **macOS:** `~/Library/Application Support/reclaimspace/.reclaimspacerc`
+- **Linux:** `~/.config/reclaimspace/.reclaimspacerc`
+
+### Default Ignore Patterns
+
+The tool automatically excludes common system and editor directories: `Program Files`, `Applications`, `System`, `Library`, `.vscode`, `.cursor`, `.idea`, `.pnpm-store`, `.vitest-attachments`, `src`, `lib`, `components`, `assets`, and more.
+
+### Example `.reclaimspacerc` file:
 
 ```
 # Ignore all node_modules folders
@@ -131,6 +142,10 @@ my-project/dist
 - **Dry Run Mode:** Use the `--dry` flag to see what would be deleted without actually deleting anything.
 - **Ignore Patterns:** Exclude specific folders or patterns using a `.reclaimspacerc` file or the `--ignore` flag.
 - **Interactive UI:** Supports 'a' to select all and 'i' to invert selection.
+- **Keyboard Protection:** Terminal input is suppressed during deletion, preventing accidental keystrokes (like Enter) from corrupting the output.
+- **Build Analysis:** Use the `--build-analysis` flag to see inferred project types and common build patterns.
+- **Include Patterns:** Use the `--include` flag to scan only folders matching specific patterns.
+- **Global Config:** Ignore patterns can be saved globally via `--save`, applying across all projects.
 - **Cool Logo:** Displays a cool logo when you run the tool.
 
 ## Detected Items
@@ -142,8 +157,9 @@ my-project/dist
 2.  **Build/Cache Folders**
     - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`, `.shopify`, `.react-router`, `.tanstack`, `.vite-ssg-temp`
     - `.rollup.cache`, `.parcel-cache`, `.vite`, `.astro`, `.solid`, `.remix`, `.docusaurus`, `.eleventy-cache`, `.gatsby-cache`, `public/build`
-    - `.eslintcache`, `.stylelintcache`, `.prettiercache`, `.tsbuildinfo`, `.swc`, `.nx`, `.pnpm-store`, `.wwebjs_cache`, `.wwebjs_auth`
-3.  **Testing/Reporting Folders**    - `coverage`, `.nyc_output`, `.pytest_cache`, `.tox`, `htmlcov`
+    - `.eslintcache`, `.stylelintcache`, `.prettiercache`, `.tsbuildinfo`, `.swc`, `.nx`, `.wwebjs_cache`, `.wwebjs_auth`
+3.  **Testing/Reporting Folders**
+    - `coverage`, `.nyc_output`, `.pytest_cache`, `.tox`, `htmlcov`
 4.  **Miscellaneous Dev Junk**
     - `.venv`, `venv`, `env` (Python Virtual Environments)
     - `__pycache__`, `.mypy_cache`, `.ruff_cache` (Python caches)

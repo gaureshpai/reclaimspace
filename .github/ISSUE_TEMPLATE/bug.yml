@@ -1,9 +1,33 @@
 name: Bug Report
 description: Create a report to help us improve.
 title: "[Bug]: "
-labels: ["bug"]
+labels: ["type: bug"]
 assignees: []
 body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      description: What type of issue is this?
+      options:
+        - bug
+        - feature
+        - task
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: For maintainers only — set the priority level.
+      options:
+        - ""
+        - Urgent
+        - High
+        - Normal
+        - Low
+      default: 0
   - type: textarea
     id: description
     attributes:

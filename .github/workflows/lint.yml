@@ -1,4 +1,4 @@
-name: CI
+name: Lint
 
 on:
   push:
@@ -9,9 +9,8 @@ on:
       - main
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
@@ -25,17 +24,17 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run tests
-        run: |
-          set -o pipefail
-          mkdir -p test-logs
-          pnpm test | tee test-logs/log.txt
+      - name: Run Biome lint
+        run: pnpm lint
 
-      - name: Upload test logs
-        if: always() && !env.ACT
-        uses: actions/upload-artifact@v4
-
-        with:
-          name: test-logs-20
-          path: test-logs/
-          retention-days: 1
+  report-status:
+    if: always()
+    needs: [lint]
+    uses: ./.github/workflows/reporter.yml
+    with:
+      workflow_name: "Lint"
+      conclusion: ${{ needs.lint.result }}
+      run_id: ${{ github.run_id }}
+    permissions:
+      pull-requests: write
+      contents: read
