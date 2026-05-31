@@ -16,3 +16,6 @@ test-results/*.txt
 !LICENSE.txt
 !README.txt
 .turbo
+
+# Allow CI workflow files that start with test
+!.github/workflows/test.yml

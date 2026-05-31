@@ -36,7 +36,7 @@ describe("GitHub Issue Templates", () => {
       expect(bugTemplate).toMatch(/name:\s*Bug Report/);
     });
 
-    it("should have 'type: bug' label", () => {
+    it("should have 'bug' label", () => {
       expect(bugTemplate).toMatch(/labels:\s*\[["']type: bug["']\]/);
     });
 
@@ -153,7 +153,7 @@ describe("GitHub Issue Templates", () => {
       expect(featureTemplate).toMatch(/name:\s*Feature Request/);
     });
 
-    it("should have 'type: feature' label", () => {
+    it("should have 'feature' label", () => {
       expect(featureTemplate).toMatch(/labels:\s*\[["']type: feature["']\]/);
     });
 
@@ -598,7 +598,7 @@ describe("GitHub Issue Templates", () => {
         "utf8",
       );
 
-      // Labels should be in array format with namespaced values
+      // Labels should be in array format
       expect(bugContent).toMatch(/labels:\s*\[['"]type: bug['"]\]/);
       expect(featureContent).toMatch(/labels:\s*\[['"]type: feature['"]\]/);
     });
