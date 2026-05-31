@@ -33,33 +33,45 @@ describe("utils", () => {
   });
 
   describe("getGlobalConfigDir", () => {
-    it("should return a platform-appropriate config path", () => {
-      const originalPlatform = process.platform;
-      const originalEnv = { ...process.env };
+    it("should return a path ending with reclaimspace", () => {
+      const configDir = getGlobalConfigDir();
+      expect(configDir).toContain("reclaimspace");
+      const basename = configDir.split(/[/\\]/).pop();
+      expect(basename).toBe("reclaimspace");
+    });
 
-      try {
-        // Test Windows
-        Object.defineProperty(process, "platform", { value: "win32", writable: true });
-        process.env.APPDATA = "C:\\Users\\TestUser\\AppData\\Roaming";
-        expect(getGlobalConfigDir()).toBe("C:\\Users\\TestUser\\AppData\\Roaming\\reclaimspace");
+    // Platform-specific tests: only run on the matching OS since
+    // process.platform is non-configurable and cannot be mocked.
+    const testIfWin32 = process.platform === "win32" ? it : it.skip;
+    const testIfDarwin = process.platform === "darwin" ? it : it.skip;
+    const testIfLinux =
+      process.platform !== "win32" && process.platform !== "darwin" ? it : it.skip;
 
-        // Test macOS
-        Object.defineProperty(process, "platform", { value: "darwin", writable: true });
-        process.env.HOME = "/Users/testuser";
-        delete process.env.APPDATA;
-        expect(getGlobalConfigDir()).toBe(
-          "/Users/testuser/Library/Application Support/reclaimspace",
-        );
+    testIfWin32("should use APPDATA on Windows", () => {
+      jest.replaceProperty(process.env, "APPDATA", "C:\\Users\\TestUser\\AppData\\Roaming");
+      expect(getGlobalConfigDir()).toBe("C:\\Users\\TestUser\\AppData\\Roaming\\reclaimspace");
+    });
 
-        // Test Linux
-        Object.defineProperty(process, "platform", { value: "linux", writable: true });
-        process.env.HOME = "/home/testuser";
-        expect(getGlobalConfigDir()).toBe("/home/testuser/.config/reclaimspace");
-      } finally {
-        // Restore original values
-        Object.defineProperty(process, "platform", { value: originalPlatform, writable: true });
-        process.env = originalEnv;
-      }
+    testIfDarwin("should use HOME on macOS", () => {
+      jest.replaceProperty(process.env, "HOME", "/Users/testuser");
+      expect(getGlobalConfigDir()).toBe("/Users/testuser/Library/Application Support/reclaimspace");
+    });
+
+    testIfLinux("should use HOME on Linux", () => {
+      jest.replaceProperty(process.env, "HOME", "/home/testuser");
+      expect(getGlobalConfigDir()).toBe("/home/testuser/.config/reclaimspace");
+    });
+
+    testIfLinux("should use XDG_CONFIG_HOME when set", () => {
+      jest.replaceProperty(process.env, "XDG_CONFIG_HOME", "/custom/xdg");
+      expect(getGlobalConfigDir()).toBe("/custom/xdg/reclaimspace");
+    });
+
+    testIfLinux("should fall back to os.homedir() when HOME is empty", () => {
+      jest.replaceProperty(process.env, "HOME", "");
+      const configDir = getGlobalConfigDir();
+      expect(configDir).toContain("reclaimspace");
+      expect(configDir).toContain(".config");
     });
   });
 
