@@ -89,7 +89,13 @@ async function run(baseDir) {
 
     let searchPaths = program.args.length ? program.args : [baseDir];
 
-    if (!options.ui && !options.dry && !options.yes && program.args.length === 0) {
+    if (
+      !options.ui &&
+      !options.dry &&
+      !options.yes &&
+      !options.deepClean &&
+      program.args.length === 0
+    ) {
       options.ui = true;
     }
 

@@ -21,7 +21,7 @@ const execAsync = promisify(exec);
  *
  * Checks npm, pnpm, yarn, and pip by attempting to run each tool's `--version` command and returns per-manager descriptors.
  * Each descriptor includes the manager `name`, the cleanup `command`, an optional platform-specific `cacheDir`, an `available` flag, and `version` when available.
- * @returns {Promise<Array<{name: string, command: string, cacheDir?: string, available: boolean, version?: string}>>} An array of manager descriptors where `available` is `true` if the manager was detected and `false` otherwise; `version` is present when `available` is `true`. 
+ * @returns {Promise<Array<{name: string, command: string, cacheDir?: string, available: boolean, version?: string}>>} An array of manager descriptors where `available` is `true` if the manager was detected and `false` otherwise; `version` is present when `available` is `true`.
  */
 async function detectPackageManagers() {
   const home = os.homedir();
@@ -190,10 +190,11 @@ async function runDeepClean(options = {}) {
     if (dry) {
       log(chalk.yellow(`    Cache size: ${formatSize(beforeSize)}\n`));
       log(chalk.dim(`    Would run: ${mgr.command}\n`));
+      totalCleaned += beforeSize;
       results.push({
         name: mgr.name,
         beforeSize,
-        afterSize: 0, // In dry mode, assume full cleanup for estimation
+        afterSize: 0,
         success: true,
         output: "(dry run, no action taken)",
       });
