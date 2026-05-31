@@ -17,8 +17,11 @@ const execAsync = promisify(exec);
  */
 
 /**
- * Detect which package managers are available on the system.
- * @returns {Promise<Array<{name: string, command: string, cacheDir?: string, available: boolean}>>}
+ * Detects which of the supported package managers are available and provides their cleanup command and cache directory.
+ *
+ * Checks npm, pnpm, yarn, and pip by attempting to run each tool's `--version` command and returns per-manager descriptors.
+ * Each descriptor includes the manager `name`, the cleanup `command`, an optional platform-specific `cacheDir`, an `available` flag, and `version` when available.
+ * @returns {Promise<Array<{name: string, command: string, cacheDir?: string, available: boolean, version?: string}>>} An array of manager descriptors where `available` is `true` if the manager was detected and `false` otherwise; `version` is present when `available` is `true`. 
  */
 async function detectPackageManagers() {
   const home = os.homedir();
@@ -107,8 +110,8 @@ async function detectPackageManagers() {
 }
 
 /**
- * Estimate the size of a cache directory in bytes.
- * Returns 0 if the directory does not exist or is inaccessible.
+ * Estimates the total size, in bytes, of all regular files under the given cache directory.
+ * Returns 0 if the directory is missing or inaccessible; unreadable files or directories encountered while traversing are skipped.
  * @param {string} dirPath - Path to the cache directory.
  * @returns {Promise<number>} Size in bytes.
  */
@@ -118,6 +121,10 @@ async function estimateCacheSize(dirPath) {
     // Use a simple recursive size calculation
     let totalSize = 0;
 
+    /**
+     * Recursively traverses the given directory and adds the sizes of regular files to the module-level `totalSize`, skipping entries that cannot be accessed.
+     * @param {string} dir - Filesystem path of the directory to traverse.
+     */
     async function calculate(dir) {
       try {
         const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -147,13 +154,16 @@ async function estimateCacheSize(dirPath) {
 }
 
 /**
- * Run the deep clean process: detect available package managers, estimate cache sizes,
- * and execute cache clean commands.
+ * Deep-clean package manager caches across detected tools.
  *
- * @param {Object} [options]
- * @param {boolean} [options.dry=false] - If true, only report what would be cleaned without deleting.
+ * Detects available package managers, estimates each manager's cache size,
+ * runs its cache-clean command unless prevented by `dry`, and returns per-manager
+ * results plus the total freed bytes.
+ *
+ * @param {Object} [options] - Optional settings.
+ * @param {boolean} [options.dry=false] - If true, report actions without executing clean commands.
  * @param {(message: string) => void} [options.onMessage] - Callback for status messages.
- * @returns {Promise<{cleaned: Array<{name: string, beforeSize: number, afterSize: number, success: boolean, output?: string}>, totalCleaned: number}>}
+ * @returns {{cleaned: Array<{name: string, beforeSize: number, afterSize: number, success: boolean, output?: string}>, totalCleaned: number}} An object with `cleaned` (per-manager results) and `totalCleaned` (sum of freed bytes).
  */
 async function runDeepClean(options = {}) {
   const { dry = false, onMessage } = options;

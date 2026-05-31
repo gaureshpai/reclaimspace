@@ -243,8 +243,17 @@ async function handleDelete(target, state) {
   }
 }
 /**
- * Run the deep-clean process with spinner and user confirmation.
- * @param {Object} options - CLI options object.
+ * Run the deep-clean workflow and present progress and results to the user.
+ *
+ * Runs the deep-clean operation while streaming progress messages to stdout.
+ * If `options.dry` is true, prints a dry-run notice and the total cache space
+ * that could be reclaimed. Otherwise, prints counts of successfully cleared and
+ * failed package managers and the total reclaimed cache size. When not a dry run
+ * and a `state` object is provided, increments `state.totalReclaimed` by the
+ * total cleaned amount.
+ *
+ * @param {Object} options - CLI options; recognizes `options.dry` to perform a dry run.
+ * @param {Object} [state] - Optional accumulator object whose `totalReclaimed` (number of bytes) will be incremented when caches are actually cleared.
  */
 async function runDeepCleanWithUI(options, state) {
   if (options.dry) {
