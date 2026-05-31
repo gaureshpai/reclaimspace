@@ -233,10 +233,11 @@ describe("GitHub Issue Templates", () => {
       });
 
       it("Issue Type dropdown should be required", () => {
-        const typeBlock = featureTemplate.substring(
-          featureTemplate.indexOf("id: type"),
-          featureTemplate.indexOf("id: priority"),
-        );
+        const startIndex = featureTemplate.indexOf("id: type");
+        const endIndex = featureTemplate.indexOf("id: priority");
+        expect(startIndex).not.toBe(-1);
+        expect(endIndex).not.toBe(-1);
+        const typeBlock = featureTemplate.slice(startIndex, endIndex);
         expect(typeBlock).toContain("required: true");
       });
 
