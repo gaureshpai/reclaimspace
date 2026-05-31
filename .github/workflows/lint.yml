@@ -31,14 +31,3 @@ jobs:
       - name: Run Biome lint
         run: pnpm lint
 
-  report-status:
-    if: ${{ always() }}
-    needs: [lint]
-    uses: ./.github/workflows/reporter.yml
-    with:
-      workflow_name: "Lint"
-      conclusion: ${{ needs.lint.result }}
-      run_id: ${{ github.run_id }}
-    permissions:
-      pull-requests: write
-      contents: read

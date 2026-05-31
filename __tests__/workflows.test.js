@@ -65,39 +65,6 @@ describe("GitHub Actions Workflows", () => {
       expect(buildWorkflow).not.toContain("test-logs");
     });
 
-    it("should have a report-status job", () => {
-      expect(buildWorkflow).toContain("report-status:");
-    });
-
-    it("report-status job should run with always() condition", () => {
-      const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toMatch(/always\(\)/);
-    });
-
-    it("report-status job should depend on the build job", () => {
-      const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toMatch(/needs:\s*\[?build\]?/);
-    });
-
-    it("report-status job should call reporter.yml", () => {
-      expect(buildWorkflow).toContain("uses: ./.github/workflows/reporter.yml");
-    });
-
-    it("report-status job should pass workflow_name as 'Build'", () => {
-      const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain('workflow_name: "Build"');
-    });
-
-    it("report-status job should pass conclusion from build result", () => {
-      const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain("conclusion: $" + "{{ needs.build.result }}");
-    });
-
-    it("report-status job should have pull-requests write permission", () => {
-      const reportBlock = buildWorkflow.substring(buildWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain("pull-requests: write");
-    });
-
     it("should checkout code", () => {
       expect(buildWorkflow).toContain("actions/checkout@v4");
     });
@@ -160,39 +127,6 @@ describe("GitHub Actions Workflows", () => {
 
     it("lint job should run on ubuntu-latest", () => {
       expect(lintWorkflow).toContain("runs-on: ubuntu-latest");
-    });
-
-    it("should have a report-status job", () => {
-      expect(lintWorkflow).toContain("report-status:");
-    });
-
-    it("report-status job should run with always() condition", () => {
-      const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toMatch(/always\(\)/);
-    });
-
-    it("report-status job should depend on the lint job", () => {
-      const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toMatch(/needs:\s*\[?lint\]?/);
-    });
-
-    it("report-status job should call reporter.yml", () => {
-      expect(lintWorkflow).toContain("uses: ./.github/workflows/reporter.yml");
-    });
-
-    it("report-status job should pass workflow_name as 'Lint'", () => {
-      const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain('workflow_name: "Lint"');
-    });
-
-    it("report-status job should pass conclusion from lint result", () => {
-      const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain("conclusion: $" + "{{ needs.lint.result }}");
-    });
-
-    it("report-status job should have pull-requests write permission", () => {
-      const reportBlock = lintWorkflow.substring(lintWorkflow.indexOf("report-status:"));
-      expect(reportBlock).toContain("pull-requests: write");
     });
 
     it("should checkout code", () => {
@@ -312,145 +246,6 @@ describe("GitHub Actions Workflows", () => {
     });
   });
 
-  describe("reporter.yml (new file)", () => {
-    const reporterPath = path.join(workflowsDir, "reporter.yml");
-    let reporter;
-
-    beforeAll(() => {
-      reporter = fs.readFileSync(reporterPath, "utf8");
-    });
-
-    it("should exist", () => {
-      expect(fs.existsSync(reporterPath)).toBe(true);
-    });
-
-    it("should be named 'Status Reporter'", () => {
-      expect(reporter).toMatch(/^name:\s*Status Reporter\s*$/m);
-    });
-
-    it("should be a reusable workflow (workflow_call)", () => {
-      expect(reporter).toContain("workflow_call:");
-    });
-
-    it("should require workflow_name input", () => {
-      expect(reporter).toContain("workflow_name:");
-      const inputBlock = reporter.substring(reporter.indexOf("workflow_name:"));
-      expect(inputBlock).toContain("required: true");
-    });
-
-    it("workflow_name input should be of type string", () => {
-      const inputBlock = reporter.substring(
-        reporter.indexOf("workflow_name:"),
-        reporter.indexOf("conclusion:"),
-      );
-      expect(inputBlock).toContain("type: string");
-    });
-
-    it("should require conclusion input", () => {
-      const conclusionBlock = reporter.substring(reporter.indexOf("conclusion:"));
-      expect(conclusionBlock).toContain("required: true");
-    });
-
-    it("conclusion input should be of type string", () => {
-      const conclusionBlock = reporter.substring(
-        reporter.indexOf("conclusion:"),
-        reporter.indexOf("run_id:"),
-      );
-      expect(conclusionBlock).toContain("type: string");
-    });
-
-    it("should require run_id input", () => {
-      const runIdBlock = reporter.substring(reporter.indexOf("run_id:"));
-      expect(runIdBlock).toContain("required: true");
-    });
-
-    it("run_id input should be of type string", () => {
-      const runIdBlock = reporter.substring(
-        reporter.indexOf("run_id:"),
-        reporter.indexOf("permissions:"),
-      );
-      expect(runIdBlock).toContain("type: string");
-    });
-
-    it("should have pull-requests write permission", () => {
-      expect(reporter).toContain("pull-requests: write");
-    });
-
-    it("should have contents read permission", () => {
-      expect(reporter).toContain("contents: read");
-    });
-
-    it("should have a report job", () => {
-      expect(reporter).toContain("report:");
-    });
-
-    it("should use github-script action", () => {
-      expect(reporter).toContain("actions/github-script@v7");
-    });
-
-    it("should use ci-status-reporter marker for comment identification", () => {
-      expect(reporter).toContain("<!-- ci-status-reporter -->");
-    });
-
-    it("should build a table row with status, workflow name, result, and details", () => {
-      expect(reporter).toContain("| Status | Workflow | Result | Details |");
-    });
-
-    it("should map success conclusion to checkmark emoji", () => {
-      expect(reporter).toContain("conclusion === 'success' ? '✅'");
-    });
-
-    it("should map failure conclusion to cross emoji", () => {
-      expect(reporter).toContain("conclusion === 'failure' ? '❌'");
-    });
-
-    it("should map cancelled conclusion to stop emoji", () => {
-      expect(reporter).toContain("conclusion === 'cancelled' ? '⏹️'");
-    });
-
-    it("should map skipped conclusion to skip emoji", () => {
-      expect(reporter).toContain("conclusion === 'skipped' ? '⏭️'");
-    });
-
-    it("should find open PRs for the current branch", () => {
-      expect(reporter).toContain("pulls.list");
-      expect(reporter).toContain("state: 'open'");
-    });
-
-    it("should update existing comment when bot comment found", () => {
-      expect(reporter).toContain("updateComment");
-    });
-
-    it("should create new comment when no bot comment found", () => {
-      expect(reporter).toContain("createComment");
-    });
-
-    it("should keep rows from other workflows when updating existing comment", () => {
-      expect(reporter).toContain("keptRows");
-    });
-
-    it("should use workflow name as row key for deduplication", () => {
-      expect(reporter).toContain("rowKey");
-    });
-
-    it("should sort rows when updating comment", () => {
-      expect(reporter).toContain(".sort()");
-    });
-
-    it("should log informational messages via core.info", () => {
-      expect(reporter).toContain("core.info");
-    });
-
-    it("should build run URL from server URL and repo", () => {
-      expect(reporter).toContain("serverUrl");
-      expect(reporter).toContain("actions/runs");
-    });
-
-    it("should not have syntax errors (no tabs)", () => {
-      expect(reporter).not.toMatch(/\t/);
-    });
-  });
-
   describe("workflow consistency across build.yml and lint.yml", () => {
     const buildPath = path.join(workflowsDir, "build.yml");
     const lintPath = path.join(workflowsDir, "lint.yml");
@@ -493,25 +288,6 @@ describe("GitHub Actions Workflows", () => {
 
       expect(buildContent).toContain("actions/checkout@v4");
       expect(lintContent).toContain("actions/checkout@v4");
-    });
-
-    it("both should reference reporter.yml for status reporting", () => {
-      const buildContent = fs.readFileSync(buildPath, "utf8");
-      const lintContent = fs.readFileSync(lintPath, "utf8");
-
-      expect(buildContent).toContain("uses: ./.github/workflows/reporter.yml");
-      expect(lintContent).toContain("uses: ./.github/workflows/reporter.yml");
-    });
-
-    it("both report-status jobs should include always() condition", () => {
-      const buildContent = fs.readFileSync(buildPath, "utf8");
-      const lintContent = fs.readFileSync(lintPath, "utf8");
-
-      const buildReportBlock = buildContent.substring(buildContent.indexOf("report-status:"));
-      const lintReportBlock = lintContent.substring(lintContent.indexOf("report-status:"));
-
-      expect(buildReportBlock).toMatch(/always\(\)/);
-      expect(lintReportBlock).toMatch(/always\(\)/);
     });
   });
 });

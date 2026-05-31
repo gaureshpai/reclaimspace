@@ -29,14 +29,3 @@ jobs:
       - name: Verify package
         run: pnpm pack --dry-run
 
-  report-status:
-    if: ${{ always() }}
-    needs: [build]
-    uses: ./.github/workflows/reporter.yml
-    with:
-      workflow_name: "Build"
-      conclusion: ${{ needs.build.result }}
-      run_id: ${{ github.run_id }}
-    permissions:
-      pull-requests: write
-      contents: read

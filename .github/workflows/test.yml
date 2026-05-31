@@ -31,14 +31,3 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-  report-status:
-    if: ${{ always() }}
-    needs: [test]
-    uses: ./.github/workflows/reporter.yml
-    with:
-      workflow_name: "Test"
-      conclusion: ${{ needs.test.result }}
-      run_id: ${{ github.run_id }}
-    permissions:
-      pull-requests: write
-      contents: read
