@@ -37,7 +37,7 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have 'bug' label", () => {
-      expect(bugTemplate).toMatch(/labels:\s*\[["']bug["']\]/);
+      expect(bugTemplate).toMatch(/labels:\s*\[["']type: bug["']\]/);
     });
 
     it("should have '[Bug]: ' as title prefix", () => {
@@ -154,7 +154,7 @@ describe("GitHub Issue Templates", () => {
     });
 
     it("should have 'feature' label", () => {
-      expect(featureTemplate).toMatch(/labels:\s*\[["']feature["']\]/);
+      expect(featureTemplate).toMatch(/labels:\s*\[["']type: feature["']\]/);
     });
 
     it("should have '[Feature]: ' as title prefix", () => {
@@ -442,6 +442,53 @@ describe("GitHub Issue Templates", () => {
     });
   });
 
+  describe("config.yml", () => {
+    const configPath = path.join(templatesDir, "config.yml");
+    let configContent;
+
+    beforeAll(() => {
+      configContent = fs.readFileSync(configPath, "utf8");
+    });
+
+    it("should exist", () => {
+      expect(fs.existsSync(configPath)).toBe(true);
+    });
+
+    it("should be readable without errors", () => {
+      expect(() => fs.readFileSync(configPath, "utf8")).not.toThrow();
+    });
+
+    it("should have blank_issues_enabled set to true", () => {
+      expect(configContent).toMatch(/blank_issues_enabled:\s*true/);
+    });
+
+    it("should not have blank_issues_enabled set to false", () => {
+      expect(configContent).not.toMatch(/blank_issues_enabled:\s*false/);
+    });
+
+    it("should have contact_links section", () => {
+      expect(configContent).toContain("contact_links:");
+    });
+
+    it("should have a link to GitHub discussions", () => {
+      expect(configContent).toContain("discussions");
+      expect(configContent).toMatch(/url:\s*https:\/\/github\.com\//);
+    });
+
+    it("should have a name and about field for each contact link", () => {
+      expect(configContent).toContain("name:");
+      expect(configContent).toContain("about:");
+    });
+
+    it("should not be empty", () => {
+      expect(configContent.trim().length).toBeGreaterThan(0);
+    });
+
+    it("should not contain tabs (YAML uses spaces)", () => {
+      expect(configContent).not.toMatch(/\t/);
+    });
+  });
+
   describe("GitHub specific requirements", () => {
     it("should use GitHub Form schema compatible structure", () => {
       const bugContent = fs.readFileSync(path.join(templatesDir, "bug.yml"), "utf8");
@@ -460,8 +507,8 @@ describe("GitHub Issue Templates", () => {
       );
 
       // Labels should be in array format
-      expect(bugContent).toMatch(/labels:\s*\[['"]bug['"]\]/);
-      expect(featureContent).toMatch(/labels:\s*\[['"]feature['"]\]/);
+      expect(bugContent).toMatch(/labels:\s*\[['"]type: bug['"]\]/);
+      expect(featureContent).toMatch(/labels:\s*\[['"]type: feature['"]\]/);
     });
 
     it("should have empty string for assignees by default", () => {
