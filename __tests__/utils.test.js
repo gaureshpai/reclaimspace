@@ -47,7 +47,9 @@ describe("utils", () => {
         Object.defineProperty(process, "platform", { value: "darwin", writable: true });
         process.env.HOME = "/Users/testuser";
         delete process.env.APPDATA;
-        expect(getGlobalConfigDir()).toBe("/Users/testuser/Library/Application Support/reclaimspace");
+        expect(getGlobalConfigDir()).toBe(
+          "/Users/testuser/Library/Application Support/reclaimspace",
+        );
 
         // Test Linux
         Object.defineProperty(process, "platform", { value: "linux", writable: true });
@@ -121,20 +123,20 @@ describe("utils", () => {
       await expect(readIgnoreFile("/mock/dir")).rejects.toThrow("Permission denied");
     });
 
-    it("should local patterns override global (last dedup wins)", async () => {
+    it("should deduplicate patterns when both local and global have the same pattern", async () => {
+      // global has "global_only", local also has it — should appear once
       fs.readFile
-        .mockResolvedValueOnce("common_pattern\n")
-        .mockResolvedValueOnce("common_pattern\n");
+        .mockResolvedValueOnce("shared_pattern\nlocal_only\n")
+        .mockResolvedValueOnce("shared_pattern\nglobal_only\n");
 
       const patterns = await readIgnoreFile("/mock/dir");
 
-      // Should only appear once
-      const count = patterns.filter((p) => p === "common_pattern").length;
-      expect(count).toBe(1);
-      // Verify deduplication results in single pattern and it matches the local (second) value
-      const commonPatterns = patterns.filter((p) => p === "common_pattern");
-      expect(commonPatterns.length).toBe(1);
-      expect(commonPatterns[0]).toBe("common_pattern");
+      // All three distinct patterns present
+      expect(patterns).toContain("shared_pattern");
+      expect(patterns).toContain("local_only");
+      expect(patterns).toContain("global_only");
+      // shared_pattern should appear exactly once
+      expect(patterns.filter((p) => p === "shared_pattern").length).toBe(1);
     });
   });
 

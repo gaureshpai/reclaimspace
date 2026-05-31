@@ -27,7 +27,8 @@ function formatSize(bytes) {
  */
 function getGlobalConfigDir() {
   if (process.platform === "win32") {
-    const appData = process.env.APPDATA ||
+    const appData =
+      process.env.APPDATA ||
       path.win32.join(process.env.USERPROFILE || os.homedir(), "AppData", "Roaming");
     return path.win32.join(appData, "reclaimspace");
   }
@@ -81,43 +82,41 @@ async function readIgnoreFile(baseDir = process.cwd()) {
   ]);
 
   // Merge patterns, deduplicating (local overrides take precedence, but we keep global ones too)
-  const patternsSet = new Set([...globalPatterns, ...localPatterns]);
-  const patterns = [...patternsSet];
+  const patternsSet = new Set([
+    ...globalPatterns,
+    ...localPatterns,
+    // Hardcoded default ignores
+    "Program Files",
+    "Program Files (x86)",
+    "Applications",
+    "System",
+    "Library",
+    "usr",
+    "var",
+    "etc",
+    "opt",
+    ".vscode",
+    ".cursor",
+    ".idea",
+    ".sublime-project",
+    ".sublime-workspace",
+    ".atom",
+    ".project",
+    ".classpath",
+    ".settings",
+    "nbproject",
+    ".editorconfig",
+    "src",
+    "source",
+    "app",
+    "lib",
+    "components",
+    "pages",
+    "styles",
+    "assets",
+  ]);
 
-  patterns.push("Program Files");
-  patterns.push("Program Files (x86)");
-
-  patterns.push("Applications");
-  patterns.push("System");
-  patterns.push("Library");
-
-  patterns.push("usr");
-  patterns.push("var");
-  patterns.push("etc");
-  patterns.push("opt");
-
-  patterns.push(".vscode");
-  patterns.push(".cursor");
-  patterns.push(".idea");
-  patterns.push(".sublime-project");
-  patterns.push(".sublime-workspace");
-  patterns.push(".atom");
-  patterns.push(".project");
-  patterns.push(".classpath");
-  patterns.push(".settings");
-  patterns.push("nbproject");
-  patterns.push(".editorconfig");
-
-  patterns.push("src");
-  patterns.push("source");
-  patterns.push("app");
-  patterns.push("lib");
-  patterns.push("components");
-  patterns.push("pages");
-  patterns.push("styles");
-  patterns.push("assets");
-
-  return patterns;
+  return [...patternsSet];
 }
 
 /**
