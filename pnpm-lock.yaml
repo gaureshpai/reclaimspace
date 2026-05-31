@@ -30,7 +30,7 @@ importers:
         specifier: ^16.2.7
         version: 16.2.7
       reclaimspace:
-        specifier: ^0.2.2
+        specifier: latest
         version: 0.2.2
 
 packages:
