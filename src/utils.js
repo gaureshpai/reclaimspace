@@ -1,10 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 
 /**
- * Formats bytes into a human-readable string (e.g., "1.23 MB").
- * @param {number} bytes - The number of bytes to format.
- * @returns {string} Human-readable size string.
+ * Convert a byte count into a human-readable string using 1024-based units.
+ *
+ * The result is rounded to two decimal places and uses the units: Bytes, KB, MB, GB, TB.
+ * For an input of 0 the function returns "0 Bytes".
+ * @param {number} bytes - Number of bytes to format.
+ * @returns {string} Formatted size string (e.g., "1.23 MB").
  */
 function formatSize(bytes) {
   if (bytes === 0) return "0 Bytes";
@@ -15,16 +19,50 @@ function formatSize(bytes) {
 }
 
 /**
- * Reads ignore patterns from .reclaimspacerc and appends default system ignores.
- * @param {string} baseDir - The directory to look for .reclaimspacerc in.
- * @returns {Promise<Array<string>>} List of glob patterns to ignore.
+ * Compute the platform-specific global configuration directory for reclaimspace.
+ *
+ * On Windows, returns `%APPDATA%\reclaimspace` or `~\AppData\Roaming\reclaimspace` if APPDATA is unset.
+ * On Linux/macOS, returns `$XDG_CONFIG_HOME/reclaimspace` when XDG_CONFIG_HOME is set, otherwise `~/.config/reclaimspace`.
+ *
+ * @param {Object} [overrides] - Optional overrides (primarily for testing).
+ * @param {string} [overrides.platform] - Platform string (win32, darwin, linux, etc.).
+ * @param {Object} [overrides.env] - Environment variable overrides.
+ * @returns {string} Path to the global configuration directory for reclaimspace.
  */
-async function readIgnoreFile(baseDir) {
-  const ignoreFilePath = path.join(baseDir, ".reclaimspacerc");
-  let patterns = [];
+function getGlobalConfigDir(overrides = {}) {
+  const platform = overrides.platform || process.platform;
+  const env = overrides.env || process.env;
+
+  if (platform === "win32") {
+    const appData =
+      env.APPDATA || path.win32.join(env.USERPROFILE || os.homedir(), "AppData", "Roaming");
+    return path.win32.join(appData, "reclaimspace");
+  }
+  if (platform === "darwin") {
+    const homeDir = env.HOME || os.homedir();
+    return path.posix.join(homeDir, "Library", "Application Support", "reclaimspace");
+  }
+  const xdgConfig = env.XDG_CONFIG_HOME;
+  if (xdgConfig) {
+    return path.posix.join(xdgConfig, "reclaimspace");
+  }
+  const homeDir = env.HOME || os.homedir();
+  return path.posix.join(homeDir, ".config", "reclaimspace");
+}
+
+/**
+ * Read ignore patterns from a .reclaimspacerc file.
+ *
+ * Lines are trimmed, empty lines and lines starting with `#` are ignored,
+ * and leading `/` characters are removed from each entry. If the file does not
+ * exist, an empty array is returned; other I/O errors are propagated.
+ * @param {string} filePath - Path to the .reclaimspacerc file.
+ * @returns {Array<string>} Array of normalized pattern strings.
+ */
+async function readPatternsFromFile(filePath) {
   try {
-    const content = await fs.readFile(ignoreFilePath, "utf-8");
-    patterns = content
+    const content = await fs.readFile(filePath, "utf-8");
+    return content
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line && !line.startsWith("#"))
@@ -33,52 +71,75 @@ async function readIgnoreFile(baseDir) {
     if (err.code !== "ENOENT") {
       throw err;
     }
+    return [];
   }
-
-  patterns.push("Program Files");
-  patterns.push("Program Files (x86)");
-
-  patterns.push("Applications");
-  patterns.push("System");
-  patterns.push("Library");
-
-  patterns.push("usr");
-  patterns.push("var");
-  patterns.push("etc");
-  patterns.push("opt");
-
-  patterns.push(".vscode");
-  patterns.push(".cursor");
-  patterns.push(".idea");
-  patterns.push(".sublime-project");
-  patterns.push(".sublime-workspace");
-  patterns.push(".atom");
-  patterns.push(".project");
-  patterns.push(".classpath");
-  patterns.push(".settings");
-  patterns.push("nbproject");
-  patterns.push(".editorconfig");
-
-  patterns.push("src");
-  patterns.push("source");
-  patterns.push("app");
-  patterns.push("lib");
-  patterns.push("components");
-  patterns.push("pages");
-  patterns.push("styles");
-  patterns.push("assets");
-
-  return patterns;
 }
 
 /**
- * Saves ignore patterns to .reclaimspacerc.
+ * Reads ignore patterns from local .reclaimspacerc and global config, then appends default system ignores.
  * @param {string} baseDir - The directory to look for .reclaimspacerc in.
- * @param {Array<string>} patterns - List of glob patterns to ignore.
- * @returns {Promise<void>}
+ * @returns {Promise<Array<string>>} List of glob patterns to ignore.
  */
-async function saveIgnorePatterns(baseDir, patterns) {
-  const ignoreFilePath = path.join(baseDir, ".reclaimspacerc");
+async function readIgnoreFile(baseDir = process.cwd()) {
+  // Read from both local and global config
+  const [localPatterns, globalPatterns] = await Promise.all([
+    readPatternsFromFile(path.join(baseDir, ".reclaimspacerc")),
+    readPatternsFromFile(path.join(getGlobalConfigDir(), ".reclaimspacerc")),
+  ]);
+
+  // Merge patterns, deduplicating (local overrides take precedence, but we keep global ones too)
+  const patternsSet = new Set([
+    ...globalPatterns,
+    ...localPatterns,
+    // Hardcoded default ignores
+    "Program Files",
+    "Program Files (x86)",
+    "Applications",
+    "System",
+    "Library",
+    "usr",
+    "var",
+    "etc",
+    "opt",
+    ".vscode",
+    ".cursor",
+    ".idea",
+    ".sublime-project",
+    ".sublime-workspace",
+    ".atom",
+    ".project",
+    ".classpath",
+    ".settings",
+    "nbproject",
+    ".editorconfig",
+    "src",
+    "source",
+    "app",
+    "lib",
+    "components",
+    "pages",
+    "styles",
+    "assets",
+  ]);
+
+  return [...patternsSet];
+}
+
+/**
+ * Add new ignore patterns to the global .reclaimspacerc file.
+ *
+ * Normalizes each entry by trimming and removing leading slashes, ignores empty or commented lines,
+ * and appends only patterns not already present in the global file. If no new patterns are added,
+ * the function returns the target file path without modifying the file.
+ * @param {Array<string>} patterns - Patterns to add to the global ignore file.
+ * @returns {Promise<string>} The path to the global .reclaimspacerc file (written if new patterns were added).
+ */
+async function saveIgnorePatterns(patterns) {
+  const globalDir = getGlobalConfigDir();
+  const ignoreFilePath = path.join(globalDir, ".reclaimspacerc");
+
+  // Ensure the global config directory exists
+  await fs.mkdir(globalDir, { recursive: true });
   let existingContent = "";
   try {
     existingContent = await fs.readFile(ignoreFilePath, "utf-8");
@@ -98,7 +159,7 @@ async function saveIgnorePatterns(baseDir, patterns) {
     .map((p) => p.trim().replace(/^\/+/, ""))
     .filter((p) => p && !existingPatterns.includes(p));
 
-  if (patternsToAdd.length === 0) return;
+  if (patternsToAdd.length === 0) return ignoreFilePath;
 
   let finalContent = existingContent;
   if (finalContent && !finalContent.endsWith("\n")) {
@@ -107,12 +168,13 @@ async function saveIgnorePatterns(baseDir, patterns) {
   finalContent += `${patternsToAdd.join("\n")}\n`;
 
   await fs.writeFile(ignoreFilePath, finalContent, "utf-8");
+  return ignoreFilePath;
 }
 
 /**
- * Formats a Date object or timestamp into YYYY-MM-DD.
- * @param {Date|number|string} date - The date to format.
- * @returns {string} Formatted date string.
+ * Format a date into YYYY-MM-DD.
+ * @param {Date|number|string} date - A Date object, a millisecond timestamp, or a date-string parseable by Date.
+ * @returns {string} The date formatted as `YYYY-MM-DD`.
  */
 function formatDate(date) {
   const d = new Date(date);
@@ -122,4 +184,4 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
-export { formatSize, readIgnoreFile, saveIgnorePatterns, formatDate };
+export { formatSize, readIgnoreFile, saveIgnorePatterns, formatDate, getGlobalConfigDir };
