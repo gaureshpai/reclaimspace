@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [labeled]
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'safe-to-test') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify package
+        run: pnpm pack --dry-run
+
+  report-status:
+    if: ${{ always() && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'safe-to-test')) }}
+    needs: [build]
+    uses: ./.github/workflows/reporter.yml
+    with:
+      workflow_name: "Build"
+      conclusion: ${{ needs.build.result }}
+      run_id: ${{ github.run_id }}
+    permissions:
+      pull-requests: write
+      contents: read

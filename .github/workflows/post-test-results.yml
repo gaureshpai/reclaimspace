@@ -2,7 +2,7 @@ name: Post Test Results
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: [Lint, Test, Build]
     types: [completed]
 
 permissions:
@@ -12,25 +12,25 @@ permissions:
   actions: read
 
 jobs:
-  comment-on-pr:
+  aggregate-report:
     runs-on: ubuntu-latest
     steps:
-      - name: Post comment on Pull Request
+      - name: Aggregate and post combined status
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const owner = context.repo.owner;
-            const repo  = context.repo.repo;
-            const run = context.payload.workflow_run;
-            const overallStatus = run.conclusion;
+            const repo = context.repo.repo;
+            const triggerRun = context.payload.workflow_run;
+            const headBranch = triggerRun.head_branch;
+            const headSha = triggerRun.head_sha;
 
             // 1) Find the associated Pull Request
-            let prNumber = run.pull_requests?.[0]?.number;
+            let prNumber = triggerRun.pull_requests?.[0]?.number;
 
             if (!prNumber) {
-              const headBranch = run.head_branch;
-              const headRepoFull = run.head_repository?.full_name;
+              const headRepoFull = triggerRun.head_repository?.full_name;
               if (headRepoFull && headBranch) {
                 const headSpecifier = `${headRepoFull.split('/')[0]}:${headBranch}`;
                 const { data: prs } = await github.rest.pulls.list({
@@ -45,18 +45,94 @@ jobs:
               return;
             }
 
-            // 2) Build simplified comment
-            const statusEmoji =
-              overallStatus === 'success' ? '✅' :
-              overallStatus === 'failure' ? '❌' :
-              overallStatus === 'cancelled' ? '⏹️' :
-              overallStatus === 'skipped' ? '⏭️' :
-              '❔';
-            const body = `### ${statusEmoji} CI/CD Test Results <!-- ci-cd-test-results -->\n` +
-                         `**Overall Status**: ${overallStatus}\n\n` +
-                         `---\n[View full workflow run](${run.html_url})`;
+            // 2) Fetch check runs for the latest commit on this PR
+            const { data: checkRuns } = await github.rest.checks.listForRef({
+              owner,
+              repo,
+              ref: headSha
+            });
 
-            // 3) Update or Create comment
+            // 3) Aggregate status of our 3 workflows
+            const workflows = ['Lint', 'Test', 'Build'];
+            const statuses = {};
+
+            for (const check of checkRuns.check_runs) {
+              if (workflows.includes(check.name)) {
+                statuses[check.name] = {
+                  conclusion: check.conclusion || 'pending',
+                  html_url: check.html_url
+                };
+              }
+            }
+
+            // Also try fetching workflow runs directly as a fallback
+            for (const wf of workflows) {
+              if (!statuses[wf]) {
+                try {
+                  const { data: runs } = await github.rest.actions.listWorkflowRuns({
+                    owner,
+                    repo,
+                    workflow_id: wf,
+                    branch: headBranch,
+                    event: 'pull_request',
+                    per_page: 1
+                  });
+                  if (runs.workflow_runs.length) {
+                    const run = runs.workflow_runs[0];
+                    statuses[wf] = {
+                      conclusion: run.conclusion || 'pending',
+                      html_url: run.html_url
+                    };
+                  } else {
+                    statuses[wf] = { conclusion: 'pending', html_url: null };
+                  }
+                } catch (e) {
+                  statuses[wf] = { conclusion: 'unknown', html_url: null };
+                }
+              }
+            }
+
+            // 4) Build combined report
+            const allCompleted = workflows.every(w => statuses[w]?.conclusion !== 'pending' && statuses[w]?.conclusion !== 'queued' && statuses[w]?.conclusion !== 'in_progress');
+            const allSuccess = workflows.every(w => statuses[w]?.conclusion === 'success');
+            const anyFailure = workflows.some(w => statuses[w]?.conclusion === 'failure' || statuses[w]?.conclusion === 'cancelled' || statuses[w]?.conclusion === 'timed_out');
+
+            let overallEmoji;
+            let overallStatus;
+            if (!allCompleted) {
+              overallEmoji = '🔄';
+              overallStatus = 'in progress';
+            } else if (allSuccess) {
+              overallEmoji = '✅';
+              overallStatus = 'all passed';
+            } else if (anyFailure) {
+              overallEmoji = '❌';
+              overallStatus = 'some checks failed';
+            } else {
+              overallEmoji = '⚠️';
+              overallStatus = 'mixed results';
+            }
+
+            let table = `| Status | Workflow | Result |\n|--------|----------|--------|\n`;
+            for (const wf of workflows) {
+              const s = statuses[wf] || { conclusion: 'pending', html_url: null };
+              const emoji =
+                s.conclusion === 'success' ? '✅' :
+                s.conclusion === 'failure' ? '❌' :
+                s.conclusion === 'cancelled' ? '⏹️' :
+                s.conclusion === 'skipped' ? '⏭️' :
+                s.conclusion === 'timed_out' ? '⏰' : '🔄';
+              const link = s.html_url ? `[details](${s.html_url})` : '-';
+              table += `| ${emoji} | **${wf}** | \`${s.conclusion}\` ${link} |\n`;
+            }
+
+            const body = `### ${overallEmoji} Combined CI Status <!-- ci-cd-test-results -->\n\n` +
+                         `**Overall**: ${overallStatus}\n\n` +
+                         `${table}\n` +
+                         `---\n` +
+                         `_Last updated by ${triggerRun.name} workflow_\n`;
+
+            // 5) Update or Create comment
             const { data: comments } = await github.rest.issues.listComments({
               owner, repo, issue_number: prNumber
             });
@@ -68,8 +144,10 @@ jobs:
               await github.rest.issues.updateComment({
                 owner, repo, comment_id: botComment.id, body
               });
+              core.info(`Updated combined status comment #${botComment.id}`);
             } else {
               await github.rest.issues.createComment({
                 owner, repo, issue_number: prNumber, body
               });
+              core.info('Created combined status comment');
             }
