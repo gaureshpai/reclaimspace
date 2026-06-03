@@ -261,7 +261,10 @@ async function runDeepCleanWithUI(options, state) {
   }
 
   // Suppress stdin during deletion to prevent accidental keystrokes from corrupting output
-  process.stdin.pause();
+  const wasPaused = process.stdin && process.stdin.isPaused();
+  if (process.stdin && !wasPaused) {
+    process.stdin.pause();
+  }
   let deepCleanResults;
 
   try {
@@ -270,7 +273,9 @@ async function runDeepCleanWithUI(options, state) {
       onMessage: (msg) => process.stdout.write(msg),
     });
   } finally {
-    process.stdin.resume();
+    if (process.stdin && !wasPaused) {
+      process.stdin.resume();
+    }
   }
 
   // Accumulate reclaimed space into global state
