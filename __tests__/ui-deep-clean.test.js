@@ -33,8 +33,8 @@ describe("runDeepCleanWithUI", () => {
     jest.clearAllMocks();
     consoleLogMock = jest.spyOn(console, "log").mockImplementation(() => {});
     stdoutWriteMock = jest.spyOn(process.stdout, "write").mockImplementation(() => true);
-    pauseSpy = jest.spyOn(process.stdin, "pause");
-    resumeSpy = jest.spyOn(process.stdin, "resume");
+    pauseSpy = jest.spyOn(process.stdin, "pause").mockImplementation(() => process.stdin);
+    resumeSpy = jest.spyOn(process.stdin, "resume").mockImplementation(() => process.stdin);
   });
 
   afterEach(() => {
