@@ -26,16 +26,22 @@ import { runDeepClean } from "../src/deep-cleaner.js";
 describe("runDeepCleanWithUI", () => {
   let consoleLogMock;
   let stdoutWriteMock;
+  let pauseSpy;
+  let resumeSpy;
 
   beforeEach(() => {
     jest.clearAllMocks();
     consoleLogMock = jest.spyOn(console, "log").mockImplementation(() => {});
     stdoutWriteMock = jest.spyOn(process.stdout, "write").mockImplementation(() => true);
+    pauseSpy = jest.spyOn(process.stdin, "pause");
+    resumeSpy = jest.spyOn(process.stdin, "resume");
   });
 
   afterEach(() => {
     consoleLogMock.mockRestore();
     stdoutWriteMock.mockRestore();
+    pauseSpy.mockRestore();
+    resumeSpy.mockRestore();
   });
 
   describe("dry mode", () => {
@@ -241,6 +247,67 @@ describe("runDeepCleanWithUI", () => {
       const result = await runDeepCleanWithUI({ dry: false });
 
       expect(result).toBeUndefined();
+    });
+  });
+  describe("stdin suppression during deep clean", () => {
+    it("should pause stdin before runDeepClean executes", async () => {
+      const events = [];
+
+      pauseSpy.mockImplementation(() => {
+        events.push("pause");
+      });
+
+      runDeepClean.mockImplementation(async () => {
+        events.push("deep-clean");
+        return { cleaned: [], totalCleaned: 0 };
+      });
+
+      resumeSpy.mockImplementation(() => {
+        events.push("resume");
+      });
+
+      await runDeepCleanWithUI({ dry: false });
+
+      expect(events).toEqual(["pause", "deep-clean", "resume"]);
+    });
+    it("should resume stdin after runDeepClean completes", async () => {
+      runDeepClean.mockResolvedValue({
+        cleaned: [],
+        totalCleaned: 0,
+      });
+
+      await runDeepCleanWithUI({ dry: false });
+
+      expect(pauseSpy).toHaveBeenCalledTimes(1);
+      expect(resumeSpy).toHaveBeenCalledTimes(1);
+    });
+    it("should resume stdin when runDeepClean throws", async () => {
+      runDeepClean.mockRejectedValue(new Error("deep clean failed"));
+
+      await expect(runDeepCleanWithUI({ dry: false })).rejects.toThrow("deep clean failed");
+
+      expect(pauseSpy).toHaveBeenCalledTimes(1);
+      expect(resumeSpy).toHaveBeenCalledTimes(1);
+    });
+    it("should resume stdin even when runDeepClean throws", async () => {
+      const events = [];
+
+      pauseSpy.mockImplementation(() => {
+        events.push("pause");
+      });
+
+      runDeepClean.mockImplementation(async () => {
+        events.push("deep-clean");
+        throw new Error("boom");
+      });
+
+      resumeSpy.mockImplementation(() => {
+        events.push("resume");
+      });
+
+      await expect(runDeepCleanWithUI({ dry: false })).rejects.toThrow("boom");
+
+      expect(events).toEqual(["pause", "deep-clean", "resume"]);
     });
   });
 });
