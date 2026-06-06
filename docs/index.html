@@ -100,6 +100,9 @@
               <a class="nav-link" href="#detected-items">Detected Items</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link" href="#changelog">Changelog</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" href="#contributing">Contributing</a>
             </li>
             <li class="nav-item">
@@ -265,11 +268,17 @@
         <h3>Deep Clean Package Manager Caches</h3>
         <p>
           This will clear caches for npm, pnpm, yarn, pip, and other detected
-          package managers. Can be combined with other flags.
+          package managers. When cache size is unchanged after cleaning, a
+          descriptive reason is shown explaining why. Can be combined with other
+          flags.
         </p>
         <pre
           class="position-relative"
         ><button class="copy-btn">Copy</button><code>npx reclaimspace --deep-clean</code></pre>
+        <p>You can also use the short flag:</p>
+        <pre
+          class="position-relative"
+        ><button class="copy-btn">Copy</button><code>npx reclaimspace -dc</code></pre>
 
         <p>Combine with a full scan and auto-delete:</p>
         <pre
@@ -344,8 +353,9 @@
           </li>
           <li>
             <strong>Deep Clean Mode:</strong> Use the <code>--deep-clean</code>
-            flag to clear package manager caches (npm, pnpm, yarn, pip) for
-            even more reclaimed space.
+            (<code>-dc</code>) flag to clear package manager caches (npm, pnpm,
+            yarn, pip) for even more reclaimed space. Shows descriptive reasons
+            when cache size is unchanged.
           </li>
           <li>
             <strong>Windows Stability:</strong> Includes built-in retry logic
@@ -498,6 +508,20 @@ my-project/dist</code></pre>
             </ul>
           </li>
         </ol>
+      </section>
+
+      <section id="changelog" class="mb-5">
+        <h2>Changelog</h2>
+        <p>
+          See the
+          <a
+            href="https://github.com/gaureshpai/reclaimspace/blob/main/CHANGELOG.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            >CHANGELOG.md</a
+          >
+          for a full history of changes and contributor credits.
+        </p>
       </section>
 
       <section id="contributing" class="mb-5">

@@ -266,7 +266,7 @@ describe("GitHub Actions Workflows", () => {
 
     it("should trigger on tag push", () => {
       expect(publish).toContain("tags:");
-      expect(publish).toContain("'v*'");
+      expect(publish).toMatch(/['"]v\*['"]/);
     });
 
     it("should have id-token: write for OIDC", () => {
@@ -283,7 +283,7 @@ describe("GitHub Actions Workflows", () => {
 
     it("should update CHANGELOG with release version", () => {
       expect(publish).toContain("Update CHANGELOG with release version");
-      expect(publish).toContain("Release: ${VERSION}");
+      expect(publish).toMatch(/Release:.*\$\{VERSION\}/);
     });
 
     it("should create a GitHub release", () => {

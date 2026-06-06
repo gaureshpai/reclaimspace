@@ -226,7 +226,10 @@ describe("runDeepClean", () => {
         "pnpm --version": new Error("not found"),
         "yarn --version": new Error("not found"),
         "pip --version": new Error("not found"),
-        "npm cache clean --force": { stdout: "Cache cleared", stderr: "some warning" },
+        "npm cache clean --force": {
+          stdout: "Cache cleared",
+          stderr: "some warning",
+        },
       });
 
       const result = await runDeepClean({ dry: false, onMessage });
@@ -303,7 +306,11 @@ describe("runDeepClean", () => {
         if (callCount % 2 === 1) {
           // First call (before): one file of 1000 bytes
           return Promise.resolve([
-            { name: "cached-file", isFile: () => true, isDirectory: () => false },
+            {
+              name: "cached-file",
+              isFile: () => true,
+              isDirectory: () => false,
+            },
           ]);
         }
         // Second call (after): empty
@@ -332,7 +339,11 @@ describe("runDeepClean", () => {
         callCount++;
         if (callCount % 2 === 1) {
           return Promise.resolve([
-            { name: "cached-file", isFile: () => true, isDirectory: () => false },
+            {
+              name: "cached-file",
+              isFile: () => true,
+              isDirectory: () => false,
+            },
           ]);
         }
         return Promise.resolve([]);

@@ -203,7 +203,9 @@ describe("ui.start()", () => {
     it("should delete only selected targets", async () => {
       const targets = makeTargets(3);
       const state = { totalReclaimed: 0 };
-      inquirer.prompt.mockResolvedValue({ selectedTargets: [targets[0], targets[2]] });
+      inquirer.prompt.mockResolvedValue({
+        selectedTargets: [targets[0], targets[2]],
+      });
       deleteTarget.mockResolvedValue({ success: true });
 
       await start({

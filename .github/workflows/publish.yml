@@ -3,7 +3,7 @@ name: Publish Package
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   id-token: write
@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: refs/heads/main
+          fetch-depth: 0
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -34,6 +37,29 @@ jobs:
 
       - name: Publish to NPM
         run: npm publish --provenance --access public
+
+      - name: Update CHANGELOG with release version
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          DATE=$(date -u +"%Y-%m-%d")
+          RELEASE_LINE="> **Release: ${VERSION} - ${DATE}**"
+
+          # Insert the release line right after the first ## date heading
+          awk -v line="$RELEASE_LINE" '
+            /^## / && !done { print; print ""; print line; done=1; next }
+            { print }
+          ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+
+          # Commit and push only if there are actual changes
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No CHANGELOG changes to commit"
+          else
+            git commit -m "docs: update CHANGELOG for ${VERSION}"
+            git push
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
