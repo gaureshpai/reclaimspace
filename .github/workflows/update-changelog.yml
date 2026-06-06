@@ -72,6 +72,14 @@ jobs:
                 inserted = 1
               }
               { print }
+              END {
+                if (!inserted) {
+                  print ""
+                  print heading
+                  print ""
+                  print entry
+                }
+              }
             ' CHANGELOG.md > CHANGELOG.md.tmp
             mv CHANGELOG.md.tmp CHANGELOG.md
           fi
