@@ -39,6 +39,12 @@ describe("Program CLI", () => {
     expect(opts.save).toBe(true);
   });
 
+  it("should parse multi-character short flag -dc for deepClean", () => {
+    program.option("-dc, --deep-clean", "Clear package manager caches");
+    program.parse(["node", "script", "-dc"]);
+    expect(program.opts().deepClean).toBe(true);
+  });
+
   it("should collect positional arguments", () => {
     program.parse(["node", "script", "dir1", "dir2"]);
     expect(program.args).toEqual(["dir1", "dir2"]);

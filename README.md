@@ -107,16 +107,19 @@ npx reclaimspace --include "my-custom-build,temp-files"
 
 **To deep clean package manager caches:**
 
-This will clear caches for npm, pnpm, yarn, pip, and other detected package managers. Can be combined with other flags.
+This will clear caches for npm, pnpm, yarn, pip, and other detected package managers. When the cache size doesn't change after cleaning, a descriptive reason is shown explaining why (e.g., pnpm's `store prune` only removes unreferenced packages).
 
 ```bash
 npx reclaimspace --deep-clean
+# or use the short flag
+npx reclaimspace -dc
 ```
 
 You can also combine it with a scan:
 
 ```bash
 npx reclaimspace --yes --deep-clean
+npx reclaimspace --yes -dc
 ```
 
 ## Configuration
@@ -161,7 +164,7 @@ my-project/dist
 - **Build Analysis:** Use the `--build-analysis` flag to see inferred project types and common build patterns.
 - **Include Patterns:** Use the `--include` flag to scan only folders matching specific patterns.
 - **Global Config:** Ignore patterns can be saved globally via `--save`, applying across all projects.
-- **Deep Clean Mode:** Use the `--deep-clean` flag to clear package manager caches (npm, pnpm, yarn, pip) for even more reclaimed space.
+- **Deep Clean Mode:** Use the `--deep-clean` (`-dc`) flag to clear package manager caches (npm, pnpm, yarn, pip) for even more reclaimed space. Shows descriptive reasons when cache size is unchanged.
 - **Cool Logo:** Displays a cool logo when you run the tool.
 
 ## Detected Items
@@ -182,17 +185,13 @@ my-project/dist
     - `vendor` (Go/PHP dependencies)
     - `.vagrant`, `.terraform` (Infrastructure tools)
 
+## Changelog
+
+See the [CHANGELOG.md](./CHANGELOG.md) for a full history of changes and contributor credits.
+
 ## Contributing
 
 Contributions are welcome! Please read our [contributing guidelines](./CONTRIBUTING.md) to get started.
-
-## Contributors
-
-<div align="center">
-  <a href="https://github.com/gaureshpai/reclaimspace/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=gaureshpai/reclaimspace" />
-  </a>
-</div>
 
 ## License
 
