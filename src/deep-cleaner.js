@@ -220,9 +220,11 @@ async function runDeepClean(options = {}) {
       } else if (beforeSize > 0) {
         log(chalk.yellow(`    Cache size unchanged at ${formatSize(beforeSize)}\n`));
         log(chalk.dim(`    (${getUnchangedReason(mgr.name)})\n`));
+      } else if (mgr.cacheDir) {
+        log(chalk.gray('    Cache was already empty\n'));
+        log(chalk.dim('    ' + getEmptyReason(mgr.name) + '\n'));
       } else {
-        log(chalk.gray("    Cache was already empty\n"));
-        log(chalk.dim(`    ${getEmptyReason(mgr.name)}\n`));
+        log(chalk.gray('    Cleaned successfully (cache size could not be determined)\n'));
       }
 
       results.push({ name: mgr.name, beforeSize, afterSize, success: true, output });
