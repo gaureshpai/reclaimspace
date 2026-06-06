@@ -1,0 +1,89 @@
+name: Update Changelog
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update CHANGELOG
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
+        run: |
+          TODAY=$(date -u +"%Y-%m-%d")
+          DATE_HEADING="## ${TODAY}"
+
+          # Extract conventional-commit type and description from PR title
+          TYPE=$(echo "$PR_TITLE" | sed -n 's/^\([a-z]*\)!*\(:. */\).*/\1/p')
+          DESC=$(echo "$PR_TITLE" | sed 's/^[a-z!]*: *//;s/ *(#[0-9]*)*$//')
+
+          # Map conventional commit types to human-readable labels
+          case "$TYPE" in
+            feat)     LABEL="Feature" ;;
+            fix)      LABEL="Fix" ;;
+            perf)     LABEL="Performance" ;;
+            docs)     LABEL="Documentation" ;;
+            test)     LABEL="Testing" ;;
+            chore)    LABEL="Maintenance" ;;
+            ci)       LABEL="CI/CD" ;;
+            refactor) LABEL="Refactor" ;;
+            *)        LABEL="Change" ;;
+          esac
+
+          # Build the changelog entry
+          ENTRY="- **${LABEL} — ${DESC}** ([#${PR_NUMBER}](${PR_URL})):"
+
+          # Add PR body as sub-bullets if it has meaningful content
+          if [ -n "$PR_BODY" ] && ! echo "$PR_BODY" | grep -qiE "^($|generated|automatically|coderabbit)"; then
+            BULLETS=$(echo "$PR_BODY" | grep -E "^[-*] " | head -10 | sed 's/^[-*] /  - /')
+            if [ -n "$BULLETS" ]; then
+              ENTRY="${ENTRY}
+${BULLETS}"
+            fi
+          fi
+
+          if grep -q "^${DATE_HEADING}$" CHANGELOG.md; then
+            # Date section exists — insert entry right after the heading
+            awk -v heading="$DATE_HEADING" -v entry="$ENTRY" '
+              $0 == heading { print; print ""; print entry; next }
+              { print }
+            ' CHANGELOG.md > CHANGELOG.md.tmp
+            mv CHANGELOG.md.tmp CHANGELOG.md
+          else
+            # Date section does not exist — create it at the top (after title)
+            # Find the first ## heading and insert before it
+            awk -v heading="$DATE_HEADING" -v entry="$ENTRY" '
+              /^## / && !inserted {
+                print heading
+                print ""
+                print entry
+                print ""
+                inserted = 1
+              }
+              { print }
+            ' CHANGELOG.md > CHANGELOG.md.tmp
+            mv CHANGELOG.md.tmp CHANGELOG.md
+          fi
+
+          # Commit and push only if there are actual changes
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No CHANGELOG changes to commit"
+          else
+            git commit -m "docs: add #${PR_NUMBER} to CHANGELOG [skip ci]"
+            git push
+          fi
