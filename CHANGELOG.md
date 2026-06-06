@@ -156,9 +156,9 @@
 
 > **Release: v0.1.7-0 - 2026-02-03**
 
-## 2026-02-03
+## 2026-02-03 (v0.1.7-0)
 
-- **Enhanced Issue Templates & Checkbox Prompt** ([#8](https://github.com/gaureshpai/reclaimspace/pull/8)):
+- **Enhanced Issue Templates & Checkbox Prompt** ([`#8`](https://github.com/gaureshpai/reclaimspace/pull/8)):
   - Standardized issue templates with proper GitHub Forms schema.
   - Improved CLI checkbox prompt functionality.
   - Added issue template and prompt tests.
@@ -166,7 +166,7 @@
 
 > **Release: v0.1.6 - 2026-02-03**
 
-## 2026-02-03
+## 2026-02-03 (v0.1.6)
 
 - **Expanded Detection & Documentation** ([#5](https://github.com/gaureshpai/reclaimspace/pull/5)):
   - Expanded folder detection capabilities with additional build/cache patterns.
