@@ -66,7 +66,7 @@ async function run(baseDir) {
       .option("-c, --include <patterns>", "Comma-separated list of patterns to include")
       .option("-s, --save [patterns]", "Save ignore patterns to .reclaimspacerc")
       .option("-b, --build-analysis", "Enable build analysis logs")
-      .option("--deep-clean", "Also clear package manager caches (npm, pnpm, yarn, pip)")
+      .option("-dc, --deep-clean", "Also clear package manager caches (npm, pnpm, yarn, pip)")
       .parse(process.argv);
 
     const options = program.opts();
