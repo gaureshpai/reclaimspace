@@ -46,7 +46,9 @@ jobs:
           sed -i "s/^## Unreleased$/## ${DATE}/" CHANGELOG.md
           
           # Add a fresh ## Unreleased section at the top for next development cycle
-          sed -i "1,/^## ${DATE}$/ { /^## ${DATE}$/i ## Unreleased\n" } CHANGELOG.md
+          sed -i "1,/^## ${DATE}$/ { /^## ${DATE}$/i\
+## Unreleased
+}" CHANGELOG.md
           
           # Commit and push only if there are actual changes
           git config user.name "github-actions[bot]"
