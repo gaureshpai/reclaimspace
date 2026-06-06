@@ -2,7 +2,7 @@ name: Post Test Results
 
 on:
   workflow_run:
-    workflows: [Lint, Test, Build]
+    workflows: [CI]
     types: [completed]
 
 permissions:
@@ -52,86 +52,28 @@ jobs:
               ref: headSha
             });
 
-            // 3) Aggregate status of our 3 workflows
-            const workflows = ['Lint', 'Test', 'Build'];
-            const statuses = {};
+            // 3) Find the CI check run
+            const ciCheck = checkRuns.check_runs.find(c => c.name === 'ci');
+            const conclusion = ciCheck?.conclusion || triggerRun.conclusion || 'pending';
+            const checkUrl = ciCheck?.html_url || triggerRun.html_url;
 
-            for (const check of checkRuns.check_runs) {
-              if (workflows.includes(check.name)) {
-                statuses[check.name] = {
-                  conclusion: check.conclusion || 'pending',
-                  html_url: check.html_url
-                };
-              }
-            }
+            // 4) Build report
+            const emoji =
+              conclusion === 'success' ? '✅' :
+              conclusion === 'failure' ? '❌' :
+              conclusion === 'cancelled' ? '⏹️' :
+              conclusion === 'timed_out' ? '⏰' : '🔄';
 
-            // Map display names to file names for the workflow_id API parameter
-            const workflowFileMap = { 'Lint': 'lint.yml', 'Test': 'test.yml', 'Build': 'build.yml' };
+            const statusText =
+              conclusion === 'success' ? 'all passed' :
+              conclusion === 'failure' ? 'failed' :
+              conclusion === 'cancelled' ? 'cancelled' :
+              conclusion === 'timed_out' ? 'timed out' : 'in progress';
 
-            // Also try fetching workflow runs directly as a fallback
-            for (const wf of workflows) {
-              if (!statuses[wf]) {
-                try {
-                  const { data: runs } = await github.rest.actions.listWorkflowRuns({
-                    owner,
-                    repo,
-                    workflow_id: workflowFileMap[wf] || wf,
-                    branch: headBranch,
-                    event: 'pull_request',
-                    per_page: 1
-                  });
-                  if (runs.workflow_runs.length) {
-                    const run = runs.workflow_runs[0];
-                    statuses[wf] = {
-                      conclusion: run.conclusion || 'pending',
-                      html_url: run.html_url
-                    };
-                  } else {
-                    statuses[wf] = { conclusion: 'pending', html_url: null };
-                  }
-                } catch (e) {
-                  statuses[wf] = { conclusion: 'unknown', html_url: null };
-                }
-              }
-            }
+            const link = checkUrl ? `[details](${checkUrl})` : '-';
 
-            // 4) Build combined report
-            const allCompleted = workflows.every(w => statuses[w]?.conclusion !== 'pending' && statuses[w]?.conclusion !== 'queued' && statuses[w]?.conclusion !== 'in_progress');
-            const allSuccess = workflows.every(w => statuses[w]?.conclusion === 'success');
-            const anyFailure = workflows.some(w => statuses[w]?.conclusion === 'failure' || statuses[w]?.conclusion === 'cancelled' || statuses[w]?.conclusion === 'timed_out');
-
-            let overallEmoji;
-            let overallStatus;
-            if (!allCompleted) {
-              overallEmoji = '🔄';
-              overallStatus = 'in progress';
-            } else if (allSuccess) {
-              overallEmoji = '✅';
-              overallStatus = 'all passed';
-            } else if (anyFailure) {
-              overallEmoji = '❌';
-              overallStatus = 'some checks failed';
-            } else {
-              overallEmoji = '⚠️';
-              overallStatus = 'mixed results';
-            }
-
-            let table = `| Status | Workflow | Result |\n|--------|----------|--------|\n`;
-            for (const wf of workflows) {
-              const s = statuses[wf] || { conclusion: 'pending', html_url: null };
-              const emoji =
-                s.conclusion === 'success' ? '✅' :
-                s.conclusion === 'failure' ? '❌' :
-                s.conclusion === 'cancelled' ? '⏹️' :
-                s.conclusion === 'skipped' ? '⏭️' :
-                s.conclusion === 'timed_out' ? '⏰' : '🔄';
-              const link = s.html_url ? `[details](${s.html_url})` : '-';
-              table += `| ${emoji} | **${wf}** | \`${s.conclusion}\` ${link} |\n`;
-            }
-
-            const body = `### ${overallEmoji} Combined CI Status <!-- ci-cd-test-results -->\n\n` +
-                         `**Overall**: ${overallStatus}\n\n` +
-                         `${table}\n` +
+            const body = `### ${emoji} CI Status <!-- ci-cd-test-results -->\n\n` +
+                         `**Overall**: ${statusText} \`${conclusion}\` ${link}\n\n` +
                          `---\n` +
                          `_Last updated by ${triggerRun.name} workflow_\n`;
 

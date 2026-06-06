@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  ci:
     environment: ci
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +25,7 @@ jobs:
         run: pnpm install
       - name: Verify package
         run: pnpm pack --dry-run
+      - name: Run Biome lint
+        run: pnpm lint
       - name: Run tests
         run: pnpm test
-
