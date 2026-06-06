@@ -2,6 +2,8 @@
 
 ## 2026-06-06
 
+> **Release: v0.2.4 - 2026-06-06**
+
 - **Descriptive Reasons in `--deep-clean` Output** ([#54](https://github.com/gaureshpai/reclaimspace/issues/54)):
   - When cache size is unchanged after cleaning, a human-readable explanation is now shown (e.g., pnpm's `store prune` only removes unreferenced packages; npm recreates essential metadata after cleaning).
   - Added before→after size summary when space is successfully freed (e.g., `1.31 GB → 12.94 KB`).
