@@ -4,139 +4,81 @@ import path from "node:path";
 describe("GitHub Actions Workflows", () => {
   const workflowsDir = path.join(process.cwd(), ".github", "workflows");
 
-  describe("build.yml", () => {
-    const buildWorkflowPath = path.join(workflowsDir, "build.yml");
-    let buildWorkflow;
+  describe("ci.yml", () => {
+    const ciWorkflowPath = path.join(workflowsDir, "ci.yml");
+    let ciWorkflow;
 
     beforeAll(() => {
-      buildWorkflow = fs.readFileSync(buildWorkflowPath, "utf8");
+      ciWorkflow = fs.readFileSync(ciWorkflowPath, "utf8");
     });
 
     it("should exist", () => {
-      expect(fs.existsSync(buildWorkflowPath)).toBe(true);
+      expect(fs.existsSync(ciWorkflowPath)).toBe(true);
     });
 
-    it("should be named 'Build'", () => {
-      expect(buildWorkflow).toMatch(/^name:\s*Build\s*$/m);
-    });
-
-    it("should not be named 'CI' (renamed from ci.yml)", () => {
-      expect(buildWorkflow).not.toMatch(/^name:\s*CI\s*$/m);
+    it("should be named 'CI'", () => {
+      expect(ciWorkflow).toMatch(/^name:\s*CI\s*$/m);
     });
 
     it("should not trigger on push to main (only pull_request)", () => {
-      expect(buildWorkflow).not.toContain("push:");
+      expect(ciWorkflow).not.toContain("push:");
     });
 
     it("should trigger on pull_request to main", () => {
-      expect(buildWorkflow).toContain("pull_request:");
+      expect(ciWorkflow).toContain("pull_request:");
     });
 
     it("should use pnpm version 10", () => {
-      expect(buildWorkflow).toMatch(/version:\s*10/);
+      expect(ciWorkflow).toMatch(/version:\s*10/);
     });
 
     it("should not use pnpm version 9", () => {
-      expect(buildWorkflow).not.toMatch(/version:\s*9\b/);
+      expect(ciWorkflow).not.toMatch(/version:\s*9\b/);
     });
 
     it("should use Node.js version 20", () => {
-      expect(buildWorkflow).toMatch(/node-version:\s*["']?20["']?/);
+      expect(ciWorkflow).toMatch(/node-version:\s*["']?20["']?/);
     });
 
     it("should install dependencies", () => {
-      expect(buildWorkflow).toContain("pnpm install");
-      expect(buildWorkflow).not.toContain("--frozen-lockfile");
+      expect(ciWorkflow).toContain("pnpm install");
+      expect(ciWorkflow).not.toContain("--frozen-lockfile");
     });
 
     it("should have a 'Verify package' step using pnpm pack --dry-run", () => {
-      expect(buildWorkflow).toContain("Verify package");
-      expect(buildWorkflow).toContain("pnpm pack --dry-run");
-    });
-
-    it("should not have the old test step that ran pnpm test", () => {
-      expect(buildWorkflow).not.toContain("Run tests");
-      expect(buildWorkflow).not.toMatch(/pnpm test\b/);
-    });
-
-    it("should not upload test logs artifact", () => {
-      expect(buildWorkflow).not.toContain("Upload test logs");
-      expect(buildWorkflow).not.toContain("test-logs");
-    });
-
-    it("should checkout code", () => {
-      expect(buildWorkflow).toContain("actions/checkout@v4");
-    });
-
-    it("should cache pnpm store", () => {
-      expect(buildWorkflow).toContain('cache: "pnpm"');
-    });
-
-    it("should not have syntax errors (no tabs)", () => {
-      expect(buildWorkflow).not.toMatch(/\t/);
-    });
-  });
-
-  describe("lint.yml", () => {
-    const lintWorkflowPath = path.join(workflowsDir, "lint.yml");
-    let lintWorkflow;
-
-    beforeAll(() => {
-      lintWorkflow = fs.readFileSync(lintWorkflowPath, "utf8");
-    });
-
-    it("should exist", () => {
-      expect(fs.existsSync(lintWorkflowPath)).toBe(true);
-    });
-
-    it("should be named 'Lint'", () => {
-      expect(lintWorkflow).toMatch(/^name:\s*Lint\s*$/m);
-    });
-
-    it("should not trigger on push to main (only pull_request)", () => {
-      expect(lintWorkflow).not.toContain("push:");
-    });
-
-    it("should trigger on pull_request to main", () => {
-      expect(lintWorkflow).toContain("pull_request:");
-    });
-
-    it("should use pnpm version 10", () => {
-      expect(lintWorkflow).toMatch(/version:\s*10/);
-    });
-
-    it("should use Node.js version 20", () => {
-      expect(lintWorkflow).toMatch(/node-version:\s*["']?20["']?/);
-    });
-
-    it("should install dependencies", () => {
-      expect(lintWorkflow).toContain("pnpm install");
-      expect(lintWorkflow).not.toContain("--frozen-lockfile");
+      expect(ciWorkflow).toContain("Verify package");
+      expect(ciWorkflow).toContain("pnpm pack --dry-run");
     });
 
     it("should run Biome lint via pnpm lint", () => {
-      expect(lintWorkflow).toContain("Run Biome lint");
-      expect(lintWorkflow).toContain("pnpm lint");
+      expect(ciWorkflow).toContain("Run Biome lint");
+      expect(ciWorkflow).toContain("pnpm lint");
     });
 
-    it("should have a lint job", () => {
-      expect(lintWorkflow).toContain("lint:");
-    });
-
-    it("lint job should run on ubuntu-latest", () => {
-      expect(lintWorkflow).toContain("runs-on: ubuntu-latest");
+    it("should run tests via pnpm test", () => {
+      expect(ciWorkflow).toContain("Run tests");
+      expect(ciWorkflow).toContain("pnpm test");
     });
 
     it("should checkout code", () => {
-      expect(lintWorkflow).toContain("actions/checkout@v4");
+      expect(ciWorkflow).toContain("actions/checkout@v4");
     });
 
     it("should cache pnpm store", () => {
-      expect(lintWorkflow).toContain('cache: "pnpm"');
+      expect(ciWorkflow).toContain('cache: "pnpm"');
+    });
+
+    it("should use environment: ci for approval gate", () => {
+      expect(ciWorkflow).toContain("environment: ci");
+    });
+
+    it("should have a single job with all steps", () => {
+      expect(ciWorkflow).toContain("jobs:");
+      expect(ciWorkflow).toMatch(/^\s+ci:\s*$/m);
     });
 
     it("should not have syntax errors (no tabs)", () => {
-      expect(lintWorkflow).not.toMatch(/\t/);
+      expect(ciWorkflow).not.toMatch(/\t/);
     });
   });
 
@@ -152,16 +94,9 @@ describe("GitHub Actions Workflows", () => {
       expect(fs.existsSync(postTestPath)).toBe(true);
     });
 
-    it("should trigger on workflow_run for Lint, Test, and Build", () => {
+    it("should trigger on workflow_run for CI", () => {
       expect(postTest).toContain("workflow_run:");
-      expect(postTest).toContain("Lint");
-      expect(postTest).toContain("Test");
-      expect(postTest).toContain("Build");
-    });
-
-    it("should not trigger only on CI workflow (old behavior)", () => {
-      // Should not have the old single-workflow trigger
-      expect(postTest).not.toMatch(/workflows:\s*\[["']CI["']\]/);
+      expect(postTest).toContain("CI");
     });
 
     it("should trigger on completed workflow runs", () => {
@@ -184,38 +119,12 @@ describe("GitHub Actions Workflows", () => {
       expect(postTest).not.toContain("comment-on-pr:");
     });
 
-    it("should track all 3 workflows in the script", () => {
-      expect(postTest).toContain("'Lint'");
-      expect(postTest).toContain("'Test'");
-      expect(postTest).toContain("'Build'");
+    it("should find the ci check run", () => {
+      expect(postTest).toContain("c.name === 'ci'");
     });
 
     it("should fetch check runs for the commit SHA", () => {
       expect(postTest).toContain("checks.listForRef");
-    });
-
-    it("should have fallback to listWorkflowRuns", () => {
-      expect(postTest).toContain("actions.listWorkflowRuns");
-    });
-
-    it("should compute allCompleted status", () => {
-      expect(postTest).toContain("allCompleted");
-    });
-
-    it("should compute allSuccess status", () => {
-      expect(postTest).toContain("allSuccess");
-    });
-
-    it("should compute anyFailure status", () => {
-      expect(postTest).toContain("anyFailure");
-    });
-
-    it("should handle timed_out conclusion", () => {
-      expect(postTest).toContain("timed_out");
-    });
-
-    it("should use HTML table format for status", () => {
-      expect(postTest).toContain("| Status | Workflow | Result |");
     });
 
     it("should use ci-cd-test-results marker for comment identification", () => {
@@ -239,53 +148,151 @@ describe("GitHub Actions Workflows", () => {
       expect(postTest).toContain("actions/github-script@v7");
     });
 
+    it("should handle timed_out conclusion", () => {
+      expect(postTest).toContain("timed_out");
+    });
+
     it("should not have syntax errors (no tabs)", () => {
       expect(postTest).not.toMatch(/\t/);
     });
   });
 
-  describe("workflow consistency across build.yml and lint.yml", () => {
-    const buildPath = path.join(workflowsDir, "build.yml");
-    const lintPath = path.join(workflowsDir, "lint.yml");
+  describe("welcome.yml", () => {
+    const welcomePath = path.join(workflowsDir, "welcome.yml");
+    let welcome;
 
-    it("both should use the same pnpm version", () => {
-      const buildContent = fs.readFileSync(buildPath, "utf8");
-      const lintContent = fs.readFileSync(lintPath, "utf8");
-
-      const buildPnpmVersion = buildContent.match(/version:\s*(\d+)/)?.[1];
-      const lintPnpmVersion = lintContent.match(/version:\s*(\d+)/)?.[1];
-
-      expect(buildPnpmVersion).toBe("10");
-      expect(lintPnpmVersion).toBe("10");
+    beforeAll(() => {
+      welcome = fs.readFileSync(welcomePath, "utf8");
     });
 
-    it("both should use the same Node.js version", () => {
-      const buildContent = fs.readFileSync(buildPath, "utf8");
-      const lintContent = fs.readFileSync(lintPath, "utf8");
-
-      const buildNodeVersion = buildContent.match(/node-version:\s*["']?(\d+)["']?/)?.[1];
-      const lintNodeVersion = lintContent.match(/node-version:\s*["']?(\d+)["']?/)?.[1];
-
-      expect(buildNodeVersion).toBe("20");
-      expect(lintNodeVersion).toBe("20");
+    it("should exist", () => {
+      expect(fs.existsSync(welcomePath)).toBe(true);
     });
 
-    it("both should trigger on pull_request to main only (not push)", () => {
-      const buildContent = fs.readFileSync(buildPath, "utf8");
-      const lintContent = fs.readFileSync(lintPath, "utf8");
-
-      expect(buildContent).toContain("pull_request:");
-      expect(lintContent).toContain("pull_request:");
-      expect(buildContent).not.toContain("push:");
-      expect(lintContent).not.toContain("push:");
+    it("should be named 'Welcome New Contributors'", () => {
+      expect(welcome).toMatch(/^name:\s*Welcome New Contributors\s*$/m);
     });
 
-    it("both should use actions/checkout@v4", () => {
-      const buildContent = fs.readFileSync(buildPath, "utf8");
-      const lintContent = fs.readFileSync(lintPath, "utf8");
+    it("should trigger on issues opened", () => {
+      expect(welcome).toContain("issues:");
+      expect(welcome).toContain("types: [opened]");
+    });
 
-      expect(buildContent).toContain("actions/checkout@v4");
-      expect(lintContent).toContain("actions/checkout@v4");
+    it("should trigger on pull_request_target labeled", () => {
+      expect(welcome).toContain("pull_request_target:");
+      expect(welcome).toContain("types: [labeled]");
+    });
+
+    it("should have safe-to-test label condition", () => {
+      expect(welcome).toContain("safe-to-test");
+    });
+
+    it("should use actions/first-interaction@v1", () => {
+      expect(welcome).toContain("actions/first-interaction@v1");
+    });
+
+    it("should not have syntax errors (no tabs)", () => {
+      expect(welcome).not.toMatch(/\t/);
+    });
+  });
+
+  describe("update-changelog.yml", () => {
+    const updatePath = path.join(workflowsDir, "update-changelog.yml");
+    let update;
+
+    beforeAll(() => {
+      update = fs.readFileSync(updatePath, "utf8");
+    });
+
+    it("should exist", () => {
+      expect(fs.existsSync(updatePath)).toBe(true);
+    });
+
+    it("should be named 'Update Changelog'", () => {
+      expect(update).toMatch(/^name:\s*Update Changelog\s*$/m);
+    });
+
+    it("should trigger on pull_request closed to main", () => {
+      expect(update).toContain("types: [closed]");
+      expect(update).toContain("branches: [main]");
+    });
+
+    it("should only run on merged PRs", () => {
+      expect(update).toContain("github.event.pull_request.merged == true");
+    });
+
+    it("should have contents: write permission", () => {
+      expect(update).toContain("contents: write");
+    });
+
+    it("should use today's date for the heading", () => {
+      expect(update).toContain('TODAY=$(date -u +"%Y-%m-%d")');
+    });
+
+    it("should check if date heading already exists", () => {
+      expect(update).toContain("grep -q");
+    });
+
+    it("should use conventional commit type mapping", () => {
+      expect(update).toContain("feat)");
+      expect(update).toContain("fix)");
+      expect(update).toContain("ci)");
+    });
+
+    it("should commit with skip ci tag", () => {
+      expect(update).toContain("[skip ci]");
+    });
+
+    it("should not have syntax errors (no tabs)", () => {
+      expect(update).not.toMatch(/\t/);
+    });
+  });
+
+  describe("publish.yml", () => {
+    const publishPath = path.join(workflowsDir, "publish.yml");
+    let publish;
+
+    beforeAll(() => {
+      publish = fs.readFileSync(publishPath, "utf8");
+    });
+
+    it("should exist", () => {
+      expect(fs.existsSync(publishPath)).toBe(true);
+    });
+
+    it("should be named 'Publish Package'", () => {
+      expect(publish).toMatch(/^name:\s*Publish Package\s*$/m);
+    });
+
+    it("should trigger on tag push", () => {
+      expect(publish).toContain("tags:");
+      expect(publish).toContain("'v*'");
+    });
+
+    it("should have id-token: write for OIDC", () => {
+      expect(publish).toContain("id-token: write");
+    });
+
+    it("should have contents: write permission", () => {
+      expect(publish).toContain("contents: write");
+    });
+
+    it("should use npm publish with provenance", () => {
+      expect(publish).toContain("npm publish --provenance --access public");
+    });
+
+    it("should update CHANGELOG with release version", () => {
+      expect(publish).toContain("Update CHANGELOG with release version");
+      expect(publish).toContain("Release: ${VERSION}");
+    });
+
+    it("should create a GitHub release", () => {
+      expect(publish).toContain("softprops/action-gh-release@v2");
+      expect(publish).toContain("generate_release_notes: true");
+    });
+
+    it("should not have syntax errors (no tabs)", () => {
+      expect(publish).not.toMatch(/\t/);
     });
   });
 });
