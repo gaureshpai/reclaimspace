@@ -216,10 +216,15 @@ async function runDeepClean(options = {}) {
 
       if (freed > 0) {
         log(chalk.green(`    Freed: ${formatSize(freed)}\n`));
+        log(chalk.dim(`    (${formatSize(beforeSize)} → ${formatSize(afterSize)})\n`));
       } else if (beforeSize > 0) {
-        log(chalk.yellow(`    Cleaned (size unchanged at ${formatSize(beforeSize)})\n`));
+        log(chalk.yellow(`    Cache size unchanged at ${formatSize(beforeSize)}\n`));
+        log(chalk.dim(`    (${getUnchangedReason(mgr.name)})\n`));
+      } else if (mgr.cacheDir) {
+        log(chalk.gray('    Cache was already empty\n'));
+        log(chalk.dim('    ' + getEmptyReason(mgr.name) + '\n'));
       } else {
-        log(chalk.gray("    Cache was already empty\n"));
+        log(chalk.gray('    Cleaned successfully (cache size could not be determined)\n'));
       }
 
       results.push({ name: mgr.name, beforeSize, afterSize, success: true, output });
@@ -237,6 +242,49 @@ async function runDeepClean(options = {}) {
   }
 
   return { cleaned: results, totalCleaned };
+}
+
+/**
+ * Returns a human-readable reason explaining why a package manager's cache size
+ * did not change after running its clean command.
+ *
+ * @param {string} name - Package manager name (e.g., "npm", "pnpm").
+ * @returns {string} Descriptive reason string.
+ */
+function getUnchangedReason(name) {
+  switch (name) {
+    case "npm":
+      return "npm recreated essential metadata (integrity checksums and package info) that it rebuilds on the next install";
+    case "pnpm":
+      return "pnpm store prune only removes unreferenced packages; all cached packages are still in use by at least one project";
+    case "yarn":
+      return "yarn recreated metadata entries that it rebuilds automatically";
+    case "pip":
+      return "pip cache purge could not remove all cached data; some metadata persists across purges";
+    default:
+      return "the cache was already at its minimum usable size";
+  }
+}
+
+/**
+ * Returns a human-readable message for when a package manager's cache is already empty.
+ *
+ * @param {string} name - Package manager name.
+ * @returns {string} Descriptive reason string.
+ */
+function getEmptyReason(name) {
+  switch (name) {
+    case "npm":
+      return "No cached packages found";
+    case "pnpm":
+      return "No packages in the store to prune";
+    case "yarn":
+      return "No cached packages found";
+    case "pip":
+      return "No cached packages or HTTP responses found";
+    default:
+      return "Nothing to clean";
+  }
 }
 
 export { detectPackageManagers, estimateCacheSize, runDeepClean };

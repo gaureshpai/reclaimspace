@@ -324,6 +324,115 @@ describe("runDeepClean", () => {
       // Should have cleaned 1000 bytes
       expect(result.totalCleaned).toBe(1000);
     });
+
+    it("should show before/after size line when space is freed", async () => {
+      fs.access.mockResolvedValue(undefined);
+      let callCount = 0;
+      fs.readdir.mockImplementation(() => {
+        callCount++;
+        if (callCount % 2 === 1) {
+          return Promise.resolve([
+            { name: "cached-file", isFile: () => true, isDirectory: () => false },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+      fs.stat.mockResolvedValue({ size: 5000 });
+
+      setupExecMock({
+        "npm --version": { stdout: "9.6.0\n", stderr: "" },
+        "pnpm --version": new Error("not found"),
+        "yarn --version": new Error("not found"),
+        "pip --version": new Error("not found"),
+        "npm cache clean --force": { stdout: "", stderr: "" },
+      });
+
+      await runDeepClean({ dry: false, onMessage });
+
+      const allMessages = messages.join("");
+      expect(allMessages).toMatch(/Freed/);
+      // Should show the before→after summary
+      expect(allMessages).toMatch(/→/);
+    });
+
+    it("should show descriptive reason when cache size is unchanged for pnpm", async () => {
+      // pnpm available, cache dir exists with files that remain unchanged
+      fs.access.mockResolvedValue(undefined);
+      fs.readdir.mockResolvedValue([
+        { name: "package", isFile: () => true, isDirectory: () => false },
+      ]);
+      fs.stat.mockResolvedValue({ size: 674490000 });
+
+      setupExecMock({
+        "npm --version": new Error("not found"),
+        "pnpm --version": { stdout: "10.28.2\n", stderr: "" },
+        "yarn --version": new Error("not found"),
+        "pip --version": new Error("not found"),
+        "pnpm store prune": { stdout: "", stderr: "" },
+      });
+
+      await runDeepClean({ dry: false, onMessage });
+
+      const allMessages = messages.join("");
+      expect(allMessages).toMatch(/pnpm store prune only removes unreferenced packages/);
+    });
+
+    it("should show descriptive reason when cache size is unchanged for npm", async () => {
+      fs.access.mockResolvedValue(undefined);
+      fs.readdir.mockResolvedValue([
+        { name: "metadata", isFile: () => true, isDirectory: () => false },
+      ]);
+      fs.stat.mockResolvedValue({ size: 1310000000 });
+
+      setupExecMock({
+        "npm --version": { stdout: "11.7.0\n", stderr: "" },
+        "pnpm --version": new Error("not found"),
+        "yarn --version": new Error("not found"),
+        "pip --version": new Error("not found"),
+        "npm cache clean --force": { stdout: "", stderr: "" },
+      });
+
+      await runDeepClean({ dry: false, onMessage });
+
+      const allMessages = messages.join("");
+      expect(allMessages).toMatch(/npm recreated essential metadata/);
+    });
+
+    it("should show empty reason when cache was already empty", async () => {
+      // Cache dir doesn't exist → beforeSize = 0
+      fs.access.mockRejectedValue(new Error("ENOENT"));
+
+      setupExecMock({
+        "npm --version": { stdout: "9.6.0\n", stderr: "" },
+        "pnpm --version": new Error("not found"),
+        "yarn --version": new Error("not found"),
+        "pip --version": new Error("not found"),
+        "npm cache clean --force": { stdout: "", stderr: "" },
+      });
+
+      await runDeepClean({ dry: false, onMessage });
+
+      const allMessages = messages.join("");
+      expect(allMessages).toMatch(/Cache was already empty/);
+      expect(allMessages).toMatch(/No cached packages found/);
+    });
+
+    it("should show pip-specific empty reason when cache is empty", async () => {
+      fs.access.mockRejectedValue(new Error("ENOENT"));
+
+      setupExecMock({
+        "npm --version": new Error("not found"),
+        "pnpm --version": new Error("not found"),
+        "yarn --version": new Error("not found"),
+        "pip --version": { stdout: "25.3\n", stderr: "" },
+        "pip cache purge": { stdout: "", stderr: "" },
+      });
+
+      await runDeepClean({ dry: false, onMessage });
+
+      const allMessages = messages.join("");
+      expect(allMessages).toMatch(/No cached packages or HTTP responses found/);
+    });
   });
 
   describe("all managers unavailable", () => {
