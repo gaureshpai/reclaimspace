@@ -260,10 +260,23 @@ async function runDeepCleanWithUI(options, state) {
     console.log(chalk.yellow("  --dry run: No caches will be cleared.\n"));
   }
 
-  const deepCleanResults = await runDeepClean({
-    dry: !!options.dry,
-    onMessage: (msg) => process.stdout.write(msg),
-  });
+  // Suppress stdin during deletion to prevent accidental keystrokes from corrupting output
+  const wasPaused = process.stdin && process.stdin.isPaused();
+  if (process.stdin && !wasPaused) {
+    process.stdin.pause();
+  }
+  let deepCleanResults;
+
+  try {
+    deepCleanResults = await runDeepClean({
+      dry: !!options.dry,
+      onMessage: (msg) => process.stdout.write(msg),
+    });
+  } finally {
+    if (process.stdin && !wasPaused) {
+      process.stdin.resume();
+    }
+  }
 
   // Accumulate reclaimed space into global state
   if (!options.dry && deepCleanResults.totalCleaned > 0 && state) {
