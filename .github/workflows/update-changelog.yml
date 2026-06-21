@@ -13,7 +13,9 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
       - name: Update CHANGELOG
         env:
@@ -61,8 +63,7 @@ jobs:
             ' CHANGELOG.md > CHANGELOG.md.tmp
             mv CHANGELOG.md.tmp CHANGELOG.md
           else
-            # Date section does not exist — create it at the top (after title)
-            # Find the first ## heading and insert before it
+            # Date section does not exist — create it before the first existing ## heading
             awk -v heading="$DATE_HEADING" -v entry="$ENTRY" '
               /^## / && !inserted {
                 print heading
@@ -74,7 +75,7 @@ jobs:
               { print }
               END {
                 if (!inserted) {
-                  print ""
+                  if (NR > 0) print ""
                   print heading
                   print ""
                   print entry
