@@ -25,13 +25,16 @@ async function getBuildPatterns(folderPath) {
 
     for (const pattern of BUILD_ARTIFACT_PATTERNS) {
       if (pattern === "Cargo.toml" && path.basename(folderPath) === "target") {
-        const parentEntries = await fs.readdir(path.dirname(folderPath), { withFileTypes: true });
-        if (parentEntries.some((entry) => entry.name === pattern)) {
-          detectedPatterns.push(pattern);
+        try {
+          const parentEntries = await fs.readdir(path.dirname(folderPath), { withFileTypes: true });
+          if (parentEntries.some((entry) => entry.name === pattern)) {
+            detectedPatterns.push(pattern);
+          }
+        } catch (_e) {
+          // ignore inaccessible parent directory; don't abort remaining pattern checks
         }
         continue;
       }
-
       if (pattern.includes("*")) {
         let regex = regexCache.get(pattern);
         if (!regex) {
