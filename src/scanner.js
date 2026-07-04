@@ -19,9 +19,19 @@ const regexCache = new Map();
  */
 async function getBuildPatterns(folderPath) {
   const detectedPatterns = [];
+
   try {
     const entries = await fs.readdir(folderPath, { withFileTypes: true });
+
     for (const pattern of BUILD_ARTIFACT_PATTERNS) {
+      if (pattern === "Cargo.toml" && path.basename(folderPath) === "target") {
+        const parentEntries = await fs.readdir(path.dirname(folderPath), { withFileTypes: true });
+        if (parentEntries.some((entry) => entry.name === pattern)) {
+          detectedPatterns.push(pattern);
+        }
+        continue;
+      }
+
       if (pattern.includes("*")) {
         let regex = regexCache.get(pattern);
         if (!regex) {

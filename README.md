@@ -155,13 +155,13 @@ my-project/dist
 - **Categorized & Grouped:** Results are grouped by type (Node Modules, Build Folders, etc.) for clarity.
 - **Size Information:** See the size of each item and the total reclaimable space.
 - **Concurrent Scanning:** ReclaimSpace uses a concurrent scanner to quickly find and process files.
-- **Build Artifact Detection:** It intelligently detects build folders by looking for common build artifacts.
+- **Build Artifact Detection:** It intelligently detects build folders by looking for common build artifacts, including Rust `target` directories.
 - **Auto-Delete Mode:** Use the `--yes` flag to delete all found items without confirmation.
 - **Dry Run Mode:** Use the `--dry` flag to see what would be deleted without actually deleting anything.
 - **Ignore Patterns:** Exclude specific folders or patterns using a `.reclaimspacerc` file or the `--ignore` flag.
 - **Interactive UI:** Supports 'a' to select all and 'i' to invert selection.
 - **Keyboard Protection:** Terminal input is suppressed during deletion, preventing accidental keystrokes (like Enter) from corrupting the output.
-- **Build Analysis:** Use the `--build-analysis` flag to see inferred project types and common build patterns.
+- **Build Analysis:** Use the `--build-analysis` flag to see inferred project types, including Rust, and common build patterns.
 - **Include Patterns:** Use the `--include` flag to scan only folders matching specific patterns.
 - **Global Config:** Ignore patterns can be saved globally via `--save`, applying across all projects.
 - **Deep Clean Mode:** Use the `--deep-clean` (`-dc`) flag to clear package manager caches (npm, pnpm, yarn, pip) for even more reclaimed space. Shows descriptive reasons when cache size is unchanged.
@@ -175,7 +175,7 @@ my-project/dist
     - `node_modules`
 2.  **Build/Cache Folders**
     - `.next`, `dist`, `build`, `storybook-static`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `out`, `.expo`, `.turbo`, `.cache`, `.shopify`, `.react-router`, `.tanstack`, `.vite-ssg-temp`
-    - `.rollup.cache`, `.parcel-cache`, `.vite`, `.astro`, `.solid`, `.remix`, `.docusaurus`, `.eleventy-cache`, `.gatsby-cache`, `public/build`
+    - `.rollup.cache`, `.parcel-cache`, `.vite`, `.astro`, `.solid`, `.remix`, `.docusaurus`, `.eleventy-cache`, `.gatsby-cache`, `public/build`, `target`
     - `.eslintcache`, `.stylelintcache`, `.prettiercache`, `.tsbuildinfo`, `.swc`, `.nx`, `.wwebjs_cache`, `.wwebjs_auth`
 3.  **Testing/Reporting Folders**
     - `coverage`, `.nyc_output`, `.pytest_cache`, `.tox`, `htmlcov`
