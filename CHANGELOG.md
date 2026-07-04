@@ -2,6 +2,8 @@
 
 ## 2026-06-06
 
+> **Release: v0.2.5 - 2026-07-04**
+
 > **Release: v0.2.4 - 2026-06-06**
 
 - **Descriptive Reasons in `--deep-clean` Output** ([#54](https://github.com/gaureshpai/reclaimspace/issues/54)):
