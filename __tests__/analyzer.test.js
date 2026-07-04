@@ -5,12 +5,14 @@ describe("analyzer", () => {
     const targets = [
       { category: "build", buildPatterns: ["angular.json", "package.json"] },
       { category: "build", buildPatterns: ["next.config.js"] },
+      { category: "build", buildPatterns: ["Cargo.toml"] },
       { category: "node_modules", buildPatterns: ["package.json"] }, // Only build category counts
     ];
 
     const result = analyzeBuildPatterns(targets);
     expect(result.inferredProjectTypes.angular).toBe(1);
     expect(result.inferredProjectTypes.nextjs).toBe(1);
+    expect(result.inferredProjectTypes.rust).toBe(1);
     expect(result.inferredProjectTypes.javascript).toBeUndefined(); // Covered by angular
   });
 

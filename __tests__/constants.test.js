@@ -139,6 +139,7 @@ describe("constants", () => {
       expect(buildCategory.names).toContain("build");
       expect(buildCategory.names).toContain(".next");
       expect(buildCategory.names).toContain(".cache");
+      expect(buildCategory.names).toContain("target");
     });
 
     it("should include framework-specific build folders", () => {
@@ -288,6 +289,7 @@ describe("constants", () => {
     it("should include configuration files", () => {
       expect(BUILD_ARTIFACT_PATTERNS).toContain("package.json");
       expect(BUILD_ARTIFACT_PATTERNS).toContain("tsconfig.json");
+      expect(BUILD_ARTIFACT_PATTERNS).toContain("Cargo.toml");
     });
 
     it("should include framework config files", () => {

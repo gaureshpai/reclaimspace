@@ -47,6 +47,7 @@ const FOLDER_CATEGORIES = [
       ".wwebjs_cache",
       ".wwebjs_auth",
       "public/build",
+      "target",
     ],
   },
   {
@@ -93,6 +94,7 @@ const BUILD_ARTIFACT_PATTERNS = [
   "vue.config.js",
   "next.config.js",
   "tsconfig.json",
+  "Cargo.toml",
 ];
 
 export { CATEGORIES, FOLDER_CATEGORIES, BUILD_ARTIFACT_PATTERNS };

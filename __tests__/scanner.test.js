@@ -199,4 +199,26 @@ describe("scanner", () => {
     expect(targets[0].category).toBe("custom");
     expect(targets[1].category).toBe("custom");
   });
+
+  it("should detect Cargo.toml for Rust target folders", async () => {
+    const rustProjectDir = path.join(FIXTURES_DIR, "rust-project");
+    await createDummyDir(path.join(rustProjectDir, "target"), 1500, ["artifact.bin"]);
+    await fs.writeFile(path.join(rustProjectDir, "Cargo.toml"), '[package]\nname = "demo"\n');
+
+    const mockOnProgress = {
+      start: () => {},
+      increment: () => {},
+      stop: () => {},
+    };
+    const mockSpinner = {
+      stop: () => {},
+      text: "",
+    };
+
+    const { targets } = await scanner.find([rustProjectDir], [], mockOnProgress, mockSpinner);
+    const targetDir = targets.find((t) => t.name === "target");
+
+    expect(targetDir).toBeDefined();
+    expect(targetDir.buildPatterns).toContain("Cargo.toml");
+  });
 });
