@@ -96,6 +96,7 @@ describe("Documentation", () => {
           readme.indexOf("**Build Analysis:**") + 150,
         );
         expect(buildAnalysisSection).toContain("--build-analysis");
+        expect(buildAnalysisSection).toContain("Rust");
       });
 
       it("should list 'Include Patterns' as a feature", () => {
@@ -138,6 +139,7 @@ describe("Documentation", () => {
           readme.indexOf("**Testing/Reporting Folders**"),
         );
         expect(buildSection).toContain(".nx");
+        expect(buildSection).toContain("target");
       });
 
       it("Testing/Reporting Folders should have its own line", () => {
@@ -295,6 +297,7 @@ describe("Documentation", () => {
           html.indexOf("Build Analysis:") + 200,
         );
         expect(buildAnalysisSection).toContain("--build-analysis");
+        expect(buildAnalysisSection).toContain("Rust");
       });
 
       it("should list 'Include Patterns' as a feature", () => {
@@ -337,6 +340,7 @@ describe("Documentation", () => {
           html.indexOf("Testing/Reporting Folders"),
         );
         expect(detectedSection).toContain(".nx");
+        expect(detectedSection).toContain("target");
       });
 
       it("should list .wwebjs_cache and .wwebjs_auth in Build/Cache Folders", () => {

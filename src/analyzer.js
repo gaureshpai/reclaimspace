@@ -25,6 +25,8 @@ function analyzeBuildPatterns(targets) {
         analysis.inferredProjectTypes.vue = (analysis.inferredProjectTypes.vue || 0) + 1;
       } else if (target.buildPatterns.includes("webpack.config.js")) {
         analysis.inferredProjectTypes.webpack = (analysis.inferredProjectTypes.webpack || 0) + 1;
+      } else if (target.buildPatterns.includes("Cargo.toml")) {
+        analysis.inferredProjectTypes.rust = (analysis.inferredProjectTypes.rust || 0) + 1;
       } else if (target.buildPatterns.includes("package.json")) {
         analysis.inferredProjectTypes.javascript =
           (analysis.inferredProjectTypes.javascript || 0) + 1;
