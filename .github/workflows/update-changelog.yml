@@ -28,8 +28,14 @@ jobs:
           DATE_HEADING="## ${TODAY}"
 
           # Extract conventional-commit type and description from PR title
-          TYPE=$(echo "$PR_TITLE" | sed -n 's/^\([a-z]*\)!*\(:. */\).*/\1/p')
-          DESC=$(echo "$PR_TITLE" | sed 's/^[a-z!]*: *//;s/ *(#[0-9]*)*$//')
+          if [[ "$PR_TITLE" =~ ^([a-z]+)!?:[[:space:]]*(.*)$ ]]; then
+            TYPE="${BASH_REMATCH[1]}"
+            DESC="${BASH_REMATCH[2]}"
+          else
+            TYPE="change"
+            DESC="$PR_TITLE"
+          fi
+          DESC=$(printf '%s' "$DESC" | sed -E 's/[[:space:]]*\(#[0-9]+\)$//')
 
           # Map conventional commit types to human-readable labels
           case "$TYPE" in
