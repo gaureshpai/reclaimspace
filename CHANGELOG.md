@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-18
+
+- **esbuild Bundle Pipeline**: 
+  - CLI is now bundled into a single minified `dist/reclaimspace.min.js` (~29KB) via esbuild instead of shipping raw source files.
+  - Removed `bin/` from npm package exports (build input only, not needed by consumers).
+  - Added `dist/` to `.gitignore` — build artifacts are no longer committed.
+  - Added `pnpm build` step to both CI and publish GitHub Actions workflows.
+  - Added `prepublishOnly` script so `npm publish` automatically builds first.
+  - Removed shebang from `bin/reclaimspace.js` entry point (esbuild `banner` config adds it).
+  - Fixed E2E tests to run against the bundled binary instead of the deleted `bin/reclaimspace.js`.
+  - Fixed `package-export.test.js` assertions for multi-line minified output and ASCII logo in version output.
+  - Added `exports` field to `package.json` for programmatic usage via `import { run } from 'reclaimspace'`.
+  - Fixed optional chaining in `src/ui.js` for `process.stdin?.isPaused()`.
+
 ## 2026-06-06
 
 > **Release: v0.2.5 - 2026-07-04**

@@ -23,6 +23,8 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
+      - name: Build
+        run: pnpm build
       - name: Verify package
         run: pnpm pack --dry-run
       - name: Run Biome lint

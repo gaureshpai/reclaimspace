@@ -5,7 +5,7 @@ import path from "node:path";
 import os from "node:os";
 
 const execFileAsync = promisify(execFile);
-const BIN_PATH = path.join(process.cwd(), "bin", "reclaimspace.js");
+const BIN_PATH = path.join(process.cwd(), "dist", "reclaimspace.min.js");
 
 /**
  * Run the reclaimspace binary with the given args and return stdout, stderr, and exit code.
