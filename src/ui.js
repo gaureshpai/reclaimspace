@@ -261,7 +261,7 @@ async function runDeepCleanWithUI(options, state) {
   }
 
   // Suppress stdin during deletion to prevent accidental keystrokes from corrupting output
-  const wasPaused = process.stdin && process.stdin.isPaused();
+  const wasPaused = process.stdin?.isPaused();
   if (process.stdin && !wasPaused) {
     process.stdin.pause();
   }

@@ -3,16 +3,21 @@
   "version": "0.2.5",
   "description": "A CLI tool to reclaim disk space by finding and removing regeneratable development folders.",
   "main": "src/main.js",
+  "exports": {
+    ".": "./src/main.js"
+  },
   "packageManager": "pnpm@10.28.2",
   "type": "module",
   "engines": {
     "node": ">=18.12.0"
   },
   "bin": {
-    "reclaimspace": "bin/reclaimspace.js"
+    "reclaimspace": "dist/reclaimspace.min.js"
   },
   "scripts": {
     "test": "jest",
+    "build": "node scripts/build.js",
+    "prepublishOnly": "pnpm build",
     "lint": "biome lint . --write",
     "clean": "reclaimspace --yes",
     "format": "biome format . --write",
@@ -46,7 +51,7 @@
     "url": "https://github.com/gaureshpai/reclaimspace/issues"
   },
   "files": [
-    "bin/",
+    "dist/",
     "src/",
     "LICENSE",
     "README.md"
@@ -55,6 +60,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.28.6",
     "@babel/preset-env": "^7.29.0",
     "@biomejs/biome": "^2.4.11",
+    "esbuild": "^0.25.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
     "lint-staged": "^16.2.7",
