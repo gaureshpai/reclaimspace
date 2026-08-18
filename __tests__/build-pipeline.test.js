@@ -58,7 +58,7 @@ describe("esbuild bundle pipeline configuration", () => {
     });
 
     it("should ignore the dist/ build output directory", () => {
-      expect(gitignore.split("\n")).toContain("dist/");
+      expect(gitignore.split(/\r?\n/)).toContain("dist/");
     });
 
     it("should still allow the test.yml workflow file", () => {
@@ -66,7 +66,7 @@ describe("esbuild bundle pipeline configuration", () => {
     });
 
     it("should still ignore node_modules", () => {
-      expect(gitignore.split("\n")).toContain("node_modules");
+      expect(gitignore.split(/\r?\n/)).toContain("node_modules");
     });
   });
 
