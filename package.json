@@ -16,8 +16,9 @@
   },
   "scripts": {
     "test": "jest",
+    "pretest": "npm run build",
     "build": "node scripts/build.js",
-    "prepublishOnly": "pnpm build",
+    "prepublishOnly": "npm run build",
     "lint": "biome lint . --write",
     "clean": "reclaimspace --yes",
     "format": "biome format . --write",
