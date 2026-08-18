@@ -2,6 +2,8 @@
 
 ## 2026-08-18
 
+> **Release: v0.3.0 - 2026-08-18**
+
 - **esbuild Bundle Pipeline**: 
   - CLI is now bundled into a single minified `dist/reclaimspace.min.js` (~29KB) via esbuild instead of shipping raw source files.
   - Removed `bin/` from npm package exports (build input only, not needed by consumers).
