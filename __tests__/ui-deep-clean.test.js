@@ -310,4 +310,75 @@ describe("runDeepCleanWithUI", () => {
       expect(events).toEqual(["pause", "deep-clean", "resume"]);
     });
   });
+
+  describe("process.stdin?.isPaused() optional chaining (regression)", () => {
+    let originalStdin;
+
+    beforeEach(() => {
+      originalStdin = process.stdin;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(process, "stdin", {
+        value: originalStdin,
+        configurable: true,
+        writable: true,
+      });
+    });
+
+    it("should not throw when process.stdin is undefined", async () => {
+      Object.defineProperty(process, "stdin", {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+      runDeepClean.mockResolvedValue({ cleaned: [], totalCleaned: 0 });
+
+      await expect(runDeepCleanWithUI({ dry: false })).resolves.toBeUndefined();
+    });
+
+    it("should not attempt to pause/resume stdin when process.stdin is undefined", async () => {
+      Object.defineProperty(process, "stdin", {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+      runDeepClean.mockResolvedValue({ cleaned: [], totalCleaned: 0 });
+
+      await runDeepCleanWithUI({ dry: false });
+
+      // pauseSpy/resumeSpy were attached to the original stdin object; since process.stdin
+      // is undefined during this call, the guarded pause/resume calls must be skipped entirely.
+      expect(pauseSpy).not.toHaveBeenCalled();
+      expect(resumeSpy).not.toHaveBeenCalled();
+    });
+
+    it("should still run the deep clean and report results when process.stdin is undefined", async () => {
+      Object.defineProperty(process, "stdin", {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+      runDeepClean.mockResolvedValue({
+        cleaned: [{ name: "npm", beforeSize: 0, afterSize: 0, success: true }],
+        totalCleaned: 0,
+      });
+
+      await runDeepCleanWithUI({ dry: false });
+
+      const allLogs = consoleLogMock.mock.calls.map((args) => args[0]).join(" ");
+      expect(allLogs).toMatch(/Caches cleared.*1/);
+    });
+
+    it("should behave the same as when stdin exists and is not paused (pause/resume still called)", async () => {
+      // Sanity check: with a real (non-undefined) stdin, pause/resume are still invoked,
+      // proving the optional chaining only changes behavior for the undefined case.
+      runDeepClean.mockResolvedValue({ cleaned: [], totalCleaned: 0 });
+
+      await runDeepCleanWithUI({ dry: false });
+
+      expect(pauseSpy).toHaveBeenCalledTimes(1);
+      expect(resumeSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });
