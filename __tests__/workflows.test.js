@@ -45,6 +45,24 @@ describe("GitHub Actions Workflows", () => {
       expect(ciWorkflow).not.toContain("--frozen-lockfile");
     });
 
+    it("should have a 'Build' step running pnpm build", () => {
+      expect(ciWorkflow).toContain("- name: Build");
+      expect(ciWorkflow).toContain("run: pnpm build");
+    });
+
+    it("should run the build after installing dependencies", () => {
+      const installIdx = ciWorkflow.indexOf("pnpm install");
+      const buildIdx = ciWorkflow.indexOf("pnpm build");
+      expect(installIdx).toBeGreaterThan(-1);
+      expect(buildIdx).toBeGreaterThan(installIdx);
+    });
+
+    it("should run the build before verifying the package", () => {
+      const buildIdx = ciWorkflow.indexOf("pnpm build");
+      const verifyIdx = ciWorkflow.indexOf("pnpm pack --dry-run");
+      expect(verifyIdx).toBeGreaterThan(buildIdx);
+    });
+
     it("should have a 'Verify package' step using pnpm pack --dry-run", () => {
       expect(ciWorkflow).toContain("Verify package");
       expect(ciWorkflow).toContain("pnpm pack --dry-run");
@@ -275,6 +293,26 @@ describe("GitHub Actions Workflows", () => {
 
     it("should have contents: write permission", () => {
       expect(publish).toContain("contents: write");
+    });
+
+    it("should have a 'Build' step running pnpm build", () => {
+      expect(publish).toContain("- name: Build");
+      expect(publish).toContain("run: pnpm build");
+    });
+
+    it("should run the build after installing dependencies with a frozen lockfile", () => {
+      const installIdx = publish.indexOf("pnpm install --frozen-lockfile");
+      const buildIdx = publish.indexOf("pnpm build");
+      expect(installIdx).toBeGreaterThan(-1);
+      expect(buildIdx).toBeGreaterThan(installIdx);
+    });
+
+    it("should run the build before running tests and publishing", () => {
+      const buildIdx = publish.indexOf("pnpm build");
+      const testIdx = publish.indexOf("run: pnpm test");
+      const publishIdx = publish.indexOf("npm publish --provenance");
+      expect(testIdx).toBeGreaterThan(buildIdx);
+      expect(publishIdx).toBeGreaterThan(testIdx);
     });
 
     it("should use npm publish with provenance", () => {
